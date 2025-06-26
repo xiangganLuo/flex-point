@@ -64,14 +64,30 @@ public class ExtensionAbilityInvocationHandler implements InvocationHandler {
 
     private Object getDefaultReturnValue(Class<?> returnType) {
         if (returnType.isPrimitive()) {
-            if (returnType == boolean.class) return false;
-            if (returnType == int.class) return 0;
-            if (returnType == long.class) return 0L;
-            if (returnType == double.class) return 0.0d;
-            if (returnType == float.class) return 0.0f;
-            if (returnType == short.class) return (short) 0;
-            if (returnType == byte.class) return (byte) 0;
-            if (returnType == char.class) return '\u0000';
+            if (returnType == boolean.class) {
+                return false;
+            }
+            if (returnType == int.class) {
+                return 0;
+            }
+            if (returnType == long.class) {
+                return 0L;
+            }
+            if (returnType == double.class) {
+                return 0.0d;
+            }
+            if (returnType == float.class) {
+                return 0.0f;
+            }
+            if (returnType == short.class) {
+                return (short) 0;
+            }
+            if (returnType == byte.class) {
+                return (byte) 0;
+            }
+            if (returnType == char.class) {
+                return '\u0000';
+            }
         }
         return null;
     }

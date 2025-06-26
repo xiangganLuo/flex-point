@@ -48,7 +48,8 @@ public class DefaultExtensionCacheManager implements ExtensionCacheManager {
     
     @Override
     public <T extends ExtensionAbility> void cacheExtension(Class<T> extensionType, String key, T extension) {
-        cacheExtension(extensionType, key, extension, 30, TimeUnit.MINUTES); // 默认30分钟过期
+        // 默认30分钟过期
+        cacheExtension(extensionType, key, extension, 30, TimeUnit.MINUTES);
     }
     
     @Override

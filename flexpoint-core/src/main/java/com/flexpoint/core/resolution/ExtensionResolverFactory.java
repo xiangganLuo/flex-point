@@ -15,4 +15,10 @@ public interface ExtensionResolverFactory {
      * @return 解析器实例
      */
     ExtensionResolutionStrategy getResolver(String resolverName);
+
+    /**
+     * 注册解析器
+     * @param resolver 解析器实例
+     */
+    void registerResolver(ExtensionResolutionStrategy resolver);
 } 

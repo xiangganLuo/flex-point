@@ -6,6 +6,9 @@ import com.flexpoint.core.monitor.DefaultExtensionMonitor;
 import com.flexpoint.core.monitor.ExtensionMonitor;
 import com.flexpoint.core.registry.DefaultExtensionRegistry;
 import com.flexpoint.core.registry.ExtensionRegistry;
+import com.flexpoint.core.resolution.DefaultExtensionResolverFactory;
+import com.flexpoint.core.resolution.ExtensionResolutionStrategy;
+import com.flexpoint.core.resolution.ExtensionResolverFactory;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -21,6 +24,7 @@ public class FlexPointBuilder {
     private ExtensionRegistry registry;
     private ExtensionCacheManager cacheManager;
     private ExtensionMonitor monitor;
+    private ExtensionResolverFactory resolverFactory;
     
     /**
      * 使用默认组件构建
@@ -54,6 +58,25 @@ public class FlexPointBuilder {
     }
     
     /**
+     * 使用自定义解析器工厂
+     */
+    public FlexPointBuilder withResolverFactory(ExtensionResolverFactory resolverFactory) {
+        this.resolverFactory = resolverFactory;
+        return this;
+    }
+    
+    /**
+     * 注册自定义解析器
+     */
+    public FlexPointBuilder withResolver(ExtensionResolutionStrategy resolver) {
+        if (this.resolverFactory == null) {
+            this.resolverFactory = new DefaultExtensionResolverFactory();
+        }
+        this.resolverFactory.registerResolver(resolver);
+        return this;
+    }
+    
+    /**
      * 构建FlexPoint实例
      */
     public FlexPoint build() {
@@ -73,7 +96,12 @@ public class FlexPointBuilder {
             log.debug("使用默认监控器: DefaultExtensionMonitor");
         }
         
-        ExtensionAbilityFactory factory = new ExtensionAbilityFactory(registry, cacheManager, monitor);
-        return new FlexPoint(factory, registry, cacheManager, monitor);
+        if (resolverFactory == null) {
+            resolverFactory = new DefaultExtensionResolverFactory();
+            log.debug("使用默认解析器工厂: DefaultExtensionResolverFactory");
+        }
+        
+        ExtensionAbilityFactory factory = new ExtensionAbilityFactory(registry, cacheManager, monitor, resolverFactory);
+        return new FlexPoint(factory, registry, cacheManager, monitor, resolverFactory);
     }
 } 

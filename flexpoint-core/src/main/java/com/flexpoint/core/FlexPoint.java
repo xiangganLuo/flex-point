@@ -5,6 +5,8 @@ import com.flexpoint.core.cache.ExtensionCacheManager;
 import com.flexpoint.core.metadata.ExtensionMetadata;
 import com.flexpoint.core.monitor.ExtensionMonitor;
 import com.flexpoint.core.registry.ExtensionRegistry;
+import com.flexpoint.core.resolution.ExtensionResolverFactory;
+import com.flexpoint.core.resolution.ExtensionResolutionStrategy;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -25,13 +27,15 @@ public class FlexPoint {
     private final ExtensionRegistry registry;
     private final ExtensionCacheManager cacheManager;
     private final ExtensionMonitor monitor;
+    private final ExtensionResolverFactory resolverFactory;
     
     FlexPoint(ExtensionAbilityFactory factory, ExtensionRegistry registry, 
-              ExtensionCacheManager cacheManager, ExtensionMonitor monitor) {
+              ExtensionCacheManager cacheManager, ExtensionMonitor monitor, ExtensionResolverFactory resolverFactory) {
         this.factory = factory;
         this.registry = registry;
         this.cacheManager = cacheManager;
         this.monitor = monitor;
+        this.resolverFactory = resolverFactory;
     }
     
     /**
@@ -144,5 +148,21 @@ public class FlexPoint {
     
     public ExtensionAbilityFactory getFactory() {
         return factory;
+    }
+    
+    /**
+     * 注册自定义解析器
+     */
+    public void registerResolver(ExtensionResolutionStrategy resolver) {
+        if (resolverFactory instanceof com.flexpoint.core.resolution.DefaultExtensionResolverFactory) {
+            resolverFactory.registerResolver(resolver);
+        }
+    }
+
+    /**
+     * 获取解析器工厂
+     */
+    public ExtensionResolverFactory getResolverFactory() {
+        return resolverFactory;
     }
 } 

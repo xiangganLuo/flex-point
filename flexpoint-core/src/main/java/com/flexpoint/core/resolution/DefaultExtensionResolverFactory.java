@@ -20,7 +20,7 @@ public class DefaultExtensionResolverFactory implements ExtensionResolverFactory
 
     public DefaultExtensionResolverFactory() {
         // 注册默认解析器
-        registerResolver(DEFAULT_RESOLVER_NAME, new DefaultExtensionResolutionStrategy());
+        registerResolver(new DefaultExtensionResolutionStrategy());
     }
     
     @Override
@@ -45,8 +45,13 @@ public class DefaultExtensionResolverFactory implements ExtensionResolverFactory
      * @param name 解析器名称
      * @param resolver 解析器实例
      */
-    public void registerResolver(String name, ExtensionResolutionStrategy resolver) {
-        resolvers.put(name, resolver);
-        log.info("注册解析器: {} -> {}", name, resolver.getClass().getSimpleName());
+    @Override
+    public void registerResolver(ExtensionResolutionStrategy resolver) {
+        if (resolver == null || resolver.getStrategyName() == null) {
+            log.warn("解析器注册失败: 解析器名称为空");
+            return;
+        }
+        resolvers.put(resolver.getStrategyName(), resolver);
+        log.info("注册解析器: {} -> {}", resolver.getStrategyName(), resolver.getClass().getSimpleName());
     }
 } 

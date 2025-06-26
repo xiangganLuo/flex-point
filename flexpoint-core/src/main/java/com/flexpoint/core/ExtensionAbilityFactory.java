@@ -26,13 +26,23 @@ import java.util.Optional;
  * @version 1.0.0
  */
 @Slf4j
-@RequiredArgsConstructor
 public class ExtensionAbilityFactory {
 
     private final ExtensionRegistry extensionRegistry;
     private final ExtensionCacheManager extensionCacheManager;
     private final ExtensionMonitor extensionMonitor;
-    private final ExtensionResolverFactory resolverFactory = new DefaultExtensionResolverFactory();
+    private final ExtensionResolverFactory resolverFactory;
+    
+    public ExtensionAbilityFactory(ExtensionRegistry extensionRegistry, ExtensionCacheManager extensionCacheManager, ExtensionMonitor extensionMonitor) {
+        this(extensionRegistry, extensionCacheManager, extensionMonitor, new DefaultExtensionResolverFactory());
+    }
+
+    public ExtensionAbilityFactory(ExtensionRegistry extensionRegistry, ExtensionCacheManager extensionCacheManager, ExtensionMonitor extensionMonitor, ExtensionResolverFactory resolverFactory) {
+        this.extensionRegistry = extensionRegistry;
+        this.extensionCacheManager = extensionCacheManager;
+        this.extensionMonitor = extensionMonitor;
+        this.resolverFactory = resolverFactory == null ? new DefaultExtensionResolverFactory() : resolverFactory;
+    }
     
     public <T extends ExtensionAbility> T findAbility(Class<T> extensionType, Map<String, Object> context) {
         String extensionId = ExtensionUtil.getExtensionId(extensionType, context);

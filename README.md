@@ -85,6 +85,7 @@ FlexPoint/
 - [官方文档（建设中）](#)
 - [示例代码](flexpoint-test)
 - [多场景接入示例（Spring/Spring Boot/Java原生）](flexpoint-examples/README.md)
+- [自定义扩展点解析策略与注册示例](#自定义扩展点解析策略)
 - [迁移指南](#迁移指南)
 
 ---
@@ -128,3 +129,50 @@ public class OrderService {
     }
 }
 ```
+
+## 🧩 自定义扩展点解析策略
+
+Flex Point 支持自定义扩展点解析策略。只需继承 `AbstractExtensionResolutionStrategy` 并实现 `extractCode` 方法，然后通过 `withResolver` 或 `registerResolver` 注册。
+
+### 1. 定义自定义解析器
+
+```java
+public class CustomExtensionResolutionStrategy extends AbstractExtensionResolutionStrategy {
+    @Override
+    protected String extractCode(Map<String, Object> context) {
+        // 只需关注如何从context中提取code
+        return (String) context.get("appCode");
+    }
+    @Override
+    public String getStrategyName() {
+        return "CustomExtensionResolutionStrategy";
+    }
+}
+```
+
+### 2. 注册自定义解析器
+
+**方式一：建造者链式注册**
+```java
+FlexPoint flexPoint = FlexPointBuilder.create()
+    .withResolver(new CustomExtensionResolutionStrategy())
+    .build();
+```
+
+**方式二：运行时注册**
+```java
+flexPoint.registerResolver(new CustomExtensionResolutionStrategy());
+```
+
+### 3. 多策略动态切换
+
+你可以为不同扩展点接口通过注解指定解析策略：
+
+```java
+@ExtensionResolver("CustomExtensionResolutionStrategy")
+public interface DemoAbility extends ExtensionAbility {
+    ...
+}
+```
+
+---

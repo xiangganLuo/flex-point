@@ -8,6 +8,10 @@ public class JavaExampleMain {
         // 使用建造者模式创建FlexPoint实例
         FlexPoint flexPoint = FlexPointBuilder.create().build();
 
+        // 注册解析器
+        CustomExtensionResolutionStrategy customExtensionResolutionStrategy = new CustomExtensionResolutionStrategy();
+        flexPoint.registerResolver(customExtensionResolutionStrategy);
+
         // 注册扩展点实现
         DemoAbility mallDiscount = new MallDiscountAbility();
         flexPoint.register(DemoAbility.class, mallDiscount);
