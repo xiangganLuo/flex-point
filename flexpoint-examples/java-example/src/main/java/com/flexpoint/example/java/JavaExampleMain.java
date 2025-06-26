@@ -1,24 +1,24 @@
 package com.flexpoint.example.java;
 
-import com.flexpoint.core.ExtensionAbilityFactory;
-import com.flexpoint.core.registry.DefaultExtensionRegistry;
-import com.flexpoint.core.cache.DefaultExtensionCacheManager;
-import com.flexpoint.core.monitor.DefaultExtensionMonitor;
+import com.flexpoint.core.FlexPoint;
+import com.flexpoint.core.FlexPointBuilder;
 
 public class JavaExampleMain {
     public static void main(String[] args) {
-        DefaultExtensionRegistry registry = new DefaultExtensionRegistry();
-        DefaultExtensionCacheManager cacheManager = new DefaultExtensionCacheManager();
-        DefaultExtensionMonitor monitor = new DefaultExtensionMonitor();
-        ExtensionAbilityFactory factory = new ExtensionAbilityFactory(registry, cacheManager, monitor);
+        // 使用建造者模式创建FlexPoint实例
+        FlexPoint flexPoint = FlexPointBuilder.create().build();
 
         // 注册扩展点实现
         DemoAbility mallDiscount = new MallDiscountAbility();
-        registry.register(DemoAbility.class, mallDiscount, null);
+        flexPoint.register(DemoAbility.class, mallDiscount);
 
         // 查找并调用
-        DemoAbility found = factory.findAbility(DemoAbility.class);
+        DemoAbility found = flexPoint.findAbility(DemoAbility.class);
         double price = 100.0;
         System.out.println("原价: " + price + ", 折扣价: " + found.discount(price));
+        
+        // 获取缓存统计
+        var stats = flexPoint.getCacheStatistics();
+        System.out.println("缓存命中率: " + stats.getHitRate());
     }
 } 
