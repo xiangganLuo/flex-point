@@ -253,9 +253,3 @@ TestExtension found = factory.findAbility(TestExtension.class);
 - 注释完备，方法应有 JavaDoc
 - 尽量不引入额外三方库
 - 新增功能建议补充单元测试
-
----
-
-## 📄 License
-
-MIT License 
