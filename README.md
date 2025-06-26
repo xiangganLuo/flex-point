@@ -6,8 +6,8 @@
   <strong>轻量级、极致灵活的扩展点解决方案</strong>
 </p>
 <p align="center">
-    <a target="_blank" href="https://search.maven.org/artifact/com.oneduedata.platform/flexpoint-springboot">
-        <img src="https://img.shields.io/maven-central/v/com.oneduedata.platform/flexpoint-springboot.svg?label=Maven%20Central" />
+    <a target="_blank" href="https://search.maven.org/artifact/com.flexpoint/flexpoint-springboot">
+        <img src="https://img.shields.io/maven-central/v/com.flexpoint/flexpoint-springboot.svg?label=Maven%20Central" />
     </a>
     <a target="_blank" href='https://www.apache.org/licenses/LICENSE-2.0.html'>
         <img src='https://img.shields.io/badge/license-Apache%202.0-blue.svg'/>
@@ -58,7 +58,7 @@ FlexPoint/
 
 ```xml
 <dependency>
-    <groupId>com.oneduedata.platform</groupId>
+    <groupId>com.flexpoint</groupId>
     <artifactId>flexpoint-springboot</artifactId>
     <version>${revision}</version>
 </dependency>
@@ -69,7 +69,7 @@ FlexPoint/
 > ```xml
 > <dependencyManagement>
 >   <dependency>
->     <groupId>com.oneduedata.platform</groupId>
+>     <groupId>com.flexpoint</groupId>
 >     <artifactId>flexpoint-dependencies-bom</artifactId>
 >     <version>${revision}</version>
 >     <type>pom</type>
