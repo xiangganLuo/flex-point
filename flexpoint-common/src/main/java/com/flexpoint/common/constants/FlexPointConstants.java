@@ -1,0 +1,21 @@
+package com.flexpoint.common.constants;
+
+/**
+ * 扩展点框架常量
+ *
+ * @author xiangganluo
+ * @version 1.0.0
+ */
+public interface FlexPointConstants {
+
+    /**
+     * 业务标识键
+     */
+    String CODE = "code";
+
+    /**
+     * 版本键
+     */
+    String VERSION = "version";
+
+} 
