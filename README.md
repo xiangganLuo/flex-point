@@ -35,6 +35,7 @@ FlexPoint/
 ├── flexpoint-spring/             # Spring集成模块 - Spring环境下的集成
 ├── flexpoint-springboot/         # Spring Boot自动配置模块
 └── flexpoint-test/               # 测试模块 - 测试用例和示例
+└── flexpoint-examples/           # 多场景接入示例模块 - Spring、Spring Boot、Java原生
 ```
 
 | 模块名                        | 说明                                   |
