@@ -1,5 +1,6 @@
 package com.flexpoint.spring.register;
 
+import com.flexpoint.core.resolution.AbstractExtensionResolutionStrategy;
 import com.flexpoint.core.resolution.ExtensionResolutionStrategy;
 import com.flexpoint.core.resolution.ExtensionResolverFactory;
 import jakarta.annotation.PostConstruct;
@@ -8,7 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
@@ -20,7 +20,6 @@ import java.util.Map;
  * @version 1.0.0
  */
 @Slf4j
-@Component
 @RequiredArgsConstructor
 public class SpringExtensionResolverRegister implements ApplicationContextAware {
 
@@ -39,7 +38,7 @@ public class SpringExtensionResolverRegister implements ApplicationContextAware 
             String beanName = entry.getKey();
             
             // 跳过默认解析器，避免重复注册
-            if (resolver.getClass().getSimpleName().equals("DefaultExtensionResolutionStrategy")) {
+            if (resolver.getClass().getSimpleName().equals(AbstractExtensionResolutionStrategy.DEFAULT_RESOLVER_NAME)) {
                 log.debug("跳过默认解析器: {}", beanName);
                 continue;
             }

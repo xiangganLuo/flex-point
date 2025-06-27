@@ -42,7 +42,6 @@ public class DefaultExtensionResolverFactory implements ExtensionResolverFactory
     /**
      * 注册解析器
      *
-     * @param name 解析器名称
      * @param resolver 解析器实例
      */
     @Override
@@ -51,7 +50,8 @@ public class DefaultExtensionResolverFactory implements ExtensionResolverFactory
             log.warn("解析器注册失败: 解析器名称为空");
             return;
         }
+        
         resolvers.put(resolver.getStrategyName(), resolver);
-        log.info("注册解析器: {} -> {}", resolver.getStrategyName(), resolver.getClass().getSimpleName());
+        log.info("注册解析器: {}", resolver.getStrategyName());
     }
 } 

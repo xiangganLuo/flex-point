@@ -1,10 +1,9 @@
 package com.flexpoint.core.registry;
 
-import com.flexpoint.common.ExtensionAbility;
-import com.flexpoint.core.metadata.ExtensionMetadata;
+import com.flexpoint.core.extension.ExtensionAbility;
+import com.flexpoint.core.registry.metadata.ExtensionMetadata;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * 扩展点注册中心接口
@@ -32,7 +31,7 @@ public interface ExtensionRegistry {
      * @param context 上下文
      * @return 扩展点列表
      */
-    <T extends ExtensionAbility> List<T> getExtensions(Class<T> extensionType, Map<String, Object> context);
+    <T extends ExtensionAbility> List<T> getExtensions(Class<T> extensionType);
     
     /**
      * 根据ID获取扩展点

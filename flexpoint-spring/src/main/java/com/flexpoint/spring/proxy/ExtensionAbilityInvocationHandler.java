@@ -1,11 +1,12 @@
 package com.flexpoint.spring.proxy;
 
-import com.flexpoint.common.ExtensionAbility;
 import com.flexpoint.common.annotations.ExtensionAbilityReference;
 import com.flexpoint.common.constants.FlexPointConstants;
-import com.flexpoint.common.utils.ExtensionUtil;
-import com.flexpoint.core.monitor.ExtensionMonitor;
 import com.flexpoint.common.exception.ExtensionAbilityNotFoundException;
+import com.flexpoint.common.utils.ExtensionUtil;
+import com.flexpoint.core.extension.ExtensionAbility;
+import com.flexpoint.core.extension.ExtensionAbilityFactory;
+import com.flexpoint.core.monitor.ExtensionMonitor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cglib.proxy.InvocationHandler;
 
@@ -23,8 +24,11 @@ import java.util.Map;
 public class ExtensionAbilityInvocationHandler implements InvocationHandler {
 
     private final ExtensionAbilityReference reference;
-    private final com.flexpoint.core.ExtensionAbilityFactory ExtensionAbilityFactory;
+
+    private final ExtensionAbilityFactory extensionAbilityFactory;
+
     private final ExtensionMonitor extensionMonitor;
+
     private final Class<?> fieldType;
 
     @SuppressWarnings("unchecked")
@@ -32,26 +36,25 @@ public class ExtensionAbilityInvocationHandler implements InvocationHandler {
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         // 构造上下文
         Map<String, Object> context = new HashMap<>();
+
+        // 注解code如果存在，则优先使用注解中的值
         if (!reference.code().isEmpty()) {
             context.put(FlexPointConstants.CODE, reference.code());
         }
-        if (!reference.version().isEmpty()) {
-            context.put(FlexPointConstants.VERSION, reference.version());
-        }
-        
-        ExtensionAbility target = ExtensionAbilityFactory.findAbility((Class<ExtensionAbility>) fieldType, context);
-        if (target == null && reference.required()) {
+
+        ExtensionAbility ability = extensionAbilityFactory.findAbility((Class<ExtensionAbility>) fieldType, context);
+        if (ability == null && reference.required()) {
             throw new ExtensionAbilityNotFoundException("No ExtensionAbility implementation found for: " + fieldType.getName());
         }
-        if (target == null) {
+        if (ability == null) {
             return getDefaultReturnValue(method.getReturnType());
         }
         
         long startTime = System.currentTimeMillis();
-        String extensionId = ExtensionUtil.getExtensionId(target.getClass(), context);
+        String extensionId = ExtensionUtil.getExtensionId(ability.getClass(), ability.getCode());
         Object ret;
         try {
-            ret = method.invoke(target, args);
+            ret = method.invoke(ability, args);
             long duration = System.currentTimeMillis() - startTime;
             extensionMonitor.recordInvocation(extensionId, duration, true);
         } catch (Throwable throwable) {

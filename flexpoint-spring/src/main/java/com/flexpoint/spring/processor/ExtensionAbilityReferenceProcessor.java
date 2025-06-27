@@ -1,15 +1,14 @@
 package com.flexpoint.spring.processor;
 
-import com.flexpoint.common.ExtensionAbility;
+import com.flexpoint.core.extension.ExtensionAbility;
 import com.flexpoint.common.annotations.ExtensionAbilityReference;
-import com.flexpoint.core.ExtensionAbilityFactory;
+import com.flexpoint.core.extension.ExtensionAbilityFactory;
 import com.flexpoint.core.monitor.ExtensionMonitor;
 import com.flexpoint.spring.proxy.ExtensionAbilityInvocationHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.cglib.proxy.Proxy;
-import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
 
@@ -20,7 +19,6 @@ import java.lang.reflect.Field;
  * @author xiangganluo
  * @version 1.0.0
  */
-@Component
 @RequiredArgsConstructor
 public class ExtensionAbilityReferenceProcessor implements BeanPostProcessor {
 

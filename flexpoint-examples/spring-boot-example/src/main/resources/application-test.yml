@@ -1,0 +1,19 @@
+# 测试环境配置
+server:
+  port: 8081
+
+spring:
+  application:
+    name: flexpoint-spring-boot-example-test
+
+logging:
+  level:
+    com.flexpoint: DEBUG
+    com.flexpoint.example.springboot: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# Flex Point框架测试配置
+flexpoint:
+  # 启用框架
+  enabled: true

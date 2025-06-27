@@ -13,9 +13,4 @@ public interface FlexPointConstants {
      */
     String CODE = "code";
 
-    /**
-     * 版本键
-     */
-    String VERSION = "version";
-
 } 

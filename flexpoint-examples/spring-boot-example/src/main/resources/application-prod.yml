@@ -1,0 +1,19 @@
+# 生产环境配置
+server:
+  port: 8080
+
+spring:
+  application:
+    name: flexpoint-spring-boot-example-prod
+
+logging:
+  level:
+    com.flexpoint: INFO
+    com.flexpoint.example.springboot: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# Flex Point框架生产配置
+flexpoint:
+  # 启用框架
+  enabled: true

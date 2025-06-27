@@ -1,16 +1,19 @@
 package com.flexpoint.test;
 
-import com.flexpoint.common.ExtensionAbility;
-import com.flexpoint.common.annotations.ExtensionInfo;
 import com.flexpoint.common.annotations.ExtensionAbilityReference;
-import com.flexpoint.core.ExtensionAbilityFactory;
-import com.flexpoint.core.cache.DefaultExtensionCacheManager;
+import com.flexpoint.common.annotations.ExtensionInfo;
+import com.flexpoint.core.extension.ExtensionAbility;
+import com.flexpoint.core.extension.ExtensionAbilityFactory;
 import com.flexpoint.core.monitor.DefaultExtensionMonitor;
 import com.flexpoint.core.registry.DefaultExtensionRegistry;
+import com.flexpoint.core.registry.metadata.DefaultExtensionMetadata;
+import com.flexpoint.core.registry.metadata.ExtensionMetadata;
+import com.flexpoint.core.resolution.DefaultExtensionResolutionStrategy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -25,15 +28,13 @@ class FlexPointFrameworkTest {
 
     private ExtensionAbilityFactory factory;
     private DefaultExtensionRegistry registry;
-    private DefaultExtensionCacheManager cacheManager;
     private DefaultExtensionMonitor monitor;
 
     @BeforeEach
     void setUp() {
         registry = new DefaultExtensionRegistry();
-        cacheManager = new DefaultExtensionCacheManager();
         monitor = new DefaultExtensionMonitor();
-        factory = new ExtensionAbilityFactory(registry, cacheManager, monitor);
+        factory = new ExtensionAbilityFactory(registry, monitor);
     }
 
     @Test
@@ -78,25 +79,6 @@ class FlexPointFrameworkTest {
     }
 
     @Test
-    void testCacheFunctionality() {
-        // 创建并注册扩展点
-        TestExtensionImpl testExtension = new TestExtensionImpl();
-        registry.register(TestExtension.class, testExtension, null);
-        
-        // 第一次查找，应该从注册中心获取
-        TestExtension found1 = factory.findAbility(TestExtension.class);
-        assertNotNull(found1);
-        
-        // 第二次查找，应该从缓存获取
-        TestExtension found2 = factory.findAbility(TestExtension.class);
-        assertNotNull(found2);
-        
-        // 验证缓存统计
-        var stats = cacheManager.getCacheStatistics();
-        assertTrue(stats.getHitCount() > 0);
-    }
-
-    @Test
     void testMonitoring() {
         // 创建并注册扩展点
         TestExtensionImpl testExtension = new TestExtensionImpl();
@@ -111,6 +93,235 @@ class FlexPointFrameworkTest {
         assertNotNull(metrics);
         assertTrue(metrics.getTotalInvocations() > 0);
         assertTrue(metrics.getSuccessInvocations() > 0);
+    }
+
+    @Test
+    void testFindAbilityWithoutContext() {
+        // 创建扩展点
+        TestExtensionImpl testExtension = new TestExtensionImpl();
+        registry.register(TestExtension.class, testExtension, null);
+        
+        // 不带context查找，应该使用默认code
+        TestExtension found = factory.findAbility(TestExtension.class);
+        assertNotNull(found);
+        assertEquals("test", found.getCode());
+    }
+
+    @Test
+    void testFindAbilityWithNullContext() {
+        // 创建扩展点
+        TestExtensionImpl testExtension = new TestExtensionImpl();
+        registry.register(TestExtension.class, testExtension, null);
+        
+        // 使用null context查找
+        TestExtension found = factory.findAbility(TestExtension.class, null);
+        assertNotNull(found);
+        assertEquals("test", found.getCode());
+    }
+
+    @Test
+    void testFindAbilityWithEmptyContext() {
+        // 创建扩展点
+        TestExtensionImpl testExtension = new TestExtensionImpl();
+        registry.register(TestExtension.class, testExtension, null);
+        
+        // 使用空context查找
+        Map<String, Object> context = new HashMap<>();
+        TestExtension found = factory.findAbility(TestExtension.class, context);
+        assertNotNull(found);
+        assertEquals("test", found.getCode());
+    }
+
+    @Test
+    void testFindAbilityOpt() {
+        // 创建扩展点
+        TestExtensionImpl testExtension = new TestExtensionImpl();
+        registry.register(TestExtension.class, testExtension, null);
+        
+        // 使用Optional方式查找
+        var found = factory.findAbilityOpt(TestExtension.class);
+        assertTrue(found.isPresent());
+        assertEquals("test", found.get().getCode());
+    }
+
+    @Test
+    void testFindAbilityById() {
+        // 创建扩展点
+        TestExtensionImpl testExtension = new TestExtensionImpl();
+        ExtensionMetadata metadata = DefaultExtensionMetadata.builder()
+                .extensionId("test-impl-1")
+                .version("1.0.0")
+                .priority(100)
+                .description("Test implementation 1")
+                .enabled(true)
+                .extensionType("TestExtension")
+                .createTime(System.currentTimeMillis())
+                .updateTime(System.currentTimeMillis())
+                .build();
+        
+        registry.register(TestExtension.class, testExtension, metadata);
+        
+        // 根据ID查找
+        TestExtension found = factory.findAbilityById(TestExtension.class, "test-impl-1");
+        assertNotNull(found);
+        assertEquals("test", found.getCode());
+    }
+
+    @Test
+    void testGetExtensionMetadata() {
+        // 创建扩展点
+        TestExtensionImpl testExtension = new TestExtensionImpl();
+        ExtensionMetadata metadata = DefaultExtensionMetadata.builder()
+                .extensionId("test-impl-1")
+                .version("1.0.0")
+                .priority(100)
+                .description("Test implementation 1")
+                .enabled(true)
+                .extensionType("TestExtension")
+                .createTime(System.currentTimeMillis())
+                .updateTime(System.currentTimeMillis())
+                .build();
+        
+        registry.register(TestExtension.class, testExtension, metadata);
+        
+        // 获取元数据
+        ExtensionMetadata found = factory.getExtensionMetadata(TestExtension.class, "test-impl-1");
+        assertNotNull(found);
+        assertEquals("test-impl-1", found.getExtensionId());
+        assertEquals("1.0.0", found.getVersion());
+        assertEquals(100, found.getPriority());
+    }
+
+    @Test
+    void testGetExtensionMetrics() {
+        // 创建并注册扩展点
+        TestExtensionImpl testExtension = new TestExtensionImpl();
+        registry.register(TestExtension.class, testExtension, null);
+        
+        // 调用扩展点
+        TestExtension found = factory.findAbility(TestExtension.class);
+        found.sayHello();
+        
+        // 获取监控指标
+        var metrics = factory.getExtensionMetrics("TestExtensionImpl");
+        assertNotNull(metrics);
+        assertTrue(metrics.getTotalInvocations() > 0);
+    }
+
+    @Test
+    void testGetAllExtensionMetrics() {
+        // 创建并注册扩展点
+        TestExtensionImpl testExtension = new TestExtensionImpl();
+        registry.register(TestExtension.class, testExtension, null);
+        
+        // 调用扩展点
+        TestExtension found = factory.findAbility(TestExtension.class);
+        found.sayHello();
+        
+        // 获取所有监控指标
+        Map<String, DefaultExtensionMonitor.ExtensionMetrics> allMetrics = factory.getAllExtensionMetrics();
+        assertNotNull(allMetrics);
+        assertFalse(allMetrics.isEmpty());
+    }
+
+    @Test
+    void testMultipleExtensionsWithSameCode() {
+        // 创建两个相同code的扩展点
+        TestExtensionImpl testExtension1 = new TestExtensionImpl();
+        TestExtensionImpl testExtension2 = new TestExtensionImpl();
+        
+        // 注册扩展点
+        registry.register(TestExtension.class, testExtension1, null);
+        registry.register(TestExtension.class, testExtension2, null);
+        
+        // 查找扩展点，应该返回第一个
+        TestExtension found = factory.findAbility(TestExtension.class);
+        assertNotNull(found);
+        assertEquals("test", found.getCode());
+    }
+
+    @Test
+    void testExtensionNotFound() {
+        // 不注册任何扩展点
+        
+        // 查找扩展点，应该返回null
+        TestExtension found = factory.findAbility(TestExtension.class);
+        assertNull(found);
+    }
+
+    @Test
+    void testExtensionNotFoundOpt() {
+        // 不注册任何扩展点
+        
+        // 使用Optional方式查找，应该返回空的Optional
+        var found = factory.findAbilityOpt(TestExtension.class);
+        assertFalse(found.isPresent());
+    }
+
+    @Test
+    void testRegistryGetExtensions() {
+        // 创建两个不同code的扩展点
+        TestExtensionImpl testExtension1 = new TestExtensionImpl();
+        TestExtensionImpl2 testExtension2 = new TestExtensionImpl2();
+        
+        // 注册扩展点
+        registry.register(TestExtension.class, testExtension1, null);
+        registry.register(TestExtension.class, testExtension2, null);
+        
+        // 获取所有扩展点
+        List<TestExtension> extensions = registry.getExtensions(TestExtension.class);
+        assertEquals(2, extensions.size());
+        
+        // 验证扩展点按优先级排序
+        assertEquals("test", extensions.get(0).getCode());
+        assertEquals("test2", extensions.get(1).getCode());
+    }
+
+    @Test
+    void testDefaultExtensionResolutionStrategy() {
+        DefaultExtensionResolutionStrategy strategy = new DefaultExtensionResolutionStrategy();
+        
+        // 测试有code的情况
+        Map<String, Object> context = new HashMap<>();
+        context.put("code", "test");
+        
+        TestExtensionImpl testExtension = new TestExtensionImpl();
+        List<TestExtension> extensions = List.of(testExtension);
+        
+        TestExtension found = strategy.resolve(extensions, context);
+        assertNotNull(found);
+        assertEquals("test", found.getCode());
+    }
+
+    @Test
+    void testDefaultExtensionResolutionStrategyWithoutCode() {
+        DefaultExtensionResolutionStrategy strategy = new DefaultExtensionResolutionStrategy();
+        
+        // 测试没有code的情况
+        Map<String, Object> context = new HashMap<>();
+        
+        TestExtensionImpl testExtension = new TestExtensionImpl();
+        List<TestExtension> extensions = List.of(testExtension);
+        
+        TestExtension found = strategy.resolve(extensions, context);
+        assertNotNull(found);
+        assertEquals("test", found.getCode());
+    }
+
+    @Test
+    void testDefaultExtensionResolutionStrategyWithEmptyCode() {
+        DefaultExtensionResolutionStrategy strategy = new DefaultExtensionResolutionStrategy();
+        
+        // 测试空code的情况
+        Map<String, Object> context = new HashMap<>();
+        context.put("code", "");
+        
+        TestExtensionImpl testExtension = new TestExtensionImpl();
+        List<TestExtension> extensions = List.of(testExtension);
+        
+        TestExtension found = strategy.resolve(extensions, context);
+        assertNotNull(found);
+        assertEquals("test", found.getCode());
     }
 
     // 测试扩展点接口

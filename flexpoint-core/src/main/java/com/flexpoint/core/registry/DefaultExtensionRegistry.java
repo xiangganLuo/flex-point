@@ -1,8 +1,9 @@
 package com.flexpoint.core.registry;
 
-import com.flexpoint.common.ExtensionAbility;
-import com.flexpoint.core.metadata.ExtensionMetadata;
 import com.flexpoint.common.utils.ExtensionUtil;
+import com.flexpoint.core.config.FlexPointConfig;
+import com.flexpoint.core.extension.ExtensionAbility;
+import com.flexpoint.core.registry.metadata.ExtensionMetadata;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
@@ -11,6 +12,7 @@ import java.util.stream.Collectors;
 
 /**
  * 默认扩展点注册中心实现
+ * 支持配置控制注册行为
  *
  * @author xiangganluo
  * @version 1.0.0
@@ -28,14 +30,46 @@ public class DefaultExtensionRegistry implements ExtensionRegistry {
     // 扩展点ID映射: Class -> Map<extensionId, ExtensionAbility>
     private final Map<Class<? extends ExtensionAbility>, Map<String, ExtensionAbility>> extensionIdMap = new ConcurrentHashMap<>();
     
+    // 配置
+    private final FlexPointConfig.RegistryConfig config;
+    
+    /**
+     * 使用默认配置创建注册中心
+     */
+    public DefaultExtensionRegistry() {
+        this(new FlexPointConfig.RegistryConfig());
+    }
+    
+    /**
+     * 使用指定配置创建注册中心
+     */
+    public DefaultExtensionRegistry(FlexPointConfig.RegistryConfig config) {
+        this.config = config;
+        if (config.isEnabled()) {
+            log.info("创建注册中心: allowDuplicateRegistration={}", config.isAllowDuplicateRegistration());
+        } else {
+            log.info("注册中心已禁用");
+        }
+    }
+    
     @Override
     public void register(Class<? extends ExtensionAbility> extensionType, ExtensionAbility instance, ExtensionMetadata metadata) {
+        if (!config.isEnabled()) {
+            return;
+        }
+        
         if (extensionType == null || instance == null) {
             log.warn("扩展点注册失败：类型或实例为空");
             return;
         }
         
         String extensionId = metadata != null ? metadata.getExtensionId() : instance.getClass().getSimpleName();
+        
+        // 检查是否允许重复注册
+        if (!config.isAllowDuplicateRegistration() && exists(extensionType, extensionId)) {
+            log.warn("扩展点已存在，不允许重复注册: type={}, id={}", extensionType.getSimpleName(), extensionId);
+            return;
+        }
         
         // 注册扩展点实例
         extensionInstances.computeIfAbsent(extensionType, k -> new ArrayList<>()).add(instance);
@@ -46,12 +80,15 @@ public class DefaultExtensionRegistry implements ExtensionRegistry {
         // 注册扩展点ID映射
         extensionIdMap.computeIfAbsent(extensionType, k -> new HashMap<>()).put(extensionId, instance);
         
-        log.info("扩展点注册成功: type={}, id={}, class={}", 
-                extensionType.getSimpleName(), extensionId, instance.getClass().getName());
+        log.info("扩展点注册成功: type={}, id={}", extensionType.getSimpleName(), extensionId);
     }
     
     @Override
-    public <T extends ExtensionAbility> List<T> getExtensions(Class<T> extensionType, Map<String, Object> context) {
+    public <T extends ExtensionAbility> List<T> getExtensions(Class<T> extensionType) {
+        if (!config.isEnabled()) {
+            return Collections.emptyList();
+        }
+        
         List<ExtensionAbility> instances = extensionInstances.get(extensionType);
         if (instances == null) {
             return Collections.emptyList();
@@ -61,8 +98,8 @@ public class DefaultExtensionRegistry implements ExtensionRegistry {
         return instances.stream()
                 .map(instance -> (T) instance)
                 .sorted((a, b) -> {
-                    String idA = ExtensionUtil.getExtensionId(a.getClass(), context);
-                    String idB = ExtensionUtil.getExtensionId(b.getClass(), context);
+                    String idA = ExtensionUtil.getExtensionId(a.getClass(), a.getCode());
+                    String idB = ExtensionUtil.getExtensionId(b.getClass(), b.getCode());
                     ExtensionMetadata metaA = getExtensionMetadata(extensionType, idA);
                     ExtensionMetadata metaB = getExtensionMetadata(extensionType, idB);
                     int priorityA = metaA != null ? metaA.getPriority() : Integer.MAX_VALUE;
@@ -74,6 +111,10 @@ public class DefaultExtensionRegistry implements ExtensionRegistry {
     
     @Override
     public <T extends ExtensionAbility> T getExtensionById(Class<T> extensionType, String extensionId) {
+        if (!config.isEnabled()) {
+            return null;
+        }
+        
         Map<String, ExtensionAbility> idMap = extensionIdMap.get(extensionType);
         if (idMap == null) {
             return null;
@@ -83,6 +124,10 @@ public class DefaultExtensionRegistry implements ExtensionRegistry {
     
     @Override
     public ExtensionMetadata getExtensionMetadata(Class<? extends ExtensionAbility> extensionType, String extensionId) {
+        if (!config.isEnabled()) {
+            return null;
+        }
+        
         Map<String, ExtensionMetadata> metadataMap = extensionMetadata.get(extensionType);
         if (metadataMap == null) {
             return null;
@@ -92,6 +137,10 @@ public class DefaultExtensionRegistry implements ExtensionRegistry {
     
     @Override
     public void unregister(Class<? extends ExtensionAbility> extensionType, String extensionId) {
+        if (!config.isEnabled()) {
+            return;
+        }
+        
         // 移除实例
         List<ExtensionAbility> instances = extensionInstances.get(extensionType);
         if (instances != null) {
@@ -115,12 +164,20 @@ public class DefaultExtensionRegistry implements ExtensionRegistry {
     
     @Override
     public boolean exists(Class<? extends ExtensionAbility> extensionType, String extensionId) {
+        if (!config.isEnabled()) {
+            return false;
+        }
+        
         Map<String, ExtensionAbility> idMap = extensionIdMap.get(extensionType);
         return idMap != null && idMap.containsKey(extensionId);
     }
     
     @Override
     public List<Class<? extends ExtensionAbility>> getRegisteredTypes() {
+        if (!config.isEnabled()) {
+            return Collections.emptyList();
+        }
+        
         return new ArrayList<>(extensionInstances.keySet());
     }
 } 

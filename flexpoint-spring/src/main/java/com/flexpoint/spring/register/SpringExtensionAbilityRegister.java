@@ -1,9 +1,9 @@
 package com.flexpoint.spring.register;
 
-import com.flexpoint.common.ExtensionAbility;
+import com.flexpoint.core.extension.ExtensionAbility;
 import com.flexpoint.common.annotations.ExtensionInfo;
-import com.flexpoint.core.metadata.DefaultExtensionMetadata;
-import com.flexpoint.core.metadata.ExtensionMetadata;
+import com.flexpoint.core.registry.metadata.DefaultExtensionMetadata;
+import com.flexpoint.core.registry.metadata.ExtensionMetadata;
 import com.flexpoint.core.registry.ExtensionRegistry;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -11,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.stereotype.Component;
 
 import java.util.Map;
 import java.util.Optional;
@@ -24,7 +23,6 @@ import java.util.Optional;
  * @version 1.0.0
  */
 @Slf4j
-@Component
 @RequiredArgsConstructor
 public class SpringExtensionAbilityRegister implements ApplicationContextAware {
 

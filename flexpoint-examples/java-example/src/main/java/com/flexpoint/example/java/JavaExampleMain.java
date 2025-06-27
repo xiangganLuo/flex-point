@@ -1,28 +1,51 @@
 package com.flexpoint.example.java;
 
-import com.flexpoint.core.FlexPoint;
-import com.flexpoint.core.FlexPointBuilder;
+import com.flexpoint.example.java.manager.FlexPointManager;
+import com.flexpoint.example.java.service.OrderService;
 
+/**
+ * Java原生环境下的Flex Point使用示例
+ * 演示如何在非Spring环境下使用Flex Point框架
+ * @author luoxianggan
+ */
 public class JavaExampleMain {
+
     public static void main(String[] args) {
-        // 使用建造者模式创建FlexPoint实例
-        FlexPoint flexPoint = FlexPointBuilder.create().build();
+        System.out.println("=== Flex Point Java原生使用示例 ===\n");
 
-        // 注册解析器
-        CustomExtensionResolutionStrategy customExtensionResolutionStrategy = new CustomExtensionResolutionStrategy();
-        flexPoint.registerResolver(customExtensionResolutionStrategy);
+        // 获取FlexPoint管理器实例
+        FlexPointManager manager = FlexPointManager.getInstance();
 
-        // 注册扩展点实现
-        DemoAbility mallDiscount = new MallDiscountAbility();
-        flexPoint.register(DemoAbility.class, mallDiscount);
+        // 获取订单服务
+        OrderService orderService = manager.getOrderService();
 
-        // 查找并调用
-        DemoAbility found = flexPoint.findAbility(DemoAbility.class);
-        double price = 100.0;
-        System.out.println("原价: " + price + ", 折扣价: " + found.discount(price));
-        
-        // 获取缓存统计
-        var stats = flexPoint.getCacheStatistics();
-        System.out.println("缓存命中率: " + stats.getHitRate());
+        // 示例: 订单处理
+        demonstrateOrderProcessing(orderService);
+
+        // 扩展点统计信息
+        manager.printExtensionStatistics();
+
+        System.out.println("\n=== 示例运行完成 ===");
     }
-} 
+
+    /**
+     * 演示订单处理功能
+     */
+    private static void demonstrateOrderProcessing(OrderService orderService) {
+        System.out.println("--- 订单处理示例 ---");
+
+        // 商城订单处理
+        String mallResult = orderService.processOrder("MALL001", 1500.0, "mall");
+        System.out.println("商城订单处理结果: " + mallResult);
+
+        // 物流订单处理
+        String logisticsResult = orderService.processOrder("LOG001", 800.0, "logistics");
+        System.out.println("物流订单处理结果: " + logisticsResult);
+
+        // 未知业务类型
+        String unknownResult = orderService.processOrder("UNK001", 500.0, "unknown");
+        System.out.println("未知业务类型结果: " + unknownResult);
+
+        System.out.println();
+    }
+}

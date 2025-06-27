@@ -1,0 +1,102 @@
+{
+  "properties": [
+    {
+      "name": "flexpoint.enabled",
+      "type": "java.lang.Boolean",
+      "description": "是否启用Flex Point框架",
+      "defaultValue": true
+    },
+    {
+      "name": "flexpoint.scan-packages",
+      "type": "java.util.List<java.lang.String>",
+      "description": "扫描包路径列表，用于自动发现扩展点和解析器"
+    },
+    {
+      "name": "flexpoint.cache.expire-after-write",
+      "type": "java.lang.Long",
+      "description": "缓存过期时间（秒）",
+      "defaultValue": 3600
+    },
+    {
+      "name": "flexpoint.cache.maximum-size",
+      "type": "java.lang.Long",
+      "description": "缓存最大大小",
+      "defaultValue": 1000
+    },
+    {
+      "name": "flexpoint.monitor.enabled",
+      "type": "java.lang.Boolean",
+      "description": "是否启用扩展点监控",
+      "defaultValue": true
+    },
+    {
+      "name": "flexpoint.monitor.log-invocation",
+      "type": "java.lang.Boolean",
+      "description": "是否记录扩展点调用日志",
+      "defaultValue": true
+    },
+    {
+      "name": "flexpoint.monitor.log-resolution",
+      "type": "java.lang.Boolean",
+      "description": "是否记录扩展点解析日志",
+      "defaultValue": true
+    },
+    {
+      "name": "flexpoint.monitor.log-exception-details",
+      "type": "java.lang.Boolean",
+      "description": "是否记录扩展点异常详细信息",
+      "defaultValue": true
+    },
+    {
+      "name": "flexpoint.monitor.performance-stats-enabled",
+      "type": "java.lang.Boolean",
+      "description": "是否启用性能统计",
+      "defaultValue": true
+    },
+    {
+      "name": "flexpoint.registry.enabled",
+      "type": "java.lang.Boolean",
+      "description": "是否启用自动注册",
+      "defaultValue": true
+    },
+    {
+      "name": "flexpoint.registry.enable-ability-register",
+      "type": "java.lang.Boolean",
+      "description": "是否启用扩展点自动注册",
+      "defaultValue": true
+    },
+    {
+      "name": "flexpoint.registry.enable-resolver-register",
+      "type": "java.lang.Boolean",
+      "description": "是否启用解析器自动注册",
+      "defaultValue": true
+    },
+    {
+      "name": "flexpoint.registry.fail-on-error",
+      "type": "java.lang.Boolean",
+      "description": "注册失败时是否抛出异常",
+      "defaultValue": false
+    },
+    {
+      "name": "flexpoint.registry.allow-duplicate-registration",
+      "type": "java.lang.Boolean",
+      "description": "是否允许重复注册扩展点或解析器",
+      "defaultValue": false
+    }
+  ],
+  "hints": [
+    {
+      "name": "flexpoint.scan-packages",
+      "values": [
+        {
+          "value": "com.flexpoint",
+          "description": "默认Flex Point包路径"
+        },
+        {
+          "value": "com.example",
+          "description": "示例应用包路径"
+        }
+      ]
+    }
+  ]
+}
