@@ -15,6 +15,9 @@
     <properties>
         <!-- flex-point版本 -->
         <revision>1.0.0-SNAPSHOT</revision>
+        <!-- maven -->
+        <maven.source.version>3.0.1</maven.source.version>
+        <maven.deploy.version>3.1.4</maven.deploy.version>
         <!-- 第三方依赖版本 -->
         <lombok.version>1.18.30</lombok.version>
         <slf4j.version>2.0.9</slf4j.version>
@@ -230,4 +233,27 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
-</project> 
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>${maven.source.version}</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>${maven.deploy.version}</version>
+            </plugin>
+        </plugins>
+    </build>
+</project>
