@@ -21,7 +21,7 @@
 
 ## 📚 简介
 
-Flex Point 是一个极致灵活、支持多业务场景的扩展点（Extension Point）框架。它允许系统根据不同的应用代码（code）动态选择不同的业务实现，实现业务逻辑的灵活扩展和隔离。支持 Spring/Spring Boot 生态，适合中大型企业级项目。
+Flex Point 是一个极致灵活、支持多业务场景的扩展点（Extension Point）框架。它允许系统根据不同的应用代码（code）动态选择不同的业务实现，实现业务逻辑的灵活扩展和隔离。支持 Spring 生态，适合中大型企业级项目。
 
 ---
 
@@ -35,7 +35,7 @@ FlexPoint/
 ├── flexpoint-spring/             # Spring集成模块 - Spring环境下的集成
 ├── flexpoint-springboot/         # Spring Boot自动配置模块
 └── flexpoint-test/               # 测试模块 - 测试用例和示例
-└── flexpoint-examples/           # 多场景接入示例模块 - Spring、Spring Boot、Java原生
+└── flexpoint-examples/           # 多场景接入示例模块 - Spring Boot、Java原生
 ```
 
 | 模块名                        | 说明                                   |
@@ -84,7 +84,7 @@ FlexPoint/
 
 - [官方文档（建设中）](#)
 - [示例代码](flexpoint-test)
-- [多场景接入示例（Spring/Spring Boot/Java原生）](flexpoint-examples/README.md)
+- [多场景接入示例（Spring Boot/Java原生）](flexpoint-examples/README.md)
 - [自定义扩展点解析策略与注册示例](#自定义扩展点解析策略)
 - [迁移指南](#迁移指南)
 

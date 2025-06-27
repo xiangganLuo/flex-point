@@ -17,7 +17,7 @@
 
 ```java
 public interface DemoAbility extends ExtensionAbility {
-    String hello(String name);
+    boolean hasPermission(Long userId, String action);
 }
 ```
 
@@ -25,12 +25,12 @@ public interface DemoAbility extends ExtensionAbility {
 
 ```java
 @Component
-@ExtensionInfo(id = "demo", description = "演示扩展点")
-public class DemoAbilityImpl implements DemoAbility {
+@ExtensionInfo(id = "admin-permission", description = "管理员权限校验器")
+public class AdminPermissionValidator implements DemoAbility {
     @Override
-    public String getCode() { return "demo"; }
+    public String getCode() { return "admin"; }
     @Override
-    public String hello(String name) { return "Hello, " + name; }
+    public boolean hasPermission(Long userId, String action) { return true; }
 }
 ```
 
@@ -39,10 +39,11 @@ public class DemoAbilityImpl implements DemoAbility {
 ```java
 @Service
 public class DemoService {
-    @ExtensionAbilityReference(code = "demo")
+    @ExtensionAbilityReference(code = "admin")
     private DemoAbility demoAbility;
-    public void test() {
-        System.out.println(demoAbility.hello("world"));
+    public void checkPermission() {
+        boolean has = demoAbility.hasPermission(1L, "DELETE_USER");
+        System.out.println("管理员权限校验结果: " + has);
     }
 }
 ```
@@ -51,8 +52,73 @@ public class DemoService {
 
 ```java
 @SpringBootApplication
-public class ExampleApplication {
+public class ExampleApplication implements CommandLineRunner {
+    @Autowired
+    private DemoService demoService;
+
     public static void main(String[] args) {
         SpringApplication.run(ExampleApplication.class, args);
     }
-} 
+
+    @Override
+    public void run(String... args) {
+        demoService.checkPermission();
+    }
+}
+```
+
+---
+
+## 自定义解析器自动注册
+
+Spring Boot环境下，自定义解析器会自动注册，无需手动配置。
+
+### 1. 定义自定义解析器
+
+```java
+@Component
+public class CustomExtensionResolutionStrategy extends AbstractExtensionResolutionStrategy {
+    @Override
+    protected String extractCode(Map<String, Object> context) {
+        // 只需关注如何从context中提取code
+        return (String) context.get("appCode");
+    }
+    @Override
+    public String getStrategyName() {
+        return "CustomExtensionResolutionStrategy";
+    }
+}
+```
+
+### 2. 自动注册
+
+Spring Boot启动时会自动扫描并注册所有 `@Component` 注解的 `ExtensionResolutionStrategy` 实现。
+
+### 3. 使用自定义解析器
+
+```java
+@ExtensionResolver("CustomExtensionResolutionStrategy")
+public interface DemoAbility extends ExtensionAbility {
+    boolean hasPermission(Long userId, String action);
+}
+```
+
+---
+
+## 配置说明
+
+框架提供自动配置，无需额外配置即可使用。如需自定义配置：
+
+```java
+@Configuration
+public class FlexPointConfig {
+    @Bean
+    public ExtensionResolverFactory customExtensionResolverFactory() {
+        return new CustomExtensionResolverFactory();
+    }
+}
+```
+
+---
+
+更多高级用法请参考主项目文档和源码注释。 

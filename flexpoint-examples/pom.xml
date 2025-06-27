@@ -13,7 +13,6 @@
     <name>Flex Point Examples</name>
     <description>Flex Point 各类集成与原生用法示例</description>
     <modules>
-        <module>spring-example</module>
         <module>spring-boot-example</module>
         <module>java-example</module>
     </modules>

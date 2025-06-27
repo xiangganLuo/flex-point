@@ -6,7 +6,6 @@
 
 | 子模块                | 说明                         |
 |----------------------|------------------------------|
-| spring-example       | Spring 环境下的接入示例      |
 | spring-boot-example  | Spring Boot 环境下的接入示例 |
 | java-example         | Java 原生环境下的接入示例    |
 
@@ -14,7 +13,6 @@
 
 ## 快速入口
 
-- [Spring 示例](spring-example/README.md)
 - [Spring Boot 示例](spring-boot-example/README.md)
 - [Java 原生示例](java-example/README.md)
 
