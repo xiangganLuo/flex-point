@@ -90,6 +90,7 @@ FlexPoint/
 ## 📝 文档
 
 - [官方文档（建设中）](#)
+- [核心架构](statics/ARCHITECTURE.md)
 - [示例代码](flexpoint-test)
 - [多场景接入示例（Spring Boot/Java原生）](flexpoint-examples/README.md)
 - [自定义扩展点解析策略与注册示例](#自定义扩展点解析策略)
