@@ -1,8 +1,5 @@
-package com.flexpoint.springboot;
+package com.flexpoint.spring.config;
 
-import com.flexpoint.spring.processor.ExtensionAbilityReferenceProcessor;
-import com.flexpoint.spring.register.SpringExtensionAbilityRegister;
-import com.flexpoint.spring.register.SpringExtensionResolverRegister;
 import com.flexpoint.core.ExtensionAbilityFactory;
 import com.flexpoint.core.cache.DefaultExtensionCacheManager;
 import com.flexpoint.core.cache.ExtensionCacheManager;
@@ -12,45 +9,64 @@ import com.flexpoint.core.registry.DefaultExtensionRegistry;
 import com.flexpoint.core.registry.ExtensionRegistry;
 import com.flexpoint.core.resolution.DefaultExtensionResolverFactory;
 import com.flexpoint.core.resolution.ExtensionResolverFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import com.flexpoint.spring.processor.ExtensionAbilityReferenceProcessor;
+import com.flexpoint.spring.register.SpringExtensionAbilityRegister;
+import com.flexpoint.spring.register.SpringExtensionResolverRegister;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * 扩展点框架自动配置
+ * Spring环境下的Flex Point框架配置
+ * 为非Spring Boot环境提供统一的注册机制
  *
  * @author xiangganluo
  * @version 1.0.0
  */
 @Configuration
-public class FlexPointAutoConfiguration {
+@ComponentScan(basePackages = {
+    "com.flexpoint.spring.processor",
+    "com.flexpoint.spring.register",
+    "com.flexpoint.spring.proxy"
+})
+public class FlexPointSpringConfiguration {
 
+    /**
+     * 扩展点注册表
+     */
     @Bean
-    @ConditionalOnMissingBean
     public ExtensionRegistry extensionRegistry() {
         return new DefaultExtensionRegistry();
     }
 
+    /**
+     * 扩展点缓存管理器
+     */
     @Bean
-    @ConditionalOnMissingBean
     public ExtensionCacheManager extensionCacheManager() {
         return new DefaultExtensionCacheManager();
     }
 
+    /**
+     * 扩展点监控器
+     */
     @Bean
-    @ConditionalOnMissingBean
     public ExtensionMonitor extensionMonitor() {
         return new DefaultExtensionMonitor();
     }
 
+    /**
+     * 扩展点解析器工厂
+     */
     @Bean
-    @ConditionalOnMissingBean
     public ExtensionResolverFactory extensionResolverFactory() {
         return new DefaultExtensionResolverFactory();
     }
 
+    /**
+     * 扩展点工厂
+     */
     @Bean
-    @ConditionalOnMissingBean
     public ExtensionAbilityFactory extensionAbilityFactory(
             ExtensionRegistry extensionRegistry,
             ExtensionCacheManager extensionCacheManager,
@@ -58,20 +74,26 @@ public class FlexPointAutoConfiguration {
         return new ExtensionAbilityFactory(extensionRegistry, extensionCacheManager, extensionMonitor);
     }
 
+    /**
+     * Spring扩展点注册器
+     */
     @Bean
-    @ConditionalOnMissingBean
     public SpringExtensionAbilityRegister springExtensionAbilityRegister(ExtensionRegistry extensionRegistry) {
         return new SpringExtensionAbilityRegister(extensionRegistry);
     }
 
+    /**
+     * Spring扩展点解析器注册器
+     */
     @Bean
-    @ConditionalOnMissingBean
     public SpringExtensionResolverRegister springExtensionResolverRegister(ExtensionResolverFactory extensionResolverFactory) {
         return new SpringExtensionResolverRegister(extensionResolverFactory);
     }
 
+    /**
+     * 扩展点引用处理器
+     */
     @Bean
-    @ConditionalOnMissingBean
     public ExtensionAbilityReferenceProcessor extensionAbilityReferenceProcessor(
             ExtensionAbilityFactory extensionAbilityFactory,
             ExtensionMonitor extensionMonitor) {
