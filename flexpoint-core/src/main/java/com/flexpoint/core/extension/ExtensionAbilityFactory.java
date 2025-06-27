@@ -103,7 +103,12 @@ public class ExtensionAbilityFactory {
     private ExtensionResolutionStrategy getResolver(Class<?> extensionType, Map<String, Object> context) {
         ExtensionResolutionStrategy resolver = Optional.ofNullable(extensionType.getAnnotation(ExtensionResolver.class))
                 .map(annotation -> resolverFactory.getResolver(annotation.value()))
-                .orElse(resolverFactory.getResolver(context.getOrDefault(FlexPointConstants.CODE, "").toString()));
+                .orElse(resolverFactory.getResolver(
+                            Optional.ofNullable(context)
+                            .map(ctx -> ctx.getOrDefault(FlexPointConstants.CODE, "").toString())
+                            .orElse(null)
+                        )
+                );
 
         if (resolver == null) {
             throw new ExtensionResolverNotFoundException("未找到ExtensionResolutionStrategy解析器!");

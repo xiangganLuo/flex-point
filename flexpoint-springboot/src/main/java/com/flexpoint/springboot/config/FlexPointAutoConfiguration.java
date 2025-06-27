@@ -3,6 +3,7 @@ package com.flexpoint.springboot.config;
 import com.flexpoint.core.FlexPoint;
 import com.flexpoint.core.FlexPointBuilder;
 import com.flexpoint.core.extension.ExtensionAbilityFactory;
+import com.flexpoint.spring.banner.FlexPointBanner;
 import com.flexpoint.spring.processor.ExtensionAbilityReferenceProcessor;
 import com.flexpoint.spring.register.SpringExtensionAbilityRegister;
 import com.flexpoint.spring.register.SpringExtensionResolverRegister;
@@ -61,6 +62,13 @@ public class FlexPointAutoConfiguration {
     @ConditionalOnProperty(prefix = FlexPointProperties.PREFIX + ".registry", name = "enabled", havingValue = "true", matchIfMissing = true)
     public SpringExtensionAbilityRegister springExtensionAbilityRegister(FlexPoint flexPoint) {
         return new SpringExtensionAbilityRegister(flexPoint.getRegistry());
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnProperty(prefix = FlexPointProperties.PREFIX, name = "bannerPrint", havingValue = "true", matchIfMissing = true)
+    public FlexPointBanner bannerPrint() {
+        return new FlexPointBanner();
     }
 
     /**

@@ -19,4 +19,6 @@ public class FlexPointProperties extends FlexPointConfig {
 
     public static final String PREFIX = "flexpoint";
 
+    private boolean bannerPrint = true;
+
 }

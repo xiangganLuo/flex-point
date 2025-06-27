@@ -7,6 +7,12 @@
       "defaultValue": true
     },
     {
+      "name": "flexpoint.bannerPrint",
+      "type": "java.lang.Boolean",
+      "description": "是否打印banner",
+      "defaultValue": true
+    },
+    {
       "name": "flexpoint.scan-packages",
       "type": "java.util.List<java.lang.String>",
       "description": "扫描包路径列表，用于自动发现扩展点和解析器"
