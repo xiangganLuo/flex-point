@@ -12,7 +12,7 @@ import java.lang.annotation.*;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-public @interface ExtensionResolver {
+public @interface ExtensionResolverSelector {
     
     /**
      * 解析器名称

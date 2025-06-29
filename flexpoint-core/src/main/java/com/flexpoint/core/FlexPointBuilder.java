@@ -4,16 +4,16 @@ import com.flexpoint.core.config.FlexPointConfig;
 import com.flexpoint.core.config.FlexPointConfigValidator;
 import com.flexpoint.core.monitor.DefaultExtensionMonitor;
 import com.flexpoint.core.monitor.ExtensionMonitor;
-import com.flexpoint.core.registry.FlexPointExtensionAbilityRegistry;
-import com.flexpoint.core.registry.ExtensionAbilityRegistry;
-import com.flexpoint.core.resolution.DefaultExtensionResolverFactory;
+import com.flexpoint.core.extension.DefaultExtensionAbilityRegistry;
+import com.flexpoint.core.extension.ExtensionAbilityRegistry;
+import com.flexpoint.core.resolution.DefaultExtensionResolutionStrategyRegistry;
 import com.flexpoint.core.resolution.ExtensionResolutionStrategy;
-import com.flexpoint.core.resolution.ExtensionResolverFactory;
+import com.flexpoint.core.resolution.ExtensionResolutionStrategyRegistry;
 import lombok.extern.slf4j.Slf4j;
 
 /**
  * 扩展点管理器建造者
- * 提供流式API来构建和配置ExtensionPointManager实例
+ * 提供流式API来构建和配置FlexPointManager实例
  *
  * @author xiangganluo
  * @version 1.0.0
@@ -23,7 +23,7 @@ public class FlexPointBuilder {
     
     private ExtensionAbilityRegistry registry;
     private ExtensionMonitor monitor;
-    private ExtensionResolverFactory resolverFactory;
+    private ExtensionResolutionStrategyRegistry strategyRegistry;
     private FlexPointConfig config;
     
     /**
@@ -59,21 +59,21 @@ public class FlexPointBuilder {
     }
     
     /**
-     * 使用自定义解析器工厂
+     * 使用自定义解析策略注册表
      */
-    public FlexPointBuilder withResolverFactory(ExtensionResolverFactory resolverFactory) {
-        this.resolverFactory = resolverFactory;
+    public FlexPointBuilder withStrategyRegistry(ExtensionResolutionStrategyRegistry strategyRegistry) {
+        this.strategyRegistry = strategyRegistry;
         return this;
     }
     
     /**
-     * 注册自定义解析器
+     * 注册自定义解析策略
      */
     public FlexPointBuilder withResolver(ExtensionResolutionStrategy resolver) {
-        if (this.resolverFactory == null) {
-            this.resolverFactory = new DefaultExtensionResolverFactory();
+        if (this.strategyRegistry == null) {
+            this.strategyRegistry = new DefaultExtensionResolutionStrategyRegistry();
         }
-        this.resolverFactory.registerResolver(resolver);
+        this.strategyRegistry.registerStrategy(resolver);
         return this;
     }
     
@@ -86,9 +86,9 @@ public class FlexPointBuilder {
     }
     
     /**
-     * 构建ExtensionPointManager实例
+     * 构建FlexPointManager实例
      */
-    public FlexPointManager build() {
+    public FlexPoint build() {
         // 如果没有配置，使用默认配置
         if (config == null) {
             config = FlexPointConfig.defaultConfig();
@@ -109,11 +109,11 @@ public class FlexPointBuilder {
             monitor = FlexPointComponentCreator.createMonitor(config.getMonitor());
         }
         
-        if (resolverFactory == null) {
-            resolverFactory = FlexPointComponentCreator.createResolverFactory();
+        if (strategyRegistry == null) {
+            strategyRegistry = FlexPointComponentCreator.createStrategyRegistry();
         }
         
-        return new FlexPointManager(registry, monitor, resolverFactory);
+        return new FlexPoint(registry, monitor, strategyRegistry);
     }
 
     /**
@@ -130,7 +130,7 @@ public class FlexPointBuilder {
          * 根据配置创建注册中心
          */
         public static ExtensionAbilityRegistry createRegistry(FlexPointConfig.RegistryConfig registryConfig) {
-            return new FlexPointExtensionAbilityRegistry(registryConfig);
+            return new DefaultExtensionAbilityRegistry(registryConfig);
         }
 
         /**
@@ -141,10 +141,10 @@ public class FlexPointBuilder {
         }
 
         /**
-         * 创建解析器工厂
+         * 创建解析策略注册表
          */
-        public static ExtensionResolverFactory createResolverFactory() {
-            return new DefaultExtensionResolverFactory();
+        public static ExtensionResolutionStrategyRegistry createStrategyRegistry() {
+            return new DefaultExtensionResolutionStrategyRegistry();
         }
     }
 

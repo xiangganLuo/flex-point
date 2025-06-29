@@ -1,4 +1,4 @@
-package com.flexpoint.core.registry;
+package com.flexpoint.core.extension;
 
 /**
  * 扩展点能力接口
@@ -9,6 +9,8 @@ package com.flexpoint.core.registry;
  */
 public interface ExtensionAbility {
 
+    String DEFAULT_VERSION = "0.0.0";
+
     /**
      * 获取业务标识
      * 用于区分不同业务场景的扩展点实现
@@ -17,4 +19,11 @@ public interface ExtensionAbility {
      */
     String getCode();
 
-} 
+    /**
+     * 版本号
+     */
+    default String version() {
+        return DEFAULT_VERSION;
+    }
+
+}

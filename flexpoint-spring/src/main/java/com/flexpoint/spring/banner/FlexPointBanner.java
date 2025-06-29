@@ -28,7 +28,4 @@ public class FlexPointBanner implements InitializingBean {
         System.out.println(sb);
     }
 
-    public static void main(String[] args) {
-        System.out.println(BANNER);
-    }
-} 
+}

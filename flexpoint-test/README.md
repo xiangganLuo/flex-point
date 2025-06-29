@@ -1,200 +1,82 @@
-# Flex Point 测试模块
+# Flex Point Test 测试用例说明
 
-本模块包含 Flex Point 框架的完整测试用例，验证框架的核心功能和特性。
+本目录下包含 Flex Point 框架各核心模块的单元测试与集成测试，覆盖基础能力、扩展机制、复杂业务规则等多种场景。
 
-## 测试结构
+---
 
-```
-flexpoint-test/
-├── src/test/java/com/flexpoint/test/
-│   ├── FlexPointFrameworkTest.java      # 框架基础功能测试
-│   ├── FlexPointCoreTest.java           # 核心功能测试
-│   ├── FlexPointConfigTest.java         # 配置功能测试
-│   └── ExtensionResolutionStrategyTest.java # 解析策略测试
-```
+## 📦 测试模块结构
 
-## 测试覆盖范围
+- **ConfigTest**：配置模块测试
+- **ExtensionRegistryTest**：扩展点注册中心测试
+- **MonitorTest**：监控模块测试
+- **ResolutionTest**：解析策略相关测试
+- **IntegrationTest**：全流程集成测试
+- **complx/**：复杂业务规则场景测试（如灰度、A/B、多字段匹配等）
 
-### 1. FlexPointFrameworkTest - 框架基础功能测试
+---
 
-测试 ExtensionAbilityFactory 和基础组件的功能：
+## 🧪 主要测试目标
 
-- **基础扩展点注册和查找**
-  - 测试扩展点的注册、查找和调用
-  - 验证扩展点代码解析功能
+### 1. 配置（config）
+- 默认配置、开关、校验、禁用场景
 
-- **代码解析功能**
-  - 测试不同 code 的扩展点查找
-  - 验证上下文传递和解析
+### 2. 扩展点注册中心（extension）
+- 注册、查找、注销、重复注册、并发注册
 
-- **监控功能**
-  - 测试扩展点调用监控
-  - 验证性能指标收集
+### 3. 监控（monitor）
+- 调用统计、异常统计、指标重置、监控开关
 
-### 2. FlexPointCoreTest - 核心功能测试
+### 4. 解析策略（resolution）
+- 策略注册、注解优先、上下文动态选择、策略未找到异常
 
-测试 FlexPoint 核心类和建造者模式：
+### 5. 集成（integration）
+- 注册、查找、解析、监控、注销等全流程
 
-- **建造者模式**
-  - 测试 FlexPointBuilder 的各种配置方式
-  - 验证组件创建和配置
+### 6. 复杂业务规则（complx）
+- 灰度发布、A/B测试、多字段动态匹配等
 
-- **扩展点注册**
-  - 测试带元数据和无元数据的注册
-  - 验证注册中心功能
+---
 
-- **扩展点查找**
-  - 测试多种查找方式
-  - 验证上下文传递
+## 🚀 如何运行
 
-- **自定义解析策略**
-  - 测试自定义解析策略的注册和使用
-  - 验证策略切换功能
-
-- **配置支持**
-  - 测试配置驱动的组件创建
-  - 验证配置验证功能
-
-### 3. FlexPointConfigTest - 配置功能测试
-
-测试配置类和配置验证功能：
-
-- **默认配置**
-  - 验证默认配置值
-  - 测试配置构建器
-
-- **配置验证**
-  - 测试配置有效性验证
-  - 验证边界条件处理
-
-- **配置组件**
-  - 测试监控配置
-  - 测试注册中心配置
-
-- **配置操作**
-  - 测试配置复制、比较
-  - 验证配置序列化
-
-### 4. ExtensionResolutionStrategyTest - 解析策略测试
-
-测试扩展点解析策略的各种场景：
-
-- **默认解析策略**
-  - 测试有 code 的情况
-  - 测试空 code 的情况
-  - 测试 null code 的情况
-  - 测试没有 code 的情况
-  - 测试 null context 的情况
-  - 测试不存在的 code
-
-- **自定义解析策略**
-  - 测试自定义解析逻辑
-  - 测试回退机制
-
-- **边界条件**
-  - 测试空扩展点列表
-  - 测试 null 扩展点列表
-
-- **抽象类测试**
-  - 测试 AbstractExtensionResolutionStrategy
-  - 验证策略名称功能
-
-## 运行测试
-
-### 运行所有测试
+在项目根目录下执行：
 
 ```bash
-mvn test
+mvn -pl flexpoint-test test
 ```
 
-### 运行特定测试类
+或在IDE中直接运行各测试类。
 
-```bash
-# 运行框架基础功能测试
-mvn test -Dtest=FlexPointFrameworkTest
+---
 
-# 运行核心功能测试
-mvn test -Dtest=FlexPointCoreTest
+## 📝 典型场景举例
 
-# 运行配置功能测试
-mvn test -Dtest=FlexPointConfigTest
+### 灰度发布
+- 根据用户分组动态选择灰度/普通实现
 
-# 运行解析策略测试
-mvn test -Dtest=ExtensionResolutionStrategyTest
-```
+### 多版本动态切换
+- 解析策略根据 code+version 多字段动态选择实现
 
-### 运行特定测试方法
+### 注解优先级
+- @ExtensionResolverSelector 注解指定策略优先于全局策略
 
-```bash
-# 运行特定测试方法
-mvn test -Dtest=FlexPointFrameworkTest#testBasicExtensionRegistration
-```
+### 并发注册
+- 多线程并发注册扩展点，验证线程安全
 
-## 测试数据
+---
 
-测试中使用的示例扩展点：
+## 🧩 扩展说明
 
-### TestExtension 接口
+- 可根据实际业务需求，新增更复杂的解析策略、上下文注入、灰度比例、A/B分流等测试用例。
+- 推荐每个新特性/新场景都补充对应的单元测试，保障主流程和扩展机制的健壮性。
 
-```java
-interface TestExtension extends ExtensionAbility {
-    String sayHello();
-}
-```
+---
 
-### TestExtensionImpl 实现
+## 📄 相关文档
 
-```java
-static class TestExtensionImpl implements TestExtension {
-    @Override
-    public String getCode() {
-        return "test";
-    }
+- [Flex Point 主项目 README](../README.md)
+- [核心架构说明](../statics/ARCHITECTURE.md)
 
-    @Override
-    public String sayHello() {
-        return "Hello from test extension";
-    }
-}
-```
+---
 
-### TestExtensionImpl2 实现
-
-```java
-static class TestExtensionImpl2 implements TestExtension {
-    @Override
-    public String getCode() {
-        return "test2";
-    }
-
-    @Override
-    public String sayHello() {
-        return "Hello from test2 extension";
-    }
-}
-```
-
-## 测试最佳实践
-
-1. **测试隔离**：每个测试方法都是独立的，不依赖其他测试的状态
-2. **边界条件**：测试各种边界条件和异常情况
-3. **配置验证**：验证配置的有效性和默认值
-4. **功能覆盖**：确保所有核心功能都有对应的测试用例
-5. **性能测试**：包含基本的性能验证
-
-## 持续集成
-
-测试模块配置了持续集成支持：
-
-- 自动运行所有测试用例
-- 生成测试覆盖率报告
-- 验证代码质量指标
-
-## 扩展测试
-
-如需添加新的测试用例：
-
-1. 在对应的测试类中添加新的测试方法
-2. 遵循现有的测试命名规范
-3. 确保测试的独立性和可重复性
-4. 添加必要的注释说明测试目的 
+如有更多测试需求或建议，欢迎补充！ 

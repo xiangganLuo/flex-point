@@ -17,6 +17,11 @@ public class LogisticsOrderProcessAbility implements OrderProcessAbility {
     }
 
     @Override
+    public String version() {
+        return "1.0.0";
+    }
+
+    @Override
     public String processOrder(String orderId, String orderData) {
         log.info("物流应用处理订单: orderId={}, orderData={}", orderId, orderData);
         return "物流订单处理完成: " + orderId;

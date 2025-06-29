@@ -2,225 +2,150 @@
 
 ## 项目核心作用
 
-Flex Point 是一个**灵活扩展点框架**，核心作用是：
+Flex Point 是一个**灵活、可扩展、可监控**的扩展点框架，核心目标：
 
-1. **业务逻辑解耦**: 通过扩展点模式实现业务逻辑的动态选择
-2. **多前台支持**: 根据不同的业务代码（code）选择不同的实现
-3. **插件化架构**: 支持业务功能的即插即用
-4. **统一管理**: 提供扩展点的注册、查找、监控等统一管理
+1. **多业务支持**：支持多业务线/多前台/多版本的动态扩展
+2. **插件化**：支持即插即用的扩展点注册与管理
+3. **可测试**：内置完善的单元与集成测试体系
+4. **轻量级**：无外部依赖，专注核心功能
+5. **可监控**：内置监控，便于问题排查
+
+---
 
 ## 核心架构图
 
 ```mermaid
 graph TB
-    subgraph "业务层"
+    %% ===== 业务层 =====
+    subgraph 业务层
         A1[业务应用]
         A2[扩展点接口]
         A3[扩展点实现]
+        A4[场景解析器]
     end
-    
-    subgraph "框架核心层"
-        B1[FlexPoint<br/>门面类]
-        B2[ExtensionAbilityFactory<br/>扩展点工厂]
-        B3[ExtensionRegistry<br/>注册中心]
-        B4[ExtensionMonitor<br/>监控器]
-        B5[ExtensionResolverFactory<br/>解析器工厂]
+
+    %% ===== 框架核心层 =====
+    subgraph 框架核心层
+        B1[FlexPoint<br/>门面]
+        B2[ExtensionAbilityRegistry<br/>注册中心]
+        B3[ExtensionMonitor<br/>监控器]
+        B4[ExtensionResolutionStrategyRegistry<br/>策略注册表]
+				%% ===== 配置层 =====
+				subgraph 配置层
+          C1[FlexPointConfig<br/>配置]
+          C2[FlexPointConfigValidator<br/>校验]
+    		end
     end
-    
-    subgraph "配置层"
-        C1[FlexPointConfig<br/>配置管理]
-        C2[FlexPointConfigValidator<br/>配置验证]
+
+    %% ===== 测试层 =====
+    subgraph 测试层
+        D[monitor]
+      	D2[complx]
+      	D3[config]
+      	D4[extension]
+      	D5[resolution]
+      	D6[integration]
     end
-    
-    subgraph "集成层"
-        D1[Spring集成<br/>自动注册]
-        D2[Spring Boot<br/>自动配置]
-    end
-    
+
+    %% ===== 简化后的关系 =====
     A1 --> B1
-    A2 --> B3
-    A3 --> B3
+    A2 & A3 --> B2
+    A4 --> B4
+    B1 -->|使用| B2
+    B1 -->|使用| B3
+    B1 -->|使用| B4
+    B1 -->|读取| C1
+    C1 -->|校验| C2
+    D -->|验证| B1
     
-    B1 --> B2
-    B1 --> B3
-    B1 --> B4
-    B1 --> B5
-    B1 --> C1
-    
-    B2 --> B3
-    B2 --> B4
-    B2 --> B5
-    
-    C1 --> C2
-    
-    D1 --> B1
-    D2 --> B1
+    %% ===== 样式定义 =====
+    classDef business fill:#4CAF50,stroke:#2E7D32,color:white
+    classDef core fill:#2196F3,stroke:#0D47A1,color:white
+    classDef test fill:#9C27B0,stroke:#6A1B9A,color:white
+    class A1,A2,A3,A4 business
+    class B1,B2,B3,B4,C1,C2 core
+    class D,D2,D3,D4,D5,D6 test
 ```
 
-## 模块协作方式
+---
 
-### 1. 核心模块协作
+## 各模块核心作用与协作
 
-```mermaid
-graph LR
-    subgraph "核心协作流程"
-        E1[FlexPoint<br/>门面] --> E2[ExtensionAbilityFactory<br/>工厂]
-        E2 --> E3[ExtensionRegistry<br/>注册中心]
-        E2 --> E4[ExtensionResolverFactory<br/>解析器]
-        E2 --> E5[ExtensionMonitor<br/>监控]
-    end
+### flexpoint-core
+- **FlexPoint**：门面类，统一API，协调注册、查找、监控、策略
+- **ExtensionAbilityRegistry**：扩展点注册中心，负责扩展点的注册、查找、注销、并发安全
+- **ExtensionMonitor**：监控器，统计扩展点调用、异常、耗时等
+- **ExtensionResolutionStrategyRegistry**：解析策略注册表，支持多策略、注解优先、上下文动态选择
+- **FlexPointConfig**：配置管理，支持灵活配置与校验
+
+### flexpoint-common
+- 注解、常量、异常、工具类等基础设施
+
+### flexpoint-spring / flexpoint-springboot
+- Spring/Spring Boot集成，自动注册、自动配置、代理、属性外部化
+
+### flexpoint-test
+- 单元测试、集成测试、复杂业务规则测试，保障主流程和扩展机制的健壮性
+
+---
+
+## 典型主流程
+
+### 1. 扩展点注册
+```java
+flexPoint.register(new MallOrderProcessAbilityV1());
+flexPoint.register(new LogisticsOrderProcessAbility());
 ```
 
-**协作方式:**
-- **FlexPoint**: 提供统一API，协调各组件工作
-- **ExtensionAbilityFactory**: 负责扩展点的查找和创建
-- **ExtensionRegistry**: 管理扩展点的存储和检索
-- **ExtensionResolverFactory**: 提供扩展点解析策略
-- **ExtensionMonitor**: 监控扩展点调用情况
-
-### 2. 扩展点生命周期
-
-```mermaid
-sequenceDiagram
-    participant App as 业务应用
-    participant FlexPoint as FlexPoint门面
-    participant Registry as 注册中心
-    participant Factory as 扩展点工厂
-    participant Resolver as 解析器
-    participant Monitor as 监控器
-    
-    Note over App,Monitor: 1. 扩展点注册阶段
-    App->>Registry: 注册扩展点
-    Registry->>Monitor: 记录注册事件
-    
-    Note over App,Monitor: 2. 扩展点查找阶段
-    App->>FlexPoint: 查找扩展点
-    FlexPoint->>Factory: 委托查找
-    Factory->>Registry: 获取扩展点列表
-    Factory->>Resolver: 获取解析策略
-    Factory->>Factory: 解析选择扩展点
-    Factory->>Monitor: 记录调用
-    Factory->>FlexPoint: 返回扩展点
-    FlexPoint->>App: 返回扩展点
+### 2. 解析策略注册
+```java
+flexPoint.registerResolver(new CustomExtensionResolutionStrategy());
 ```
 
-### 3. 配置驱动协作
-
-```mermaid
-graph TB
-    subgraph "配置驱动"
-        F1[FlexPointConfig<br/>配置] --> F2[FlexPointConfigValidator<br/>验证]
-        F2 --> F3[FlexPointBuilder<br/>建造者]
-        F3 --> F4[FlexPoint<br/>实例]
-    end
-    
-    subgraph "组件创建"
-        F4 --> F5[ExtensionRegistry<br/>注册中心]
-        F4 --> F6[ExtensionMonitor<br/>监控器]
-        F4 --> F7[ExtensionResolverFactory<br/>解析器工厂]
-    end
+### 3. 查找扩展点
+```java
+OrderProcessAbility ability = flexPoint.findAbility(OrderProcessAbility.class, context);
 ```
 
-## 各模块核心作用
+### 4. 监控统计
+```java
+String extId = ability.getCode() + ":" + ability.version();
+flexPoint.recordInvocation(extId, 100, true);
+ExtensionMonitor.ExtensionMetrics metrics = flexPoint.getExtensionMetrics(extId);
+```
 
-### flexpoint-common (公共基础)
-**作用**: 提供框架的基础设施
-- **注解**: 定义扩展点相关的注解
-- **常量**: 框架常量定义
-- **异常**: 统一的异常处理
-- **工具类**: 通用工具方法
+### 5. 注销扩展点
+```java
+flexPoint.unregister(extId);
+```
 
-### flexpoint-core (核心功能)
-**作用**: 实现框架的核心逻辑
-- **FlexPoint**: 框架门面，提供统一API
-- **ExtensionAbilityFactory**: 扩展点工厂，负责查找和创建
-- **ExtensionRegistry**: 注册中心，管理扩展点存储
-- **ExtensionMonitor**: 监控器，提供调用统计
-- **ExtensionResolverFactory**: 解析器工厂，管理解析策略
-- **FlexPointConfig**: 配置管理，支持灵活配置
+---
 
-### flexpoint-spring (Spring集成)
-**作用**: 提供Spring环境下的集成支持
-- **注解处理器**: 处理扩展点注解
-- **代理生成**: 实现扩展点的动态代理
-- **自动注册**: 自动扫描和注册扩展点
+## 解析策略与业务规则
+- 支持注解（@ExtensionResolverSelector）指定策略
+- 支持上下文（如ThreadLocal、参数、环境变量）动态决策
+- 支持多字段（如code+version）匹配、灰度、A/B等复杂业务规则
 
-### flexpoint-springboot (Spring Boot自动配置)
-**作用**: 提供Spring Boot的自动配置
-- **自动配置类**: 自动配置FlexPoint相关Bean
-- **配置属性**: 支持外部化配置
-- **组件工厂**: 根据配置创建组件
+---
 
-### flexpoint-dependencies-bom (依赖管理)
-**作用**: 统一管理依赖版本
-- **版本管理**: 避免版本冲突
-- **简化依赖**: 简化项目依赖管理
+## 测试体系与用例覆盖
 
-### flexpoint-examples (示例模块)
-**作用**: 提供使用示例和最佳实践
-- **Java原生示例**: 展示非Spring环境下的使用
-- **Spring Boot示例**: 展示Spring Boot环境下的使用
+- **ConfigTest**：配置默认值、校验、禁用场景
+- **ExtensionRegistryTest**：注册、查找、注销、重复注册、并发注册
+- **MonitorTest**：调用统计、异常统计、指标重置
+- **ResolutionTest**：策略注册、注解优先、上下文动态选择、策略未找到异常
+- **IntegrationTest**：注册、查找、解析、监控、注销等全流程
+- **complx/**：灰度、A/B、多字段动态匹配等复杂业务规则
 
-### flexpoint-test (测试模块)
-**作用**: 提供测试用例和验证
-- **单元测试**: 验证各模块功能
-- **集成测试**: 验证模块协作
+---
 
 ## 设计模式应用
 
 | 设计模式 | 应用场景 | 实现类 |
 |---------|---------|--------|
-| **门面模式** | 提供统一API | FlexPoint |
-| **工厂模式** | 扩展点创建管理 | ExtensionAbilityFactory |
-| **建造者模式** | 对象构建 | FlexPointBuilder |
-| **策略模式** | 扩展点解析 | ExtensionResolutionStrategy |
-| **代理模式** | Spring集成 | ExtensionAbilityInvocationHandler |
-| **注册模式** | 扩展点管理 | ExtensionRegistry |
-
-## 扩展点工作流程
-
-### 1. 定义阶段
-```java
-// 定义扩展点接口
-public interface OrderProcessAbility extends ExtensionAbility {
-    String processOrder(String orderId, double amount);
-}
-```
-
-### 2. 实现阶段
-```java
-// 实现扩展点
-public class MallOrderProcessAbility implements OrderProcessAbility {
-    @Override
-    public String getCode() {
-        return "mall";
-    }
-    
-    @Override
-    public String processOrder(String orderId, double amount) {
-        return "商城订单处理完成";
-    }
-}
-```
-
-### 3. 注册阶段
-```java
-// 注册扩展点
-flexPoint.register(OrderProcessAbility.class, new MallOrderProcessAbility());
-```
-
-### 4. 使用阶段
-```java
-// 使用扩展点
-Map<String, Object> context = Map.of("code", "mall");
-OrderProcessAbility processor = flexPoint.findAbility(OrderProcessAbility.class, context);
-String result = processor.processOrder("ORDER001", 1000.0);
-```
-
-## 核心优势
-
-1. **轻量级**: 无外部依赖，专注于核心功能
-2. **灵活性**: 支持自定义解析策略
-3. **易用性**: 提供多种使用方式（Spring Boot、Spring、Java原生）
-4. **可监控**: 内置监控功能，便于问题排查
-5. **可扩展**: 模块化设计，支持功能扩展 
+| 门面模式 | 统一API | FlexPoint |
+| 工厂模式 | 扩展点创建 | ExtensionAbilityRegistry |
+| 策略模式 | 解析策略 | ExtensionResolutionStrategy |
+| 代理模式 | Spring集成 | ExtensionAbilityInvocationHandler |
+| 注册模式 | 扩展点管理 | ExtensionAbilityRegistry |
+| 观察者模式 | 监控 | ExtensionMonitor |

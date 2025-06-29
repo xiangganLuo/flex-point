@@ -1,39 +1,34 @@
 package com.flexpoint.example.java.service;
 
-import com.flexpoint.core.FlexPointManager;
+import com.flexpoint.core.FlexPoint;
 import com.flexpoint.example.java.ability.OrderProcessAbility;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * 订单服务类
- * 演示如何在业务服务中使用扩展点
+ * 演示如何在业务服务中使用扩展点，简化版本管理
  */
 public class OrderService {
     
-    private final FlexPointManager manager;
+    private final FlexPoint manager;
     
-    public OrderService(FlexPointManager manager) {
+    public OrderService(FlexPoint manager) {
         this.manager = manager;
     }
     
     /**
      * 处理订单
+     * 使用默认扩展点处理订单
+     * 
      * @param orderId 订单ID
      * @param amount 订单金额
-     * @param businessType 业务类型
+     * @param businessType 业务类型（用于日志记录）
      * @return 处理结果
      */
     public String processOrder(String orderId, double amount, String businessType) {
         System.out.println("开始处理订单: orderId=" + orderId + ", amount=" + amount + ", businessType=" + businessType);
         
-        // 构造上下文
-        Map<String, Object> context = new HashMap<>();
-        context.put("code", businessType);
-        
         // 查找订单处理扩展点
-        OrderProcessAbility orderProcessor = manager.findAbility(OrderProcessAbility.class, context);
+        OrderProcessAbility orderProcessor = manager.findAbility(OrderProcessAbility.class);
         if (orderProcessor == null) {
             return "未找到对应的订单处理器";
         }
@@ -43,5 +38,16 @@ public class OrderService {
         System.out.println("订单处理结果: " + result);
         
         return result;
+    }
+    
+    /**
+     * 处理订单（简化版本）
+     * 
+     * @param orderId 订单ID
+     * @param amount 订单金额
+     * @return 处理结果
+     */
+    public String processOrder(String orderId, double amount) {
+        return processOrder(orderId, amount, "default");
     }
 } 

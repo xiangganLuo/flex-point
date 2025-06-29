@@ -24,4 +24,9 @@ public class LogisticsOrderProcessAbility implements OrderProcessAbility {
             return "物流普通订单处理完成，已安排标准配送";
         }
     }
+
+    @Override
+    public String version() {
+        return "1.0.0";
+    }
 } 

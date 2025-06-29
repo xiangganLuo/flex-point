@@ -1,9 +1,8 @@
 package com.flexpoint.spring.processor;
 
-import com.flexpoint.core.registry.ExtensionAbility;
+import com.flexpoint.core.extension.ExtensionAbility;
 import com.flexpoint.common.annotations.ExtensionAbilityReference;
-import com.flexpoint.core.FlexPointManager;
-import com.flexpoint.core.monitor.ExtensionMonitor;
+import com.flexpoint.core.FlexPoint;
 import com.flexpoint.spring.proxy.ExtensionAbilityInvocationHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeansException;
@@ -22,8 +21,7 @@ import java.lang.reflect.Field;
 @RequiredArgsConstructor
 public class ExtensionAbilityReferenceProcessor implements BeanPostProcessor {
 
-    private final FlexPointManager flexPointManager;
-    private final ExtensionMonitor extensionMonitor;
+    private final FlexPoint flexPoint;
 
     @Override
     public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
@@ -31,12 +29,12 @@ public class ExtensionAbilityReferenceProcessor implements BeanPostProcessor {
         for (Field field : clazz.getDeclaredFields()) {
             ExtensionAbilityReference reference = field.getAnnotation(ExtensionAbilityReference.class);
             if (reference != null) {
-                Class<?> fieldType = field.getType();
-                if (ExtensionAbility.class.isAssignableFrom(fieldType) && fieldType.isInterface()) {
+                Class<?> abilityClass = field.getType();
+                if (ExtensionAbility.class.isAssignableFrom(abilityClass) && abilityClass.isInterface()) {
                     Object proxy = Proxy.newProxyInstance(
-                            fieldType.getClassLoader(),
-                            new Class[]{fieldType},
-                            new ExtensionAbilityInvocationHandler(reference, flexPointManager, extensionMonitor, fieldType)
+                            abilityClass.getClassLoader(),
+                            new Class[]{abilityClass},
+                            new ExtensionAbilityInvocationHandler(reference, flexPoint, abilityClass)
                     );
                     field.setAccessible(true);
                     try {

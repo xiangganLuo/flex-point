@@ -1,0 +1,75 @@
+package com.flexpoint.test.complx;
+
+import com.flexpoint.core.FlexPoint;
+import com.flexpoint.core.FlexPointBuilder;
+import com.flexpoint.core.config.FlexPointConfig;
+import com.flexpoint.core.extension.ExtensionAbility;
+import com.flexpoint.core.resolution.AbstractExtensionResolutionStrategy;
+import com.flexpoint.core.resolution.ResolutionContext;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import java.util.HashSet;
+import java.util.Set;
+
+public class GrayRuleTest {
+    private FlexPoint flexPoint;
+
+    interface GrayAbility extends ExtensionAbility {
+        String process(String userId);
+    }
+    static class GrayImpl implements GrayAbility {
+        @Override public String getCode() { return "gray"; }
+        @Override public String process(String userId) { return "gray"; }
+    }
+    static class NormalImpl implements GrayAbility {
+        @Override public String getCode() { return "normal"; }
+        @Override public String process(String userId) { return "normal"; }
+    }
+    static class GrayStrategy extends AbstractExtensionResolutionStrategy {
+        private final Set<String> grayUsers;
+        public GrayStrategy(Set<String> grayUsers) { this.grayUsers = grayUsers; }
+        @Override
+        protected ResolutionContext extractContext() {
+            String userId = UserContext.get();
+            String code = grayUsers.contains(userId) ? "gray" : "normal";
+            return new ResolutionContext(code, null);
+        }
+        @Override
+        public String getStrategyName() { return "GrayStrategy"; }
+    }
+    static class UserContext {
+        private static final ThreadLocal<String> holder = new ThreadLocal<>();
+        public static void set(String userId) { holder.set(userId); }
+        public static String get() { return holder.get(); }
+        public static void clear() { holder.remove(); }
+    }
+
+    @BeforeEach
+    public void setup() {
+        FlexPointConfig config = new FlexPointConfig();
+        config.setEnabled(true);
+        flexPoint = FlexPointBuilder.create(config).build();
+    }
+
+    @Test
+    public void testGrayUserRouting() {
+        Set<String> grayUsers = new HashSet<>();
+        grayUsers.add("u1");
+        grayUsers.add("u2");
+        flexPoint.registerResolver(new GrayStrategy(grayUsers));
+        flexPoint.register(new GrayImpl());
+        flexPoint.register(new NormalImpl());
+
+        UserContext.set("u1");
+        GrayAbility a1 = flexPoint.findAbility(GrayAbility.class);
+        Assertions.assertEquals("gray", a1.process("u1"));
+
+        UserContext.set("u3");
+        GrayAbility a2 = flexPoint.findAbility(GrayAbility.class);
+        Assertions.assertEquals("normal", a2.process("u3"));
+
+        UserContext.clear();
+    }
+} 

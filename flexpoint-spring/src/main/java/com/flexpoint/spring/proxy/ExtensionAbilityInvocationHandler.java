@@ -4,9 +4,8 @@ import com.flexpoint.common.annotations.ExtensionAbilityReference;
 import com.flexpoint.common.constants.FlexPointConstants;
 import com.flexpoint.common.exception.ExtensionAbilityNotFoundException;
 import com.flexpoint.common.utils.ExtensionUtil;
-import com.flexpoint.core.registry.ExtensionAbility;
-import com.flexpoint.core.FlexPointManager;
-import com.flexpoint.core.monitor.ExtensionMonitor;
+import com.flexpoint.core.FlexPoint;
+import com.flexpoint.core.extension.ExtensionAbility;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cglib.proxy.InvocationHandler;
 
@@ -25,11 +24,9 @@ public class ExtensionAbilityInvocationHandler implements InvocationHandler {
 
     private final ExtensionAbilityReference reference;
 
-    private final FlexPointManager flexPointManager;
+    private final FlexPoint flexPoint;
 
-    private final ExtensionMonitor extensionMonitor;
-
-    private final Class<?> fieldType;
+    private final Class<?> extensionAbilityClass;
 
     @SuppressWarnings("unchecked")
     @Override
@@ -42,24 +39,24 @@ public class ExtensionAbilityInvocationHandler implements InvocationHandler {
             context.put(FlexPointConstants.CODE, reference.code());
         }
 
-        ExtensionAbility ability = flexPointManager.findAbility((Class<ExtensionAbility>) fieldType, context);
+        ExtensionAbility ability = flexPoint.findAbility((Class<ExtensionAbility>) extensionAbilityClass);
         if (ability == null && reference.required()) {
-            throw new ExtensionAbilityNotFoundException("No ExtensionAbility implementation found for: " + fieldType.getName());
+            throw new ExtensionAbilityNotFoundException("No ExtensionAbility implementation found for: " + extensionAbilityClass.getName());
         }
         if (ability == null) {
             return getDefaultReturnValue(method.getReturnType());
         }
         
         long startTime = System.currentTimeMillis();
-        String extensionId = ExtensionUtil.getExtensionId(ability.getClass(), ability.getCode());
+        String extensionId = ExtensionUtil.getExtensionId(ability.getCode(), ability.version());
         Object ret;
         try {
             ret = method.invoke(ability, args);
             long duration = System.currentTimeMillis() - startTime;
-            extensionMonitor.recordInvocation(extensionId, duration, true);
+            flexPoint.recordInvocation(extensionId, duration, true);
         } catch (Throwable throwable) {
             long duration = System.currentTimeMillis() - startTime;
-            extensionMonitor.recordInvocation(extensionId, duration, false);
+            flexPoint.recordInvocation(extensionId, duration, false);
             throw throwable;
         }
         return ret;

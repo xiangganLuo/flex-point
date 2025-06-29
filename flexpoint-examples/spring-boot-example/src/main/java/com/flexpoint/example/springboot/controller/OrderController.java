@@ -1,6 +1,6 @@
 package com.flexpoint.example.springboot.controller;
 
-import com.flexpoint.core.FlexPointManager;
+import com.flexpoint.core.FlexPoint;
 import com.flexpoint.example.springboot.framework.common.CommonResult;
 import com.flexpoint.example.springboot.framework.flexpoint.ability.OrderProcessAbility;
 import com.flexpoint.example.springboot.framework.flexpoint.context.SysAppContext;
@@ -20,7 +20,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class OrderController {
     
-    private final FlexPointManager flexPoint;
+    private final FlexPoint flexPoint;
 
     /**
      * 处理订单

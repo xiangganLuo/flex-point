@@ -1,15 +1,13 @@
 package com.flexpoint.core.resolution;
 
-import com.flexpoint.core.registry.ExtensionAbility;
+import com.flexpoint.core.extension.ExtensionAbility;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 /**
  * 抽象扩展点解析策略
- * 抽象了code解析的通用流程，接入方只需要实现code获取逻辑
+ * 提供通用的扩展点选择逻辑，子类可以重写特定方法来自定义选择策略
  *
  * @author xiangganluo
  * @version 1.0.0
@@ -17,46 +15,51 @@ import java.util.Optional;
 @Slf4j
 public abstract class AbstractExtensionResolutionStrategy implements ExtensionResolutionStrategy {
 
-    public static final String DEFAULT_RESOLVER_NAME = "DefaultExtensionResolutionStrategy";
-
     @Override
-    public <T extends ExtensionAbility> T resolve(List<T> extensions, Map<String, Object> context) {
+    public <T extends ExtensionAbility> T resolve(List<T> extensions) {
         // 1. 参数校验
         if (extensions == null || extensions.isEmpty()) {
             log.warn("扩展点列表为空");
             return null;
         }
-        
-        // 2. 获取code（由子类实现）
-        String code = extractCode(context);
-        if (code == null || code.trim().isEmpty()) {
-            log.warn("code为空，无法解析扩展点");
+
+        // 2. 获取扩展点上下文信息
+        ResolutionContext context = extractContext();
+        if (context == null || context.getCode() == null) {
+            log.warn("扩展点上下文信息为空，无法解析扩展点");
             return null;
         }
-        
-        // 3. 根据code匹配扩展点
-        Optional<T> matched = extensions.stream()
-                .filter(extension -> code.equals(extension.getCode()))
-                .findFirst();
-        
-        if (matched.isPresent()) {
-            log.debug("找到匹配的扩展点: code={}, class={}",
-                    code, matched.get().getClass().getName());
-            return matched.get();
-        } else {
-            log.warn("未找到匹配的扩展点: code={}", code);
-            return null;
-        }
+
+        // 3. 匹配扩展点
+        return selectByCodeAndVersion(extensions, context);
     }
-    
+
     /**
-     * 提取code
-     * 子类需要实现此方法来定义如何从上下文中提取code
+     * 提取扩展点上下文信息
      *
-     * @param context 上下文信息
-     * @return 提取的code
+     * @return 扩展点上下文信息
      */
-    protected abstract String extractCode(Map<String, Object> context);
+    protected abstract ResolutionContext extractContext();
+
+    /**
+     * 按业务代码和版本选择扩展点候选者
+     * 子类可以调用此方法来按业务代码和版本选择扩展点
+     *
+     * @param extensions 扩展点候选者列表
+     * @param context 上下文
+     * @return 匹配的扩展点候选者
+     */
+    protected <T extends ExtensionAbility> T selectByCodeAndVersion(List<T> extensions, ResolutionContext context) {
+        if (context == null || context.getCode() == null || context.getCode().trim().isEmpty()) {
+            return null;
+        }
+
+        return extensions.stream()
+                .filter(e -> e.getCode().equals(context.getCode()))
+                .filter(e -> context.getVersion() == null || e.version().equals(context.getVersion()))
+                .findFirst()
+                .orElse(null);
+    }
     
     /**
      * 获取策略名称

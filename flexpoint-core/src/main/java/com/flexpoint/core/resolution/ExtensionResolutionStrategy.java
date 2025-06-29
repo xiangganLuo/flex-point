@@ -1,12 +1,12 @@
 package com.flexpoint.core.resolution;
 
-import com.flexpoint.core.registry.ExtensionAbility;
+import com.flexpoint.core.extension.ExtensionAbility;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * 扩展点解析策略接口
+ * 支持基于元数据的扩展点选择逻辑
  *
  * @author xiangganluo
  * @version 1.0.0
@@ -15,13 +15,13 @@ public interface ExtensionResolutionStrategy {
     
     /**
      * 解析扩展点
+     * 从扩展点候选者列表中选择合适的扩展点实现
      *
-     * @param extensions 扩展点列表
-     * @param context 上下文信息
+     * @param candidates 扩展点候选者列表（包含实例和元数据）
      * @param <T> 扩展点类型
      * @return 解析后的扩展点
      */
-    <T extends ExtensionAbility> T resolve(List<T> extensions, Map<String, Object> context);
+    <T extends ExtensionAbility> T resolve(List<T> extensions);
     
     /**
      * 获取策略名称

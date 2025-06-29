@@ -1,7 +1,7 @@
 package com.flexpoint.springboot.config;
 
 import com.flexpoint.core.FlexPointBuilder;
-import com.flexpoint.core.FlexPointManager;
+import com.flexpoint.core.FlexPoint;
 import com.flexpoint.spring.banner.FlexPointBanner;
 import com.flexpoint.spring.processor.ExtensionAbilityReferenceProcessor;
 import com.flexpoint.spring.register.SpringExtensionAbilityRegister;
@@ -28,18 +28,14 @@ import org.springframework.context.annotation.Configuration;
 public class FlexPointAutoConfiguration {
 
     /**
-     * 创建ExtensionPointManager实例
+     * 创建FlexPointManager实例
      * 使用core模块的FlexPointBuilder，通过配置进行构建
      */
     @Bean
     @ConditionalOnMissingBean
-    public FlexPointManager extensionPointManager(FlexPointProperties properties) {
-        log.info("创建ExtensionPointManager实例，使用配置: enabled={}", properties.isEnabled());
-        // 使用core模块的FlexPointBuilder构建ExtensionPointManager实例
-        FlexPointManager manager = FlexPointBuilder.create(properties).build();
-        
-        log.info("ExtensionPointManager实例创建成功");
-        return manager;
+    public FlexPoint extensionPointManager(FlexPointProperties properties) {
+        log.info("创建FlexPointManager实例，使用配置: enabled={}", properties.isEnabled());
+        return FlexPointBuilder.create(properties).build();
     }
 
     /**
@@ -49,7 +45,7 @@ public class FlexPointAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = FlexPointProperties.PREFIX + ".registry", name = "enabled", havingValue = "true", matchIfMissing = true)
-    public SpringExtensionAbilityRegister springExtensionAbilityRegister(FlexPointManager manager) {
+    public SpringExtensionAbilityRegister springExtensionAbilityRegister(FlexPoint manager) {
         return new SpringExtensionAbilityRegister(manager.getExtensionAbilityRegistry());
     }
 
@@ -61,13 +57,13 @@ public class FlexPointAutoConfiguration {
     }
 
     /**
-     * 创建解析器自动注册器
+     * 创建解析策略自动注册器
      * 根据配置决定是否启用
      */
     @Bean
     @ConditionalOnMissingBean
-    public SpringExtensionResolverRegister springExtensionResolverRegister(FlexPointManager manager) {
-        return new SpringExtensionResolverRegister(manager.getResolverFactory());
+    public SpringExtensionResolverRegister springExtensionResolverRegister(FlexPoint manager) {
+        return new SpringExtensionResolverRegister(manager);
     }
 
     /**
@@ -76,8 +72,7 @@ public class FlexPointAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    public ExtensionAbilityReferenceProcessor extensionAbilityReferenceProcessor(
-            FlexPointManager manager) {
-        return new ExtensionAbilityReferenceProcessor(manager, manager.getExtensionMonitor());
+    public ExtensionAbilityReferenceProcessor extensionAbilityReferenceProcessor(FlexPoint manager) {
+        return new ExtensionAbilityReferenceProcessor(manager);
     }
 } 
