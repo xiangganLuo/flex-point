@@ -2,19 +2,18 @@ package com.flexpoint.core;
 
 import com.flexpoint.core.config.FlexPointConfig;
 import com.flexpoint.core.config.FlexPointConfigValidator;
-import com.flexpoint.core.extension.ExtensionAbilityFactory;
 import com.flexpoint.core.monitor.DefaultExtensionMonitor;
 import com.flexpoint.core.monitor.ExtensionMonitor;
-import com.flexpoint.core.registry.DefaultExtensionRegistry;
-import com.flexpoint.core.registry.ExtensionRegistry;
+import com.flexpoint.core.registry.FlexPointExtensionAbilityRegistry;
+import com.flexpoint.core.registry.ExtensionAbilityRegistry;
 import com.flexpoint.core.resolution.DefaultExtensionResolverFactory;
 import com.flexpoint.core.resolution.ExtensionResolutionStrategy;
 import com.flexpoint.core.resolution.ExtensionResolverFactory;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * FlexPoint 建造者
- * 提供流式API来构建和配置FlexPoint实例
+ * 扩展点管理器建造者
+ * 提供流式API来构建和配置ExtensionPointManager实例
  *
  * @author xiangganluo
  * @version 1.0.0
@@ -22,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class FlexPointBuilder {
     
-    private ExtensionRegistry registry;
+    private ExtensionAbilityRegistry registry;
     private ExtensionMonitor monitor;
     private ExtensionResolverFactory resolverFactory;
     private FlexPointConfig config;
@@ -44,16 +43,9 @@ public class FlexPointBuilder {
     }
     
     /**
-     * 使用默认配置构建
-     */
-    public static FlexPointBuilder createWithDefaultConfig() {
-        return create(FlexPointConfig.defaultConfig());
-    }
-    
-    /**
      * 使用自定义注册中心
      */
-    public FlexPointBuilder withRegistry(ExtensionRegistry registry) {
+    public FlexPointBuilder withRegistry(ExtensionAbilityRegistry registry) {
         this.registry = registry;
         return this;
     }
@@ -94,9 +86,9 @@ public class FlexPointBuilder {
     }
     
     /**
-     * 构建FlexPoint实例
+     * 构建ExtensionPointManager实例
      */
-    public FlexPoint build() {
+    public FlexPointManager build() {
         // 如果没有配置，使用默认配置
         if (config == null) {
             config = FlexPointConfig.defaultConfig();
@@ -121,12 +113,11 @@ public class FlexPointBuilder {
             resolverFactory = FlexPointComponentCreator.createResolverFactory();
         }
         
-        ExtensionAbilityFactory factory = new ExtensionAbilityFactory(registry, monitor, resolverFactory);
-        return new FlexPoint(factory, registry, monitor, resolverFactory, config);
+        return new FlexPointManager(registry, monitor, resolverFactory);
     }
 
     /**
-     * Flex Point组件工厂
+     * 扩展点组件工厂
      * 根据配置创建不同的组件实例
      *
      * @author xiangganluo
@@ -138,8 +129,8 @@ public class FlexPointBuilder {
         /**
          * 根据配置创建注册中心
          */
-        public static ExtensionRegistry createRegistry(FlexPointConfig.RegistryConfig registryConfig) {
-            return new DefaultExtensionRegistry(registryConfig);
+        public static ExtensionAbilityRegistry createRegistry(FlexPointConfig.RegistryConfig registryConfig) {
+            return new FlexPointExtensionAbilityRegistry(registryConfig);
         }
 
         /**

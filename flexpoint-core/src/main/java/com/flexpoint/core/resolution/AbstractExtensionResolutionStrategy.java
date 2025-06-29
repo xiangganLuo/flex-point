@@ -1,6 +1,6 @@
 package com.flexpoint.core.resolution;
 
-import com.flexpoint.core.extension.ExtensionAbility;
+import com.flexpoint.core.registry.ExtensionAbility;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;

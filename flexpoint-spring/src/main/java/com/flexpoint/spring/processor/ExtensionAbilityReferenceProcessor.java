@@ -1,8 +1,8 @@
 package com.flexpoint.spring.processor;
 
-import com.flexpoint.core.extension.ExtensionAbility;
+import com.flexpoint.core.registry.ExtensionAbility;
 import com.flexpoint.common.annotations.ExtensionAbilityReference;
-import com.flexpoint.core.extension.ExtensionAbilityFactory;
+import com.flexpoint.core.FlexPointManager;
 import com.flexpoint.core.monitor.ExtensionMonitor;
 import com.flexpoint.spring.proxy.ExtensionAbilityInvocationHandler;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +22,7 @@ import java.lang.reflect.Field;
 @RequiredArgsConstructor
 public class ExtensionAbilityReferenceProcessor implements BeanPostProcessor {
 
-    private final ExtensionAbilityFactory extensionAbilityFactory;
+    private final FlexPointManager flexPointManager;
     private final ExtensionMonitor extensionMonitor;
 
     @Override
@@ -36,7 +36,7 @@ public class ExtensionAbilityReferenceProcessor implements BeanPostProcessor {
                     Object proxy = Proxy.newProxyInstance(
                             fieldType.getClassLoader(),
                             new Class[]{fieldType},
-                            new ExtensionAbilityInvocationHandler(reference, extensionAbilityFactory, extensionMonitor, fieldType)
+                            new ExtensionAbilityInvocationHandler(reference, flexPointManager, extensionMonitor, fieldType)
                     );
                     field.setAccessible(true);
                     try {

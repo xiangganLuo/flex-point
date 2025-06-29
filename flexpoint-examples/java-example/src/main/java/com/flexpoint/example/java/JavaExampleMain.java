@@ -1,6 +1,6 @@
 package com.flexpoint.example.java;
 
-import com.flexpoint.example.java.manager.FlexPointManager;
+import com.flexpoint.example.java.manager.ExampleFlexPointManager;
 import com.flexpoint.example.java.service.OrderService;
 
 /**
@@ -14,7 +14,7 @@ public class JavaExampleMain {
         System.out.println("=== Flex Point Java原生使用示例 ===\n");
 
         // 获取FlexPoint管理器实例
-        FlexPointManager manager = FlexPointManager.getInstance();
+        ExampleFlexPointManager manager = ExampleFlexPointManager.getInstance();
 
         // 获取订单服务
         OrderService orderService = manager.getOrderService();

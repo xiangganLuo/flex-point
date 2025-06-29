@@ -1,4 +1,4 @@
-package com.flexpoint.core.extension;
+package com.flexpoint.core.registry;
 
 /**
  * 扩展点能力接口

@@ -1,7 +1,6 @@
 package com.flexpoint.example.java.service;
 
-import com.flexpoint.core.FlexPoint;
-import com.flexpoint.core.extension.ExtensionAbilityFactory;
+import com.flexpoint.core.FlexPointManager;
 import com.flexpoint.example.java.ability.OrderProcessAbility;
 
 import java.util.HashMap;
@@ -13,10 +12,10 @@ import java.util.Map;
  */
 public class OrderService {
     
-    private final ExtensionAbilityFactory abilityFactory;
+    private final FlexPointManager manager;
     
-    public OrderService(FlexPoint flexPoint) {
-        this.abilityFactory = flexPoint.getAbilityFactory();
+    public OrderService(FlexPointManager manager) {
+        this.manager = manager;
     }
     
     /**
@@ -34,7 +33,7 @@ public class OrderService {
         context.put("code", businessType);
         
         // 查找订单处理扩展点
-        OrderProcessAbility orderProcessor = abilityFactory.findAbility(OrderProcessAbility.class, context);
+        OrderProcessAbility orderProcessor = manager.findAbility(OrderProcessAbility.class, context);
         if (orderProcessor == null) {
             return "未找到对应的订单处理器";
         }

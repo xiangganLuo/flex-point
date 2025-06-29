@@ -1,6 +1,5 @@
 package com.flexpoint.core.registry;
 
-import com.flexpoint.core.extension.ExtensionAbility;
 import com.flexpoint.core.registry.metadata.ExtensionMetadata;
 
 import java.util.List;
@@ -12,7 +11,7 @@ import java.util.List;
  * @author xiangganluo
  * @version 1.0.0
  */
-public interface ExtensionRegistry {
+public interface ExtensionAbilityRegistry {
     
     /**
      * 注册扩展点
@@ -42,7 +41,7 @@ public interface ExtensionRegistry {
      * @return 扩展点实例
      */
     <T extends ExtensionAbility> T getExtensionById(Class<T> extensionType, String extensionId);
-    
+
     /**
      * 获取扩展点元数据
      *
@@ -51,7 +50,7 @@ public interface ExtensionRegistry {
      * @return 扩展点元数据
      */
     ExtensionMetadata getExtensionMetadata(Class<? extends ExtensionAbility> extensionType, String extensionId);
-    
+
     /**
      * 注销扩展点
      *
@@ -59,7 +58,7 @@ public interface ExtensionRegistry {
      * @param extensionId 扩展点ID
      */
     void unregister(Class<? extends ExtensionAbility> extensionType, String extensionId);
-    
+
     /**
      * 检查扩展点是否存在
      *

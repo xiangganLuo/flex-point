@@ -4,8 +4,8 @@ import com.flexpoint.common.annotations.ExtensionAbilityReference;
 import com.flexpoint.common.constants.FlexPointConstants;
 import com.flexpoint.common.exception.ExtensionAbilityNotFoundException;
 import com.flexpoint.common.utils.ExtensionUtil;
-import com.flexpoint.core.extension.ExtensionAbility;
-import com.flexpoint.core.extension.ExtensionAbilityFactory;
+import com.flexpoint.core.registry.ExtensionAbility;
+import com.flexpoint.core.FlexPointManager;
 import com.flexpoint.core.monitor.ExtensionMonitor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cglib.proxy.InvocationHandler;
@@ -25,7 +25,7 @@ public class ExtensionAbilityInvocationHandler implements InvocationHandler {
 
     private final ExtensionAbilityReference reference;
 
-    private final ExtensionAbilityFactory extensionAbilityFactory;
+    private final FlexPointManager flexPointManager;
 
     private final ExtensionMonitor extensionMonitor;
 
@@ -42,7 +42,7 @@ public class ExtensionAbilityInvocationHandler implements InvocationHandler {
             context.put(FlexPointConstants.CODE, reference.code());
         }
 
-        ExtensionAbility ability = extensionAbilityFactory.findAbility((Class<ExtensionAbility>) fieldType, context);
+        ExtensionAbility ability = flexPointManager.findAbility((Class<ExtensionAbility>) fieldType, context);
         if (ability == null && reference.required()) {
             throw new ExtensionAbilityNotFoundException("No ExtensionAbility implementation found for: " + fieldType.getName());
         }

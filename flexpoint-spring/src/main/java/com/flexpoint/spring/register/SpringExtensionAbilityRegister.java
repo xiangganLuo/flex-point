@@ -1,10 +1,10 @@
 package com.flexpoint.spring.register;
 
-import com.flexpoint.core.extension.ExtensionAbility;
+import com.flexpoint.core.registry.ExtensionAbility;
 import com.flexpoint.common.annotations.ExtensionInfo;
 import com.flexpoint.core.registry.metadata.DefaultExtensionMetadata;
 import com.flexpoint.core.registry.metadata.ExtensionMetadata;
-import com.flexpoint.core.registry.ExtensionRegistry;
+import com.flexpoint.core.registry.ExtensionAbilityRegistry;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +26,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class SpringExtensionAbilityRegister implements ApplicationContextAware {
 
-    private final ExtensionRegistry extensionRegistry;
+    private final ExtensionAbilityRegistry extensionAbilityRegistry;
     private ApplicationContext applicationContext;
 
     @SuppressWarnings("unchecked")
@@ -52,7 +52,7 @@ public class SpringExtensionAbilityRegister implements ApplicationContextAware {
                     ExtensionMetadata metadata = createExtensionMetadata(ability, beanName, extensionAbilityInterface);
                     
                     // 注册扩展点
-                    extensionRegistry.register(extensionAbilityInterface, ability, metadata);
+                    extensionAbilityRegistry.register(extensionAbilityInterface, ability, metadata);
                     registeredCount++;
                     
                     log.debug("扩展点注册成功: interface={}, implementation={}, code={}", 

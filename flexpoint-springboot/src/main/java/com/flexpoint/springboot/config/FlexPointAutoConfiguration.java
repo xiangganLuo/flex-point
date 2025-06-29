@@ -1,8 +1,7 @@
 package com.flexpoint.springboot.config;
 
-import com.flexpoint.core.FlexPoint;
 import com.flexpoint.core.FlexPointBuilder;
-import com.flexpoint.core.extension.ExtensionAbilityFactory;
+import com.flexpoint.core.FlexPointManager;
 import com.flexpoint.spring.banner.FlexPointBanner;
 import com.flexpoint.spring.processor.ExtensionAbilityReferenceProcessor;
 import com.flexpoint.spring.register.SpringExtensionAbilityRegister;
@@ -29,28 +28,18 @@ import org.springframework.context.annotation.Configuration;
 public class FlexPointAutoConfiguration {
 
     /**
-     * 创建FlexPoint实例
+     * 创建ExtensionPointManager实例
      * 使用core模块的FlexPointBuilder，通过配置进行构建
      */
     @Bean
     @ConditionalOnMissingBean
-    public FlexPoint flexPoint(FlexPointProperties properties) {
-        log.info("创建FlexPoint实例，使用配置: enabled={}", properties.isEnabled());
-        // 使用core模块的FlexPointBuilder构建FlexPoint实例
-        FlexPoint flexPoint = FlexPointBuilder.create(properties).build();
+    public FlexPointManager extensionPointManager(FlexPointProperties properties) {
+        log.info("创建ExtensionPointManager实例，使用配置: enabled={}", properties.isEnabled());
+        // 使用core模块的FlexPointBuilder构建ExtensionPointManager实例
+        FlexPointManager manager = FlexPointBuilder.create(properties).build();
         
-        log.info("FlexPoint实例创建成功，配置: {}", flexPoint.getConfig());
-        return flexPoint;
-    }
-
-    /**
-     * 创建扩展点能力工厂
-     * 使用配置创建的组件
-     */
-    @Bean
-    @ConditionalOnMissingBean
-    public ExtensionAbilityFactory extensionAbilityFactory(FlexPoint flexPoint) {
-        return new ExtensionAbilityFactory(flexPoint.getRegistry(), flexPoint.getMonitor(), flexPoint.getResolverFactory());
+        log.info("ExtensionPointManager实例创建成功");
+        return manager;
     }
 
     /**
@@ -60,8 +49,8 @@ public class FlexPointAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = FlexPointProperties.PREFIX + ".registry", name = "enabled", havingValue = "true", matchIfMissing = true)
-    public SpringExtensionAbilityRegister springExtensionAbilityRegister(FlexPoint flexPoint) {
-        return new SpringExtensionAbilityRegister(flexPoint.getRegistry());
+    public SpringExtensionAbilityRegister springExtensionAbilityRegister(FlexPointManager manager) {
+        return new SpringExtensionAbilityRegister(manager.getExtensionAbilityRegistry());
     }
 
     @Bean
@@ -77,8 +66,8 @@ public class FlexPointAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    public SpringExtensionResolverRegister springExtensionResolverRegister(FlexPoint flexPoint) {
-        return new SpringExtensionResolverRegister(flexPoint.getResolverFactory());
+    public SpringExtensionResolverRegister springExtensionResolverRegister(FlexPointManager manager) {
+        return new SpringExtensionResolverRegister(manager.getResolverFactory());
     }
 
     /**
@@ -88,7 +77,7 @@ public class FlexPointAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public ExtensionAbilityReferenceProcessor extensionAbilityReferenceProcessor(
-            FlexPoint flexPoint) {
-        return new ExtensionAbilityReferenceProcessor(flexPoint.getAbilityFactory(), flexPoint.getMonitor());
+            FlexPointManager manager) {
+        return new ExtensionAbilityReferenceProcessor(manager, manager.getExtensionMonitor());
     }
 } 

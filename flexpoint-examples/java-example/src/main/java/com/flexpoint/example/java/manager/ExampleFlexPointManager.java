@@ -1,13 +1,14 @@
 package com.flexpoint.example.java.manager;
 
-import com.flexpoint.core.FlexPoint;
 import com.flexpoint.core.FlexPointBuilder;
+import com.flexpoint.core.FlexPointManager;
 import com.flexpoint.core.config.FlexPointConfig;
 import com.flexpoint.core.config.FlexPointConfigValidator;
-import com.flexpoint.core.extension.ExtensionAbility;
+import com.flexpoint.core.registry.ExtensionAbility;
 import com.flexpoint.core.monitor.ExtensionMonitor;
 import com.flexpoint.example.java.ability.OrderProcessAbility;
-import com.flexpoint.example.java.ability.impl.*;
+import com.flexpoint.example.java.ability.impl.LogisticsOrderProcessAbility;
+import com.flexpoint.example.java.ability.impl.MallOrderProcessAbility;
 import com.flexpoint.example.java.resolution.CustomExtensionResolutionStrategy;
 import com.flexpoint.example.java.service.OrderService;
 
@@ -19,15 +20,16 @@ import java.util.Map;
  * 提供门面模式，简化FlexPoint的使用
  * @author luoxianggan
  */
-public class FlexPointManager {
+public class ExampleFlexPointManager {
+
+    private static ExampleFlexPointManager instance;
     
-    private static FlexPointManager instance;
-    private final FlexPoint flexPoint;
+    private static FlexPointManager flexPoint;
     private final OrderService orderService;
     
-    private FlexPointManager() {
+    private ExampleFlexPointManager() {
         // 创建FlexPoint实例
-        this.flexPoint = FlexPointBuilder.create()
+        flexPoint = FlexPointBuilder.create()
                 .withConfig(createConfig())
                 .build();
         
@@ -44,9 +46,9 @@ public class FlexPointManager {
     /**
      * 获取单例实例
      */
-    public static FlexPointManager getInstance() {
+    public static ExampleFlexPointManager getInstance() {
         if (instance == null) {
-            instance = new FlexPointManager();
+            instance = new ExampleFlexPointManager();
         }
         return instance;
     }
@@ -54,7 +56,7 @@ public class FlexPointManager {
     /**
      * 获取FlexPoint实例
      */
-    public FlexPoint getFlexPoint() {
+    public FlexPointManager getFlexPoint() {
         return flexPoint;
     }
 
@@ -141,7 +143,7 @@ public class FlexPointManager {
         
         try {
             // 获取所有已注册的扩展点类型
-            List<Class<? extends ExtensionAbility>> registeredTypes = flexPoint.getRegistry().getRegisteredTypes();
+            List<Class<? extends ExtensionAbility>> registeredTypes = flexPoint.getExtensionAbilityRegistry().getRegisteredTypes();
             System.out.println("已注册的扩展点类型数量: " + registeredTypes.size());
             
             for (Class<? extends ExtensionAbility> type : registeredTypes) {

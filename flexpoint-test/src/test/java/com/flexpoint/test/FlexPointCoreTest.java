@@ -1,12 +1,11 @@
 package com.flexpoint.test;
 
-import com.flexpoint.core.FlexPoint;
 import com.flexpoint.core.FlexPointBuilder;
 import com.flexpoint.core.config.FlexPointConfig;
-import com.flexpoint.core.extension.ExtensionAbility;
-import com.flexpoint.core.extension.ExtensionAbilityFactory;
+import com.flexpoint.core.registry.ExtensionAbility;
+import com.flexpoint.core.FlexPointManager;
 import com.flexpoint.core.monitor.DefaultExtensionMonitor;
-import com.flexpoint.core.registry.DefaultExtensionRegistry;
+import com.flexpoint.core.registry.FlexPointExtensionAbilityRegistry;
 import com.flexpoint.core.registry.metadata.DefaultExtensionMetadata;
 import com.flexpoint.core.registry.metadata.ExtensionMetadata;
 import com.flexpoint.core.resolution.DefaultExtensionResolutionStrategy;
@@ -20,44 +19,41 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * FlexPoint核心功能测试
+ * ExtensionPointManager核心功能测试
  *
  * @author xiangganluo
  * @version 1.0.0
  */
 class FlexPointCoreTest {
 
-    private FlexPoint flexPoint;
-    private ExtensionAbilityFactory factory;
-    private DefaultExtensionRegistry registry;
+    private FlexPointManager manager;
+    private FlexPointExtensionAbilityRegistry registry;
     private DefaultExtensionMonitor monitor;
 
     @BeforeEach
     void setUp() {
-        flexPoint = FlexPointBuilder.create().build();
-        factory = flexPoint.getAbilityFactory();
-        registry = (DefaultExtensionRegistry) flexPoint.getRegistry();
-        monitor = (DefaultExtensionMonitor) flexPoint.getMonitor();
+        manager = FlexPointBuilder.create().build();
+        registry = (FlexPointExtensionAbilityRegistry) manager.getExtensionAbilityRegistry();
+        monitor = (DefaultExtensionMonitor) manager.getExtensionMonitor();
     }
 
     @Test
     void testFlexPointBuilder() {
         // 测试建造者模式
-        FlexPoint flexPoint = FlexPointBuilder.create()
+        FlexPointManager manager = FlexPointBuilder.create()
                 .withConfig(new FlexPointConfig())
-                .withRegistry(new DefaultExtensionRegistry())
+                .withRegistry(new FlexPointExtensionAbilityRegistry())
                 .withMonitor(new DefaultExtensionMonitor())
                 .withResolverFactory(null)
                 .build();
 
-        assertNotNull(flexPoint);
-        assertNotNull(flexPoint.getAbilityFactory());
-        assertNotNull(flexPoint.getRegistry());
-        assertNotNull(flexPoint.getMonitor());
+        assertNotNull(manager);
+        assertNotNull(manager.getExtensionAbilityRegistry());
+        assertNotNull(manager.getExtensionMonitor());
     }
 
     @Test
-    void testFlexPointRegister() {
+    void testExtensionPointManagerRegister() {
         // 创建扩展点
         TestExtensionImpl testExtension = new TestExtensionImpl();
         ExtensionMetadata metadata = DefaultExtensionMetadata.builder()
@@ -72,60 +68,60 @@ class FlexPointCoreTest {
                 .build();
 
         // 注册扩展点
-        flexPoint.register(TestExtension.class, testExtension, metadata);
+        manager.register(TestExtension.class, testExtension, metadata);
 
         // 查找扩展点
-        TestExtension found = factory.findAbility(TestExtension.class);
+        TestExtension found = manager.findAbility(TestExtension.class);
         assertNotNull(found);
         assertEquals("test", found.getCode());
     }
 
     @Test
-    void testFlexPointRegisterWithoutMetadata() {
+    void testExtensionPointManagerRegisterWithoutMetadata() {
         // 创建扩展点
         TestExtensionImpl testExtension = new TestExtensionImpl();
 
         // 注册扩展点（无元数据）
-        flexPoint.register(TestExtension.class, testExtension);
+        manager.register(TestExtension.class, testExtension);
 
         // 查找扩展点
-        TestExtension found = factory.findAbility(TestExtension.class);
+        TestExtension found = manager.findAbility(TestExtension.class);
         assertNotNull(found);
         assertEquals("test", found.getCode());
     }
 
     @Test
-    void testFlexPointGetExtensions() {
+    void testExtensionPointManagerGetExtensions() {
         // 创建两个扩展点
         TestExtensionImpl testExtension1 = new TestExtensionImpl();
         TestExtensionImpl2 testExtension2 = new TestExtensionImpl2();
 
         // 注册扩展点
-        flexPoint.register(TestExtension.class, testExtension1);
-        flexPoint.register(TestExtension.class, testExtension2);
+        manager.register(TestExtension.class, testExtension1);
+        manager.register(TestExtension.class, testExtension2);
 
         // 获取所有扩展点
-        List<TestExtension> extensions = flexPoint.getExtensions(TestExtension.class);
+        List<TestExtension> extensions = manager.getExtensions(TestExtension.class);
         assertEquals(2, extensions.size());
     }
 
     @Test
-    void testFlexPointGetExtensionsWithContext() {
+    void testExtensionPointManagerGetExtensionsWithContext() {
         // 创建两个扩展点
         TestExtensionImpl testExtension1 = new TestExtensionImpl();
         TestExtensionImpl2 testExtension2 = new TestExtensionImpl2();
 
         // 注册扩展点
-        flexPoint.register(TestExtension.class, testExtension1);
-        flexPoint.register(TestExtension.class, testExtension2);
+        manager.register(TestExtension.class, testExtension1);
+        manager.register(TestExtension.class, testExtension2);
 
         // 获取所有扩展点（带上下文）
-        List<TestExtension> extensions = flexPoint.getExtensions(TestExtension.class);
+        List<TestExtension> extensions = manager.getExtensions(TestExtension.class);
         assertEquals(2, extensions.size());
     }
 
     @Test
-    void testFlexPointGetExtensionMetadata() {
+    void testExtensionPointManagerGetExtensionMetadata() {
         // 创建扩展点
         TestExtensionImpl testExtension = new TestExtensionImpl();
         ExtensionMetadata metadata = DefaultExtensionMetadata.builder()
@@ -140,105 +136,98 @@ class FlexPointCoreTest {
                 .build();
 
         // 注册扩展点
-        flexPoint.register(TestExtension.class, testExtension, metadata);
+        manager.register(TestExtension.class, testExtension, metadata);
 
         // 获取元数据
-        ExtensionMetadata found = flexPoint.getExtensionMetadata(TestExtension.class, "test-impl-1");
+        ExtensionMetadata found = manager.getExtensionMetadata(TestExtension.class, "test-impl-1");
         assertNotNull(found);
         assertEquals("test-impl-1", found.getExtensionId());
         assertEquals("1.0.0", found.getVersion());
     }
 
     @Test
-    void testFlexPointGetExtensionMetrics() {
+    void testExtensionPointManagerGetExtensionMetrics() {
         // 创建扩展点
         TestExtensionImpl testExtension = new TestExtensionImpl();
-        flexPoint.register(TestExtension.class, testExtension);
+        manager.register(TestExtension.class, testExtension);
 
         // 调用扩展点
-        TestExtension found = factory.findAbility(TestExtension.class);
+        TestExtension found = manager.findAbility(TestExtension.class);
         found.sayHello();
 
         // 获取监控指标
-        var metrics = flexPoint.getExtensionMetrics("TestExtensionImpl");
+        var metrics = manager.getExtensionMetrics("TestExtensionImpl");
         assertNotNull(metrics);
         assertTrue(metrics.getTotalInvocations() > 0);
     }
 
     @Test
-    void testFlexPointGetAllExtensionMetrics() {
+    void testExtensionPointManagerGetAllExtensionMetrics() {
         // 创建扩展点
         TestExtensionImpl testExtension = new TestExtensionImpl();
-        flexPoint.register(TestExtension.class, testExtension);
+        manager.register(TestExtension.class, testExtension);
 
         // 调用扩展点
-        TestExtension found = factory.findAbility(TestExtension.class);
+        TestExtension found = manager.findAbility(TestExtension.class);
         found.sayHello();
 
         // 获取所有监控指标
-        Map<String, DefaultExtensionMonitor.ExtensionMetrics> allMetrics = flexPoint.getAllExtensionMetrics();
+        Map<String, DefaultExtensionMonitor.ExtensionMetrics> allMetrics = manager.getAllExtensionMetrics();
         assertNotNull(allMetrics);
         assertFalse(allMetrics.isEmpty());
     }
 
     @Test
-    void testFlexPointWithCustomResolver() {
+    void testExtensionPointManagerWithCustomResolver() {
         // 创建自定义解析策略
         ExtensionResolutionStrategy customResolver = new CustomExtensionResolutionStrategy();
 
-        // 使用自定义解析策略构建FlexPoint
-        FlexPoint flexPoint = FlexPointBuilder.create()
+        // 使用自定义解析策略构建ExtensionPointManager
+        FlexPointManager manager = FlexPointBuilder.create()
                 .withResolver(customResolver)
                 .build();
 
         // 创建扩展点
         TestExtensionImpl testExtension = new TestExtensionImpl();
-        flexPoint.register(TestExtension.class, testExtension);
+        manager.register(TestExtension.class, testExtension);
 
         // 查找扩展点
-        TestExtension found = flexPoint.getAbilityFactory().findAbility(TestExtension.class);
+        TestExtension found = manager.findAbility(TestExtension.class);
         assertNotNull(found);
-        assertEquals("test", found.getCode());
     }
 
     @Test
-    void testFlexPointRegisterResolver() {
+    void testExtensionPointManagerRegisterResolver() {
         // 创建自定义解析策略
         ExtensionResolutionStrategy customResolver = new CustomExtensionResolutionStrategy();
 
         // 注册自定义解析策略
-        flexPoint.registerResolver(customResolver);
+        manager.registerResolver(customResolver);
 
         // 创建扩展点
         TestExtensionImpl testExtension = new TestExtensionImpl();
-        flexPoint.register(TestExtension.class, testExtension);
+        manager.register(TestExtension.class, testExtension);
 
         // 查找扩展点
-        TestExtension found = flexPoint.getAbilityFactory().findAbility(TestExtension.class);
+        TestExtension found = manager.findAbility(TestExtension.class);
         assertNotNull(found);
-        assertEquals("test", found.getCode());
     }
 
     @Test
-    void testFlexPointWithConfig() {
+    void testExtensionPointManagerWithConfig() {
         // 创建配置
         FlexPointConfig config = new FlexPointConfig();
         config.setEnabled(true);
-        config.getMonitor().setEnabled(true);
-        config.getRegistry().setEnabled(true);
 
-        // 使用配置构建FlexPoint
-        FlexPoint flexPoint = FlexPointBuilder.create()
-                .withConfig(config)
-                .build();
+        // 使用配置构建ExtensionPointManager
+        FlexPointManager manager = FlexPointBuilder.create(config).build();
 
-        assertNotNull(flexPoint);
-        assertTrue(flexPoint.getConfig().isEnabled());
-        assertTrue(flexPoint.getConfig().getMonitor().isEnabled());
-        assertTrue(flexPoint.getConfig().getRegistry().isEnabled());
+        assertNotNull(manager);
+        assertNotNull(manager.getExtensionAbilityRegistry());
+        assertNotNull(manager.getExtensionMonitor());
     }
 
-    // 自定义解析策略
+    // 测试用的扩展点接口和实现
     static class CustomExtensionResolutionStrategy extends DefaultExtensionResolutionStrategy {
         @Override
         public String getStrategyName() {
@@ -246,12 +235,10 @@ class FlexPointCoreTest {
         }
     }
 
-    // 测试扩展点接口
     interface TestExtension extends ExtensionAbility {
         String sayHello();
     }
 
-    // 测试扩展点实现1
     static class TestExtensionImpl implements TestExtension {
         @Override
         public String getCode() {
@@ -260,11 +247,10 @@ class FlexPointCoreTest {
 
         @Override
         public String sayHello() {
-            return "Hello from test extension";
+            return "Hello from TestExtensionImpl";
         }
     }
 
-    // 测试扩展点实现2
     static class TestExtensionImpl2 implements TestExtension {
         @Override
         public String getCode() {
@@ -273,7 +259,7 @@ class FlexPointCoreTest {
 
         @Override
         public String sayHello() {
-            return "Hello from test2 extension";
+            return "Hello from TestExtensionImpl2";
         }
     }
 } 

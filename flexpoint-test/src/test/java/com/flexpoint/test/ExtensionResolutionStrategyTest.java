@@ -1,6 +1,6 @@
 package com.flexpoint.test;
 
-import com.flexpoint.core.extension.ExtensionAbility;
+import com.flexpoint.core.registry.ExtensionAbility;
 import com.flexpoint.core.resolution.AbstractExtensionResolutionStrategy;
 import com.flexpoint.core.resolution.DefaultExtensionResolutionStrategy;
 import com.flexpoint.core.resolution.ExtensionResolutionStrategy;

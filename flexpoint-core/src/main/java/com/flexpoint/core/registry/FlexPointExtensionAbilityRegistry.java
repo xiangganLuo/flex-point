@@ -2,7 +2,6 @@ package com.flexpoint.core.registry;
 
 import com.flexpoint.common.utils.ExtensionUtil;
 import com.flexpoint.core.config.FlexPointConfig;
-import com.flexpoint.core.extension.ExtensionAbility;
 import com.flexpoint.core.registry.metadata.ExtensionMetadata;
 import lombok.extern.slf4j.Slf4j;
 
@@ -19,7 +18,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @SuppressWarnings("unchecked")
-public class DefaultExtensionRegistry implements ExtensionRegistry {
+public class FlexPointExtensionAbilityRegistry implements ExtensionAbilityRegistry {
     
     // 扩展点实例存储: Class -> List<ExtensionAbility>
     private final Map<Class<? extends ExtensionAbility>, List<ExtensionAbility>> extensionInstances = new ConcurrentHashMap<>();
@@ -36,14 +35,14 @@ public class DefaultExtensionRegistry implements ExtensionRegistry {
     /**
      * 使用默认配置创建注册中心
      */
-    public DefaultExtensionRegistry() {
+    public FlexPointExtensionAbilityRegistry() {
         this(new FlexPointConfig.RegistryConfig());
     }
     
     /**
      * 使用指定配置创建注册中心
      */
-    public DefaultExtensionRegistry(FlexPointConfig.RegistryConfig config) {
+    public FlexPointExtensionAbilityRegistry(FlexPointConfig.RegistryConfig config) {
         this.config = config;
         if (config.isEnabled()) {
             log.info("创建注册中心: allowDuplicateRegistration={}", config.isAllowDuplicateRegistration());
@@ -63,7 +62,7 @@ public class DefaultExtensionRegistry implements ExtensionRegistry {
             return;
         }
         
-        String extensionId = metadata != null ? metadata.getExtensionId() : instance.getClass().getSimpleName();
+        String extensionId = metadata != null ? metadata.getExtensionId() : ExtensionUtil.getExtensionId(extensionType, instance.getCode());
         
         // 检查是否允许重复注册
         if (!config.isAllowDuplicateRegistration() && exists(extensionType, extensionId)) {
