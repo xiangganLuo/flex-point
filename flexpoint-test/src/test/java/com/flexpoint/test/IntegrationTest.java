@@ -1,5 +1,6 @@
 package com.flexpoint.test;
 
+import com.flexpoint.common.annotations.ExtensionResolverSelector;
 import com.flexpoint.core.FlexPoint;
 import com.flexpoint.core.FlexPointBuilder;
 import com.flexpoint.core.config.FlexPointConfig;
@@ -14,10 +15,14 @@ import org.junit.jupiter.api.Test;
 public class IntegrationTest {
     private FlexPoint flexPoint;
 
-    static class DemoAbility implements ExtensionAbility {
+    @ExtensionResolverSelector("DemoStrategy")
+    interface DemoAbilityDef extends ExtensionAbility {
+    }
+
+    static class DemoAbility implements DemoAbilityDef {
         @Override public String getCode() { return "demo"; }
     }
-    static class SpecialAbility implements ExtensionAbility {
+    static class SpecialAbility implements DemoAbilityDef {
         @Override public String getCode() { return "special"; }
     }
     static class DemoStrategy extends AbstractExtensionResolutionStrategy {

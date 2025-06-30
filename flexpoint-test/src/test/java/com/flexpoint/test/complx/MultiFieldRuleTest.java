@@ -1,5 +1,6 @@
 package com.flexpoint.test.complx;
 
+import com.flexpoint.common.annotations.ExtensionResolverSelector;
 import com.flexpoint.core.FlexPoint;
 import com.flexpoint.core.FlexPointBuilder;
 import com.flexpoint.core.config.FlexPointConfig;
@@ -13,6 +14,7 @@ import org.junit.jupiter.api.Test;
 public class MultiFieldRuleTest {
     private FlexPoint flexPoint;
 
+    @ExtensionResolverSelector("MultiFieldStrategy")
     interface MultiVerAbility extends ExtensionAbility {
         String process();
     }

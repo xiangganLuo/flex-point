@@ -1,5 +1,6 @@
 package com.flexpoint.test.complx;
 
+import com.flexpoint.common.annotations.ExtensionResolverSelector;
 import com.flexpoint.core.FlexPoint;
 import com.flexpoint.core.FlexPointBuilder;
 import com.flexpoint.core.config.FlexPointConfig;
@@ -15,6 +16,7 @@ import java.util.Map;
 public class ABRuleTest {
     private FlexPoint flexPoint;
 
+    @ExtensionResolverSelector("ABTestStrategy")
     interface ABTestAbility extends ExtensionAbility {
         String process(String userId);
     }

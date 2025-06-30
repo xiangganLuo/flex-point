@@ -1,5 +1,6 @@
 package com.flexpoint.test.complx;
 
+import com.flexpoint.common.annotations.ExtensionResolverSelector;
 import com.flexpoint.core.FlexPoint;
 import com.flexpoint.core.FlexPointBuilder;
 import com.flexpoint.core.config.FlexPointConfig;
@@ -16,6 +17,7 @@ import java.util.Set;
 public class GrayRuleTest {
     private FlexPoint flexPoint;
 
+    @ExtensionResolverSelector("GrayStrategy")
     interface GrayAbility extends ExtensionAbility {
         String process(String userId);
     }

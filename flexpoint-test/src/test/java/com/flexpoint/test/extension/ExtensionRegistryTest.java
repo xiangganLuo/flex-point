@@ -15,11 +15,15 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class ExtensionRegistryTest {
     private ExtensionAbilityRegistry registry;
 
-    static class DemoAbility implements ExtensionAbility {
+    interface DemoAbilityDef extends ExtensionAbility {
+
+    }
+
+    static class DemoAbility implements DemoAbilityDef {
         @Override
         public String getCode() { return "demo"; }
     }
-    static class DemoAbility2 implements ExtensionAbility {
+    static class DemoAbility2 implements DemoAbilityDef {
         @Override
         public String getCode() { return "demo2"; }
     }
