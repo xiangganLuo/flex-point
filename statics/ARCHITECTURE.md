@@ -30,11 +30,8 @@ graph TB
         B2[ExtensionAbilityRegistry<br/>注册中心]
         B3[ExtensionMonitor<br/>监控器]
         B4[ExtensionResolutionStrategyRegistry<br/>策略注册表]
-				%% ===== 配置层 =====
-				subgraph 配置层
-          C1[FlexPointConfig<br/>配置]
-          C2[FlexPointConfigValidator<br/>校验]
-    		end
+        C1[FlexPointConfig<br/>配置]
+        C2[FlexPointConfigValidator<br/>校验]
     end
 
     %% ===== 测试层 =====
@@ -57,6 +54,11 @@ graph TB
     B1 -->|读取| C1
     C1 -->|校验| C2
     D -->|验证| B1
+    D2 -->|验证| B1
+    D3 -->|验证| B1
+    D4 -->|验证| B1
+    D5 -->|验证| B1
+    D6 -->|验证| B1
     
     %% ===== 样式定义 =====
     classDef business fill:#4CAF50,stroke:#2E7D32,color:white
