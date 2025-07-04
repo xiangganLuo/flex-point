@@ -135,7 +135,7 @@ public class AsyncExtensionMonitor implements ExtensionMonitor {
     private static class AsyncMonitorStatus implements MonitorStatus {
         private final MonitorStatus delegate;
         
-        public AsyncMonitorStatus(MonitorStatus delegate) {
+        AsyncMonitorStatus(MonitorStatus delegate) {
             this.delegate = delegate;
         }
         

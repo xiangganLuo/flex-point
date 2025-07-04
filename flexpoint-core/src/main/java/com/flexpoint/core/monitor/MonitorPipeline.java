@@ -25,7 +25,9 @@ public class MonitorPipeline {
     private final List<MonitorEventListener> eventListeners = new CopyOnWriteArrayList<>();
 
     public void addMetricsCollector(MetricsCollector collector) {
-        if (collector != null) collectors.add(collector);
+        if (collector != null) {
+            collectors.add(collector);
+        }
     }
     public void removeMetricsCollector(MetricsCollector collector) {
         collectors.remove(collector);
@@ -35,7 +37,9 @@ public class MonitorPipeline {
     }
 
     public void addAlertStrategy(AlertStrategy strategy) {
-        if (strategy != null) alertStrategies.add(strategy);
+        if (strategy != null) {
+            alertStrategies.add(strategy);
+        }
     }
     public void removeAlertStrategy(AlertStrategy strategy) {
         alertStrategies.remove(strategy);
@@ -45,7 +49,9 @@ public class MonitorPipeline {
     }
 
     public void addEventListener(MonitorEventListener listener) {
-        if (listener != null) eventListeners.add(listener);
+        if (listener != null) {
+            eventListeners.add(listener);
+        }
     }
     public void removeEventListener(MonitorEventListener listener) {
         eventListeners.remove(listener);

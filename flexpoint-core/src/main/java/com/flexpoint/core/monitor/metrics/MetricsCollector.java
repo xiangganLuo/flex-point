@@ -7,6 +7,7 @@ import java.util.Map;
 
 /**
  * 监控数据采集器扩展接口
+ * @author luoxianggan
  */
 public interface MetricsCollector {
 

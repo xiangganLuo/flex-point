@@ -24,7 +24,9 @@ public class DefaultExtensionMonitor implements ExtensionMonitor {
     private final ExecutorService asyncExecutor;
     
     private MonitorPipeline pipeline;
-    public void setMonitorPipeline(MonitorPipeline pipeline) { this.pipeline = pipeline; }
+    public void setMonitorPipeline(MonitorPipeline pipeline) {
+        this.pipeline = pipeline;
+    }
     
     private final FlexPointConfig.MonitorConfig config;
     
