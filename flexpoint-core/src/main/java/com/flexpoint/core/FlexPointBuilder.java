@@ -2,10 +2,10 @@ package com.flexpoint.core;
 
 import com.flexpoint.core.config.FlexPointConfig;
 import com.flexpoint.core.config.FlexPointConfigValidator;
-import com.flexpoint.core.monitor.DefaultExtensionMonitor;
-import com.flexpoint.core.monitor.ExtensionMonitor;
 import com.flexpoint.core.extension.DefaultExtensionAbilityRegistry;
 import com.flexpoint.core.extension.ExtensionAbilityRegistry;
+import com.flexpoint.core.monitor.ExtensionMonitor;
+import com.flexpoint.core.monitor.MonitorFactory;
 import com.flexpoint.core.resolution.DefaultExtensionResolutionStrategyRegistry;
 import com.flexpoint.core.resolution.ExtensionResolutionStrategy;
 import com.flexpoint.core.resolution.ExtensionResolutionStrategyRegistry;
@@ -137,7 +137,7 @@ public class FlexPointBuilder {
          * 根据配置创建监控器
          */
         public static ExtensionMonitor createMonitor(FlexPointConfig.MonitorConfig monitorConfig) {
-            return new DefaultExtensionMonitor(monitorConfig);
+            return MonitorFactory.createAuto(monitorConfig);
         }
 
         /**

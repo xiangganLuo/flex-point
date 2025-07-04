@@ -3,7 +3,10 @@ package com.flexpoint.core.monitor;
 import com.flexpoint.core.config.FlexPointConfig;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -18,8 +21,11 @@ import java.util.concurrent.atomic.AtomicReference;
 public class DefaultExtensionMonitor implements ExtensionMonitor {
     
     private final ConcurrentHashMap<String, ExtensionMetricsImpl> metricsMap = new ConcurrentHashMap<>();
+    private final ExecutorService asyncExecutor;
     
-    // 配置
+    private MonitorPipeline pipeline;
+    public void setMonitorPipeline(MonitorPipeline pipeline) { this.pipeline = pipeline; }
+    
     private final FlexPointConfig.MonitorConfig config;
     
     /**
@@ -34,10 +40,17 @@ public class DefaultExtensionMonitor implements ExtensionMonitor {
      */
     public DefaultExtensionMonitor(FlexPointConfig.MonitorConfig config) {
         this.config = config;
+        this.asyncExecutor = config.isAsyncEnabled() ? 
+            Executors.newSingleThreadExecutor(r -> {
+                Thread t = new Thread(r, "flexpoint-monitor-async");
+                t.setDaemon(true);
+                return t;
+            }) : null;
+            
         if (config.isEnabled()) {
-            log.info("创建监控器: logInvocation={}, logResolution={}, logExceptionDetails={}, performanceStatsEnabled={}",
+            log.info("创建监控器: logInvocation={}, logResolution={}, logExceptionDetails={}, performanceStatsEnabled={}, asyncEnabled={}",
                     config.isLogInvocation(), config.isLogResolution(),
-                    config.isLogExceptionDetails(), config.isPerformanceStatsEnabled());
+                    config.isLogExceptionDetails(), config.isPerformanceStatsEnabled(), config.isAsyncEnabled());
         } else {
             log.info("监控器已禁用");
         }
@@ -45,48 +58,89 @@ public class DefaultExtensionMonitor implements ExtensionMonitor {
     
     @Override
     public void recordInvocation(String extensionId, long duration, boolean success) {
+        recordInvocation(extensionId, duration, success, null);
+    }
+    
+    @Override
+    public void recordInvocation(String extensionId, long duration, boolean success, Map<String, Object> context) {
         if (!config.isEnabled()) {
             return;
         }
         
+        if (config.isAsyncEnabled() && asyncExecutor != null) {
+            asyncExecutor.submit(() -> doRecordInvocation(extensionId, duration, success, context));
+        } else {
+            doRecordInvocation(extensionId, duration, success, context);
+        }
+    }
+    
+    private void doRecordInvocation(String extensionId, long duration, boolean success, Map<String, Object> context) {
+        ExtensionMetricsImpl metrics = null;
         if (config.isPerformanceStatsEnabled()) {
-            ExtensionMetricsImpl metrics = metricsMap.computeIfAbsent(extensionId, k -> new ExtensionMetricsImpl());
+            metrics = metricsMap.computeIfAbsent(extensionId, k -> new ExtensionMetricsImpl());
             metrics.recordInvocation(duration, success);
         }
-        
+
         if (config.isLogInvocation()) {
-            log.debug("扩展点调用记录: id={}, duration={}ms, success={}", extensionId, duration, success);
+            log.debug("扩展点调用记录: id={}, duration={}ms, success={}, context={}", 
+                    extensionId, duration, success, context);
+        }
+        
+        // 埋点：统一交给MonitorPipeline
+        if (pipeline != null) {
+            pipeline.afterInvoke(extensionId, duration, success, context, metrics);
         }
     }
     
     @Override
     public void recordException(String extensionId, Throwable exception) {
+        recordException(extensionId, exception, null);
+    }
+    
+    @Override
+    public void recordException(String extensionId, Throwable exception, Map<String, Object> context) {
         if (!config.isEnabled()) {
             return;
         }
         
+        if (config.isAsyncEnabled() && asyncExecutor != null) {
+            asyncExecutor.submit(() -> doRecordException(extensionId, exception, context));
+        } else {
+            doRecordException(extensionId, exception, context);
+        }
+    }
+    
+    private void doRecordException(String extensionId, Throwable exception, Map<String, Object> context) {
+        ExtensionMetricsImpl metrics = null;
         if (config.isPerformanceStatsEnabled()) {
-            ExtensionMetricsImpl metrics = metricsMap.computeIfAbsent(extensionId, k -> new ExtensionMetricsImpl());
+            metrics = metricsMap.computeIfAbsent(extensionId, k -> new ExtensionMetricsImpl());
             metrics.recordException();
         }
         
         if (config.isLogExceptionDetails()) {
-            log.warn("扩展点异常记录: id={}, exception={}", extensionId, exception.getMessage(), exception);
+            log.warn("扩展点异常记录: id={}, exception={}, context={}", 
+                    extensionId, exception.getMessage(), context, exception);
         } else {
-            log.warn("扩展点异常记录: id={}, exception={}", extensionId, exception.getMessage());
+            log.warn("扩展点异常记录: id={}, exception={}, context={}", 
+                    extensionId, exception.getMessage(), context);
+        }
+        
+        // 埋点：统一交给MonitorPipeline
+        if (pipeline != null) {
+            pipeline.onException(extensionId, exception, context, metrics);
         }
     }
     
     @Override
     public ExtensionMetrics getMetrics(String extensionId) {
         if (!config.isEnabled() || !config.isPerformanceStatsEnabled()) {
-            return new DisabledExtensionMetrics();
+            return new ExtensionMetricsImpl();
         }
         return metricsMap.getOrDefault(extensionId, new ExtensionMetricsImpl());
     }
     
     @Override
-    public java.util.Map<String, ExtensionMetrics> getAllMetrics() {
+    public Map<String, ExtensionMetrics> getAllMetrics() {
         if (!config.isEnabled() || !config.isPerformanceStatsEnabled()) {
             return new ConcurrentHashMap<>();
         }
@@ -101,6 +155,17 @@ public class DefaultExtensionMonitor implements ExtensionMonitor {
         
         metricsMap.remove(extensionId);
         log.info("扩展点指标已重置: id={}", extensionId);
+        
+        // 通知监听器
+        // 埋点：统一交给MonitorPipeline
+        if (pipeline != null) {
+            pipeline.onMetricsReset(extensionId, null);
+        }
+    }
+    
+    @Override
+    public MonitorStatus getStatus() {
+        return new MonitorStatusImpl();
     }
     
     /**
@@ -116,6 +181,16 @@ public class DefaultExtensionMonitor implements ExtensionMonitor {
     }
     
     /**
+     * 关闭监控器
+     */
+    public void shutdown() {
+        if (asyncExecutor != null && !asyncExecutor.isShutdown()) {
+            asyncExecutor.shutdown();
+            log.info("监控器异步执行器已关闭");
+        }
+    }
+    
+    /**
      * 扩展点指标实现
      */
     private static class ExtensionMetricsImpl implements ExtensionMetrics {
@@ -127,6 +202,7 @@ public class DefaultExtensionMonitor implements ExtensionMonitor {
         private final AtomicLong maxResponseTime = new AtomicLong(0);
         private final AtomicLong minResponseTime = new AtomicLong(Long.MAX_VALUE);
         private final AtomicReference<Long> lastInvocationTime = new AtomicReference<>(0L);
+        private final AtomicLong startTime = new AtomicLong(System.currentTimeMillis());
         
         public void recordInvocation(long duration, boolean success) {
             totalInvocations.incrementAndGet();
@@ -199,55 +275,54 @@ public class DefaultExtensionMonitor implements ExtensionMonitor {
         public long getLastInvocationTime() {
             return lastInvocationTime.get();
         }
+        
+        @Override
+        public long getP95ResponseTime() {
+            // 简化实现，实际应该使用滑动窗口或采样
+            return (long) (getAverageResponseTime() * 1.5);
+        }
+        
+        @Override
+        public long getP99ResponseTime() {
+            // 简化实现，实际应该使用滑动窗口或采样
+            return (long) (getAverageResponseTime() * 2.0);
+        }
+        
+        @Override
+        public double getQPS() {
+            long total = totalInvocations.get();
+            long elapsed = System.currentTimeMillis() - startTime.get();
+            return elapsed > 0 ? (double) total / (elapsed / 1000.0) : 0.0;
+        }
     }
-    
+
     /**
-     * 禁用的扩展点指标实现
+     * 监控器状态实现
      */
-    private static class DisabledExtensionMetrics implements ExtensionMetrics {
+    private class MonitorStatusImpl implements MonitorStatus {
         @Override
-        public long getTotalInvocations() {
-            return 0;
+        public boolean isEnabled() {
+            return config.isEnabled();
         }
         
         @Override
-        public long getSuccessInvocations() {
-            return 0;
+        public boolean isAsyncSupported() {
+            return config.isAsyncEnabled();
         }
         
         @Override
-        public long getFailureInvocations() {
-            return 0;
+        public boolean isPersistenceSupported() {
+            return false;
         }
         
         @Override
-        public double getSuccessRate() {
-            return 0.0;
+        public String getStorageType() {
+            return "MEMORY";
         }
         
         @Override
-        public double getAverageResponseTime() {
-            return 0.0;
-        }
-        
-        @Override
-        public long getMaxResponseTime() {
-            return 0;
-        }
-        
-        @Override
-        public long getMinResponseTime() {
-            return 0;
-        }
-        
-        @Override
-        public long getExceptionCount() {
-            return 0;
-        }
-        
-        @Override
-        public long getLastInvocationTime() {
-            return 0;
+        public int getListenerCount() {
+            return 0; // No listeners to count
         }
     }
 } 

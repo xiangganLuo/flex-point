@@ -1,8 +1,8 @@
 package com.flexpoint.test.monitor;
 
 import com.flexpoint.core.config.FlexPointConfig;
-import com.flexpoint.core.monitor.DefaultExtensionMonitor;
 import com.flexpoint.core.monitor.ExtensionMonitor;
+import com.flexpoint.core.monitor.DefaultExtensionMonitor;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
