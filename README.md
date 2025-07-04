@@ -1,9 +1,9 @@
 <p align="center">
   <img src="statics/img/logo.svg" alt="Flex Point Logo" width="120"/>
 </p>
-<h1 align="center">Flex Point 灵活扩展点框架</h1>
+<h1 align="center">Flex Point</h1>
 <p align="center">
-  <strong>轻量级、极致灵活的扩展点解决方案</strong>
+  <strong>多场景适配、轻量级、极致灵活的扩展点框架</strong>
 </p>
 <p align="center">
     <a target="_blank" href="https://search.maven.org/artifact/com.flexpoint/flexpoint-springboot">
