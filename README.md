@@ -261,6 +261,8 @@ flexpoint:
 | flexpoint.monitor.log-resolution | boolean | true | 是否记录扩展点解析日志 |
 | flexpoint.monitor.log-exception-details | boolean | true | 是否记录异常详情 |
 | flexpoint.monitor.performance-stats-enabled | boolean | true | 是否启用性能统计 |
+| flexpoint.monitor.async-enabled | boolean | false | 是否启用异步处理 |
+| flexpoint.monitor.async-queue-size | int | 1000 | 异步处理队列大小 |
 | flexpoint.registry.enabled | boolean | true | 是否启用扩展点自动注册 |
 | flexpoint.registry.allow-duplicate-registration | boolean | false | 是否允许重复注册扩展点 |
 

@@ -16,12 +16,12 @@ public class FlexPointConfig {
      * 是否启用Flex Point框架
      */
     private boolean enabled = true;
-    
+
     /**
      * 监控配置
      */
     private MonitorConfig monitor = new MonitorConfig();
-    
+
     /**
      * 注册配置
      */
@@ -56,7 +56,7 @@ public class FlexPointConfig {
          * 是否启用性能统计
          */
         private boolean performanceStatsEnabled = true;
-        
+
         /**
          * 是否启用异步处理
          */
@@ -67,30 +67,6 @@ public class FlexPointConfig {
          */
         private int asyncQueueSize = 1000;
         
-        /**
-         * 是否启用上下文记录
-         */
-        private boolean contextEnabled = false;
-        
-        /**
-         * 是否启用监听器支持
-         */
-        private boolean listenerEnabled = true;
-        
-        /**
-         * 监控数据保留时间（分钟）
-         */
-        private long dataRetentionMinutes = 60;
-        
-        /**
-         * 是否启用采样
-         */
-        private boolean samplingEnabled = false;
-        
-        /**
-         * 采样率（0.0-1.0）
-         */
-        private double samplingRate = 1.0;
     }
     
     /**
