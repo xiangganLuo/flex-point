@@ -120,7 +120,12 @@ FlexPoint/
 @ExtensionResolverSelector("customStrategy")
 public interface OrderProcessAbility extends ExtensionAbility {
     String processOrder(String orderId, double amount);
-    String version(); // 必须实现
+
+    /**
+     * 如果能力有版本需求则可定义为必须实现，默认ExtensionAbility.DEFAULT_VERSION
+     * @return 版本号
+     */
+    String version(); 
 }
 ```
 
