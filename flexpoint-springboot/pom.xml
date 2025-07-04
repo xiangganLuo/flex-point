@@ -21,14 +21,16 @@
             <artifactId>flexpoint-spring</artifactId>
         </dependency>
 
-        <!-- Spring Boot依赖 -->
+        <!-- Spring Boot依赖 接入方自行引入Spring Boot 版本 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-autoconfigure</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <!-- 外部依赖 -->
