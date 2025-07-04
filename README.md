@@ -386,21 +386,23 @@ ExtensionMonitor.ExtensionMetrics metrics = extensionMonitor.getExtensionMetrics
 
 ## 🤝 贡献
 
-欢迎提交 Issue 和 Pull Request！
+如果您觉得 Flex Point 有优化空间或有更好的设计思路，欢迎随时提交 PR（Pull Request）！我们鼓励社区共同完善和壮大本项目。
 
-### 开发环境搭建
+### 🐾 贡献代码的步骤
+1. 在 GitHub 上 fork 本项目到您的个人仓库。
+2. 将 fork 后的项目（即您的仓库）clone 到本地。
+3. 在本地新建分支进行代码修改和优化。
+4. commit 并 push 到您的远程仓库。
+5. 登录 GitHub，在您的仓库首页点击 "Pull Request" 按钮，填写说明信息后提交。
+6. 等待维护者 review 并合并。
 
-```bash
-git clone https://github.com/xiangganLuo/flex-point.git
-cd flex-point
-mvn clean install
-```
+### 📐 PR 遵循的原则
 
-### 测试
+欢迎任何人为 Flex Point 添砖加瓦，贡献代码。
 
-```bash
-mvn test
-```
+- **注释完备**：每个新增方法请按照 JavaDoc 规范标明方法说明、参数说明、返回值说明等，必要时请添加单元测试。
+- **依赖规范**：新增方法尽量避免引入额外的第三方库。
+- **风格统一**：请遵循项目现有代码风格和格式。
 
 ---
 
