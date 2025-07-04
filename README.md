@@ -218,8 +218,38 @@ flexPoint.register(new MallOrderProcessAbilityV1());
 flexPoint.register(new MallOrderProcessAbilityV2());
 flexPoint.register(new LogisticsOrderProcessAbility());
 
-// 查找扩展点
+// 查找扩展点（自动根据解析器选择实现）
 OrderProcessAbility ability = flexPoint.findAbility(OrderProcessAbility.class);
+```
+
+### 解析器自定义与注册
+
+```java
+// 定义自定义解析器
+public class CustomExtensionResolutionStrategy extends AbstractExtensionResolutionStrategy {
+    @Override
+    protected ResolutionContext extractContext() {
+        // 例如：从上下文获取业务code
+        return new ResolutionContext("mall", null);
+    }
+    @Override
+    public String getStrategyName() {
+        return "customStrategy";
+    }
+}
+
+// 注册自定义解析器
+flexPoint.registerResolver(new CustomExtensionResolutionStrategy());
+```
+
+- 通过 @ExtensionResolverSelector 注解在扩展点接口上指定解析器：
+
+```java
+@ExtensionResolverSelector("customStrategy")
+public interface OrderProcessAbility extends ExtensionAbility {
+    String processOrder(String orderId, double amount);
+    String version();
+}
 ```
 
 ### 扩展点监控
@@ -245,9 +275,6 @@ flexpoint:
     enabled: true
     allow-duplicate-registration: false
 ```
-
----
-
 
 ---
 
