@@ -399,6 +399,15 @@ mvn test
 
 ---
 
+## 联系
+
+如有问题或需要支持，扫码加微信(备注 flex-point)
+<p>
+<img src="statics/img/weixin.png" alt="oslsls" width="230px"/>
+</p>
+
+---
+
 ## 📄 许可证
 
 本项目采用 [Apache License 2.0](LICENSE) 许可证。

@@ -1,4 +1,4 @@
-package com.flexpoint.example.springboot.framework.flexpoint.ability;
+package com.flexpoint.example.springboot.ext;
 
 import com.flexpoint.common.annotations.ExtensionResolverSelector;
 import com.flexpoint.core.extension.ExtensionAbility;

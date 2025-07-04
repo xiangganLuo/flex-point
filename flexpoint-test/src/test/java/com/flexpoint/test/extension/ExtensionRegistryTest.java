@@ -64,7 +64,7 @@ public class ExtensionRegistryTest {
     public void testGetAllExtensionAbility() {
         registry.register(new DemoAbility());
         registry.register(new DemoAbility2());
-        List<ExtensionAbility> all = registry.getAllExtensionAbility(ExtensionAbility.class);
+        List<DemoAbilityDef> all = registry.getAllExtensionAbility(DemoAbilityDef.class);
         Assertions.assertTrue(all.size() >= 2);
     }
 

@@ -2,7 +2,7 @@ package com.flexpoint.example.springboot.controller;
 
 import com.flexpoint.core.FlexPoint;
 import com.flexpoint.example.springboot.framework.common.CommonResult;
-import com.flexpoint.example.springboot.framework.flexpoint.ability.OrderProcessAbility;
+import com.flexpoint.example.springboot.ext.OrderProcessAbility;
 import com.flexpoint.example.springboot.framework.flexpoint.context.SysAppContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

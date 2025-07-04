@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class ABRuleTest {
@@ -58,7 +59,9 @@ public class ABRuleTest {
     @Test
     public void testGrayAndABTestStrategy() {
         // user1 灰度，user2 普通
-        Map<String, String> userGroup = Map.of("user1", "gray", "user2", "normal");
+        Map<String, String> userGroup = new HashMap<>();
+        userGroup.put("user1", "gray");
+        userGroup.put("user2", "normal");
         flexPoint.registerResolver(new ABTestStrategy(userGroup));
         flexPoint.register(new GrayAbility());
         flexPoint.register(new NormalAbility());

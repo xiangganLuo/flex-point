@@ -1,14 +1,15 @@
 package com.flexpoint.example.springboot.framework.flexpoint.security;
 
 import cn.hutool.json.JSONUtil;
-import com.flexpoint.example.springboot.constants.ApiConstants;
-import com.flexpoint.example.springboot.constants.ErrorCodeConstants;
+import com.flexpoint.example.springboot.framework.constants.ApiConstants;
+import com.flexpoint.example.springboot.framework.constants.ErrorCodeConstants;
 import com.flexpoint.example.springboot.framework.common.CommonResult;
 import com.flexpoint.example.springboot.framework.flexpoint.context.SysAppContext;
 import com.flexpoint.example.springboot.manager.SysAppManager;
-import jakarta.servlet.*;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import com.google.common.collect.Lists;
+import javax.servlet.*;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +28,7 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class AppAuthFilter implements Filter {
 
-    private static final List<String> EXCLUDE_PATHS = List.of(
+    private static final List<String> EXCLUDE_PATHS = Lists.newArrayList(
             "/api/v1/health"
     );
 
@@ -35,8 +36,7 @@ public class AppAuthFilter implements Filter {
 
     @SneakyThrows
     @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
-            throws IOException, ServletException {
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) {
 
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;

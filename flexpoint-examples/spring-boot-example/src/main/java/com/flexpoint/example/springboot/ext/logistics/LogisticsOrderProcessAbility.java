@@ -1,6 +1,6 @@
-package com.flexpoint.example.springboot.framework.flexpoint.ability.logistics;
+package com.flexpoint.example.springboot.ext.logistics;
 
-import com.flexpoint.example.springboot.framework.flexpoint.ability.OrderProcessAbility;
+import com.flexpoint.example.springboot.ext.OrderProcessAbility;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 

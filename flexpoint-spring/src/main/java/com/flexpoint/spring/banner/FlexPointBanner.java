@@ -12,12 +12,11 @@ import org.springframework.beans.factory.InitializingBean;
 @Slf4j
 public class FlexPointBanner implements InitializingBean {
     
-    public static final String BANNER = """
-              _   _   _   _   _   _   _   _   _ \s
-             / \\ / \\ / \\ / \\ / \\ / \\ / \\ / \\ / \\\s
-            ( F | l | e | x | P | o | i | n | t )
-             \\_/ \\_/ \\_/ \\_/ \\_/ \\_/ \\_/ \\_/ \\_/\s
-            """;
+    public static final String BANNER =
+            "  _   _   _   _   _   _   _   _   _ \n" +
+            " / \\ / \\ / \\ / \\ / \\ / \\ / \\ / \\ / \\\n" +
+            "( F | l | e | x | P | o | i | n | t )\n" +
+            " \\_/ \\_/ \\_/ \\_/ \\_/ \\_/ \\_/ \\_/ \\\n";
     
     @Override
     public void afterPropertiesSet() throws Exception {

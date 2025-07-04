@@ -210,14 +210,14 @@ public class FlexPoint {
      * 获取解析策略
      */
     private ExtensionResolutionStrategy getResolver(Class<?> extensionType) {
-        ExtensionResolutionStrategy resolver = Optional.ofNullable(extensionType.getAnnotation(ExtensionResolverSelector.class))
-                .map(annotation -> strategyRegistry.getStrategy(annotation.value()))
-                .orElse(strategyRegistry.getStrategy(null));
-
-        if (resolver == null) {
-            throw new ExtensionResolverNotFoundException("未找到ExtensionResolutionStrategy解析器!");
+        ExtensionResolverSelector selector = extensionType.getAnnotation(ExtensionResolverSelector.class);
+        if (selector == null) {
+            throw new ExtensionResolverNotFoundException("扩展点类型 " + extensionType.getSimpleName() + " 未指定@ExtensionResolverSelector，无法确定解析器！");
         }
-
+        ExtensionResolutionStrategy resolver = strategyRegistry.getStrategy(selector.value());
+        if (resolver == null) {
+            throw new ExtensionResolverNotFoundException("未找到指定名称的ExtensionResolutionStrategy解析器: " + selector.value());
+        }
         return resolver;
     }
     

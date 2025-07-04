@@ -24,7 +24,8 @@ public class SpringExtensionResolverRegister implements BeanPostProcessor {
 
     @Override
     public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-        if (bean instanceof ExtensionResolutionStrategy resolver) {
+        if (bean instanceof ExtensionResolutionStrategy) {
+            ExtensionResolutionStrategy resolver = (ExtensionResolutionStrategy) bean;
             flexPoint.registerResolver(resolver);
             log.info("自动注册扩展点解析策略: {}", resolver.getStrategyName());
         }

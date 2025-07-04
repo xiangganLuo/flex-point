@@ -1,4 +1,4 @@
-package com.flexpoint.example.springboot.constants;
+package com.flexpoint.example.springboot.framework.constants;
 
 /**
  * API常量

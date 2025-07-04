@@ -14,8 +14,12 @@ import org.junit.jupiter.api.Test;
 public class ResolutionTest {
     private FlexPoint flexPoint;
 
-    static class A implements ExtensionAbility { public String getCode() { return "A"; } }
-    static class B implements ExtensionAbility { public String getCode() { return "B"; } }
+    @ExtensionResolverSelector("ContextStrategy")
+    interface AbAbility extends ExtensionAbility {
+    }
+
+    static class A implements AbAbility { public String getCode() { return "A"; } }
+    static class B implements AbAbility { public String getCode() { return "B"; } }
 
     @ExtensionResolverSelector("AnnoStrategy")
     interface AnnotatedAbility extends ExtensionAbility {}
@@ -49,7 +53,7 @@ public class ResolutionTest {
         flexPoint.registerResolver(new ContextStrategy("B"));
         flexPoint.register(new A());
         flexPoint.register(new B());
-        ExtensionAbility found = flexPoint.findAbility(A.class);
+        ExtensionAbility found = flexPoint.findAbility(AbAbility.class);
         Assertions.assertEquals("B", found.getCode());
     }
 

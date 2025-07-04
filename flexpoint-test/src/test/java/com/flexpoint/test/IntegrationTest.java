@@ -49,7 +49,7 @@ public class IntegrationTest {
         flexPoint.register(new DemoAbility());
         flexPoint.register(new SpecialAbility());
         // 查找扩展点（应命中special）
-        ExtensionAbility found = flexPoint.findAbility(DemoAbility.class);
+        DemoAbilityDef found = flexPoint.findAbility(DemoAbilityDef.class);
         Assertions.assertNotNull(found);
         Assertions.assertEquals("special", found.getCode());
         // 监控统计
@@ -59,6 +59,6 @@ public class IntegrationTest {
         Assertions.assertEquals(1, metrics.getTotalInvocations());
         // 注销扩展点
         flexPoint.unregister(extId);
-        Assertions.assertNull(flexPoint.findAbility(DemoAbility.class));
+        Assertions.assertNull(flexPoint.findAbility(DemoAbilityDef.class));
     }
 } 
