@@ -32,8 +32,9 @@ public class FlexPointManager {
         // 创建FlexPoint管理器
         this.flexPoint = FlexPointBuilder.create()
                 .withConfig(config)
-                .withSelector(new CustomSelector())
                 .build();
+
+        this.flexPoint.registerSelector(new CustomSelector());
         
         // 注册扩展点
         registerOrderProcessExtensions();

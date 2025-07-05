@@ -65,18 +65,7 @@ public class FlexPointBuilder {
         this.selectorRegistry = selectorRegistry;
         return this;
     }
-    
-    /**
-     * 注册自定义选择器
-     */
-    public FlexPointBuilder withSelector(ExtensionSelector selector) {
-        if (this.selectorRegistry == null) {
-            this.selectorRegistry = new DefaultSelectorRegistry();
-        }
-        this.selectorRegistry.registerSelector(selector);
-        return this;
-    }
-    
+
     /**
      * 使用配置
      */
