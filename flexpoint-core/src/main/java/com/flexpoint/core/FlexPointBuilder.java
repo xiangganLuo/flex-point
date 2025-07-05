@@ -6,9 +6,9 @@ import com.flexpoint.core.extension.DefaultExtensionAbilityRegistry;
 import com.flexpoint.core.extension.ExtensionAbilityRegistry;
 import com.flexpoint.core.monitor.ExtensionMonitor;
 import com.flexpoint.core.monitor.MonitorFactory;
-import com.flexpoint.core.resolution.DefaultExtensionResolutionStrategyRegistry;
-import com.flexpoint.core.resolution.ExtensionResolutionStrategy;
-import com.flexpoint.core.resolution.ExtensionResolutionStrategyRegistry;
+import com.flexpoint.core.selector.DefaultSelectorRegistry;
+import com.flexpoint.core.selector.ExtensionSelector;
+import com.flexpoint.core.selector.SelectorRegistry;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -23,7 +23,7 @@ public class FlexPointBuilder {
     
     private ExtensionAbilityRegistry registry;
     private ExtensionMonitor monitor;
-    private ExtensionResolutionStrategyRegistry strategyRegistry;
+    private SelectorRegistry selectorRegistry;
     private FlexPointConfig config;
     
     /**
@@ -59,21 +59,21 @@ public class FlexPointBuilder {
     }
     
     /**
-     * 使用自定义解析策略注册表
+     * 使用自定义选择器注册表
      */
-    public FlexPointBuilder withStrategyRegistry(ExtensionResolutionStrategyRegistry strategyRegistry) {
-        this.strategyRegistry = strategyRegistry;
+    public FlexPointBuilder withSelectorRegistry(SelectorRegistry selectorRegistry) {
+        this.selectorRegistry = selectorRegistry;
         return this;
     }
     
     /**
-     * 注册自定义解析策略
+     * 注册自定义选择器
      */
-    public FlexPointBuilder withResolver(ExtensionResolutionStrategy resolver) {
-        if (this.strategyRegistry == null) {
-            this.strategyRegistry = new DefaultExtensionResolutionStrategyRegistry();
+    public FlexPointBuilder withSelector(ExtensionSelector selector) {
+        if (this.selectorRegistry == null) {
+            this.selectorRegistry = new DefaultSelectorRegistry();
         }
-        this.strategyRegistry.registerStrategy(resolver);
+        this.selectorRegistry.registerSelector(selector);
         return this;
     }
     
@@ -109,11 +109,11 @@ public class FlexPointBuilder {
             monitor = FlexPointComponentCreator.createMonitor(config.getMonitor());
         }
         
-        if (strategyRegistry == null) {
-            strategyRegistry = FlexPointComponentCreator.createStrategyRegistry();
+        if (selectorRegistry == null) {
+            selectorRegistry = FlexPointComponentCreator.createSelectorRegistry();
         }
         
-        return new FlexPoint(registry, monitor, strategyRegistry);
+        return new FlexPoint(registry, monitor, selectorRegistry);
     }
 
     /**
@@ -141,10 +141,10 @@ public class FlexPointBuilder {
         }
 
         /**
-         * 创建解析策略注册表
+         * 创建选择器注册表
          */
-        public static ExtensionResolutionStrategyRegistry createStrategyRegistry() {
-            return new DefaultExtensionResolutionStrategyRegistry();
+        public static SelectorRegistry createSelectorRegistry() {
+            return new DefaultSelectorRegistry();
         }
     }
 

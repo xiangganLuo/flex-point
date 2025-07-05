@@ -1,4 +1,4 @@
-package com.flexpoint.core.resolution;
+package com.flexpoint.core.selector;
 
 import com.flexpoint.core.extension.ExtensionAbility;
 import lombok.extern.slf4j.Slf4j;
@@ -6,14 +6,14 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 
 /**
- * 抽象扩展点解析策略
+ * 抽象扩展点选择器策略
  * 提供通用的扩展点选择逻辑，子类可以重写特定方法来自定义选择策略
  *
  * @author xiangganluo
  * @version 1.0.0
  */
 @Slf4j
-public abstract class AbstractExtensionResolutionStrategy implements ExtensionResolutionStrategy {
+public abstract class AbstractSelector implements ExtensionSelector {
 
     @Override
     public <T extends ExtensionAbility> T resolve(List<T> extensions) {
@@ -24,14 +24,14 @@ public abstract class AbstractExtensionResolutionStrategy implements ExtensionRe
         }
 
         // 2. 获取扩展点上下文信息
-        ResolutionContext context = extractContext();
+        SelectionContext context = extractContext();
         if (context == null || context.getCode() == null) {
             log.warn("扩展点上下文信息为空，无法解析扩展点");
             return null;
         }
 
         // 3. 匹配扩展点
-        return selectByCodeAndVersion(extensions, context);
+        return router(extensions, context);
     }
 
     /**
@@ -39,7 +39,7 @@ public abstract class AbstractExtensionResolutionStrategy implements ExtensionRe
      *
      * @return 扩展点上下文信息
      */
-    protected abstract ResolutionContext extractContext();
+    protected abstract SelectionContext extractContext();
 
     /**
      * 按业务代码和版本选择扩展点候选者
@@ -49,7 +49,7 @@ public abstract class AbstractExtensionResolutionStrategy implements ExtensionRe
      * @param context 上下文
      * @return 匹配的扩展点候选者
      */
-    protected <T extends ExtensionAbility> T selectByCodeAndVersion(List<T> extensions, ResolutionContext context) {
+    protected <T extends ExtensionAbility> T router(List<T> extensions, SelectionContext context) {
         if (context == null || context.getCode() == null || context.getCode().trim().isEmpty()) {
             return null;
         }
@@ -68,7 +68,7 @@ public abstract class AbstractExtensionResolutionStrategy implements ExtensionRe
      * @return 策略名称
      */
     @Override
-    public String getStrategyName() {
+    public String getName() {
         return this.getClass().getSimpleName();
     }
 } 

@@ -8,7 +8,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * 
  * 演示Spring Boot环境下的Flex Point用法：
  * 1. 自动扫描和注册扩展点
- * 2. 自动注册解析策略
+ * 2. 自动注册选择器
  * 3. Web API接口
  *
  * @author xiangganluo

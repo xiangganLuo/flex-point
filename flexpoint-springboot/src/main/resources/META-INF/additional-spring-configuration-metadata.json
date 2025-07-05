@@ -7,27 +7,10 @@
       "defaultValue": true
     },
     {
-      "name": "flexpoint.bannerPrint",
+      "name": "flexpoint.banner-print",
       "type": "java.lang.Boolean",
       "description": "是否打印banner",
       "defaultValue": true
-    },
-    {
-      "name": "flexpoint.scan-packages",
-      "type": "java.util.List<java.lang.String>",
-      "description": "扫描包路径列表，用于自动发现扩展点和解析器"
-    },
-    {
-      "name": "flexpoint.cache.expire-after-write",
-      "type": "java.lang.Long",
-      "description": "缓存过期时间（秒）",
-      "defaultValue": 3600
-    },
-    {
-      "name": "flexpoint.cache.maximum-size",
-      "type": "java.lang.Long",
-      "description": "缓存最大大小",
-      "defaultValue": 1000
     },
     {
       "name": "flexpoint.monitor.enabled",
@@ -42,15 +25,15 @@
       "defaultValue": true
     },
     {
-      "name": "flexpoint.monitor.log-resolution",
+      "name": "flexpoint.monitor.log-selection",
       "type": "java.lang.Boolean",
-      "description": "是否记录扩展点解析日志",
+      "description": "是否记录扩展点选择日志",
       "defaultValue": true
     },
     {
       "name": "flexpoint.monitor.log-exception-details",
       "type": "java.lang.Boolean",
-      "description": "是否记录扩展点异常详细信息",
+      "description": "是否记录异常详情",
       "defaultValue": true
     },
     {
@@ -60,47 +43,54 @@
       "defaultValue": true
     },
     {
+      "name": "flexpoint.monitor.async-enabled",
+      "type": "java.lang.Boolean",
+      "description": "是否启用异步处理",
+      "defaultValue": false
+    },
+    {
+      "name": "flexpoint.monitor.async-queue-size",
+      "type": "java.lang.Integer",
+      "description": "异步处理队列大小",
+      "defaultValue": 1000
+    },
+    {
       "name": "flexpoint.registry.enabled",
       "type": "java.lang.Boolean",
       "description": "是否启用自动注册",
       "defaultValue": true
     },
     {
-      "name": "flexpoint.registry.enable-ability-register",
-      "type": "java.lang.Boolean",
-      "description": "是否启用扩展点自动注册",
-      "defaultValue": true
-    },
-    {
-      "name": "flexpoint.registry.enable-resolver-register",
-      "type": "java.lang.Boolean",
-      "description": "是否启用解析器自动注册",
-      "defaultValue": true
-    },
-    {
-      "name": "flexpoint.registry.fail-on-error",
-      "type": "java.lang.Boolean",
-      "description": "注册失败时是否抛出异常",
-      "defaultValue": false
-    },
-    {
       "name": "flexpoint.registry.allow-duplicate-registration",
       "type": "java.lang.Boolean",
-      "description": "是否允许重复注册扩展点或解析器",
+      "description": "是否允许重复注册扩展点",
       "defaultValue": false
     }
   ],
   "hints": [
     {
-      "name": "flexpoint.scan-packages",
+      "name": "flexpoint.monitor.enabled",
       "values": [
         {
-          "value": "com.flexpoint",
-          "description": "默认Flex Point包路径"
+          "value": true,
+          "description": "启用扩展点监控功能"
         },
         {
-          "value": "com.example",
-          "description": "示例应用包路径"
+          "value": false,
+          "description": "禁用扩展点监控功能"
+        }
+      ]
+    },
+    {
+      "name": "flexpoint.registry.enabled",
+      "values": [
+        {
+          "value": true,
+          "description": "启用扩展点自动注册"
+        },
+        {
+          "value": false,
+          "description": "禁用扩展点自动注册"
         }
       ]
     }

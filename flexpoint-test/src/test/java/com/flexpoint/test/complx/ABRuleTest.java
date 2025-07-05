@@ -1,12 +1,12 @@
 package com.flexpoint.test.complx;
 
-import com.flexpoint.common.annotations.ExtensionResolverSelector;
+import com.flexpoint.common.annotations.Selector;
 import com.flexpoint.core.FlexPoint;
 import com.flexpoint.core.FlexPointBuilder;
 import com.flexpoint.core.config.FlexPointConfig;
 import com.flexpoint.core.extension.ExtensionAbility;
-import com.flexpoint.core.resolution.AbstractExtensionResolutionStrategy;
-import com.flexpoint.core.resolution.ResolutionContext;
+import com.flexpoint.core.selector.AbstractSelector;
+import com.flexpoint.core.selector.SelectionContext;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,9 +17,9 @@ import java.util.Map;
 public class ABRuleTest {
     private FlexPoint flexPoint;
 
-    @ExtensionResolverSelector("ABTestStrategy")
-    interface ABTestAbility extends ExtensionAbility {
-        String process(String userId);
+    @Selector("ABTestStrategy")
+    public interface ABTestAbility extends ExtensionAbility {
+        String process(String input);
     }
     static class GrayAbility implements ABTestAbility {
         @Override public String getCode() { return "gray"; }
@@ -29,18 +29,18 @@ public class ABRuleTest {
         @Override public String getCode() { return "normal"; }
         @Override public String process(String userId) { return "normal"; }
     }
-    static class ABTestStrategy extends AbstractExtensionResolutionStrategy {
+    static class ABTest extends AbstractSelector {
         private final Map<String, String> userGroup;
-        public ABTestStrategy(Map<String, String> userGroup) { this.userGroup = userGroup; }
+        public ABTest(Map<String, String> userGroup) { this.userGroup = userGroup; }
         @Override
-        protected ResolutionContext extractContext() {
+        protected SelectionContext extractContext() {
             // 假设从ThreadLocal获取userId
             String userId = UserContext.get();
             String code = userGroup.getOrDefault(userId, "normal");
-            return new ResolutionContext(code, null);
+            return new SelectionContext(code, null);
         }
         @Override
-        public String getStrategyName() { return "ABTestStrategy"; }
+        public String getName() { return "ABTestStrategy"; }
     }
     static class UserContext {
         private static final ThreadLocal<String> holder = new ThreadLocal<>();
@@ -62,7 +62,7 @@ public class ABRuleTest {
         Map<String, String> userGroup = new HashMap<>();
         userGroup.put("user1", "gray");
         userGroup.put("user2", "normal");
-        flexPoint.registerResolver(new ABTestStrategy(userGroup));
+        flexPoint.registerSelector(new ABTest(userGroup));
         flexPoint.register(new GrayAbility());
         flexPoint.register(new NormalAbility());
 

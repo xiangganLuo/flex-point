@@ -50,8 +50,8 @@ public class DefaultExtensionMonitor implements ExtensionMonitor {
             }) : null;
             
         if (config.isEnabled()) {
-            log.info("创建监控器: logInvocation={}, logResolution={}, logExceptionDetails={}, performanceStatsEnabled={}, asyncEnabled={}",
-                    config.isLogInvocation(), config.isLogResolution(),
+            log.info("创建监控器: logInvocation={}, isLogSelection={}, logExceptionDetails={}, performanceStatsEnabled={}, asyncEnabled={}",
+                    config.isLogInvocation(), config.isLogSelection(),
                     config.isLogExceptionDetails(), config.isPerformanceStatsEnabled(), config.isAsyncEnabled());
         } else {
             log.info("监控器已禁用");
@@ -169,19 +169,7 @@ public class DefaultExtensionMonitor implements ExtensionMonitor {
     public MonitorStatus getStatus() {
         return new MonitorStatusImpl();
     }
-    
-    /**
-     * 记录解析日志
-     */
-    public void recordResolution(String extensionId, String resolverName, long duration) {
-        if (!config.isEnabled()) {
-            return;
-        }
-        if (config.isLogResolution()) {
-            log.debug("扩展点解析记录: id={}, resolver={}, duration={}ms", extensionId, resolverName, duration);
-        }
-    }
-    
+
     /**
      * 关闭监控器
      */

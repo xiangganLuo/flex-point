@@ -43,9 +43,9 @@ public class FlexPointConfig {
         private boolean logInvocation = true;
         
         /**
-         * 是否记录扩展点解析日志
+         * 是否记录扩展点选择日志
          */
-        private boolean logResolution = true;
+        private boolean logSelection = true;
 
         /**
          * 是否记录异常详情

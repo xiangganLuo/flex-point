@@ -8,7 +8,7 @@ import com.flexpoint.example.java.ability.OrderProcessAbility;
 import com.flexpoint.example.java.ability.impl.LogisticsOrderProcessAbility;
 import com.flexpoint.example.java.ability.impl.MallOrderProcessAbilityV1;
 import com.flexpoint.example.java.ability.impl.MallOrderProcessAbilityV2;
-import com.flexpoint.example.java.resolution.CustomExtensionResolutionStrategy;
+import com.flexpoint.example.java.selector.CustomSelector;
 import com.flexpoint.example.java.service.OrderService;
 
 /**
@@ -32,7 +32,7 @@ public class FlexPointManager {
         // 创建FlexPoint管理器
         this.flexPoint = FlexPointBuilder.create()
                 .withConfig(config)
-                .withResolver(new CustomExtensionResolutionStrategy())
+                .withSelector(new CustomSelector())
                 .build();
         
         // 注册扩展点
@@ -68,7 +68,7 @@ public class FlexPointManager {
         // 监控配置
         config.getMonitor().setEnabled(true);
         config.getMonitor().setLogInvocation(true);
-        config.getMonitor().setLogResolution(true);
+        config.getMonitor().setLogSelection(true);
         config.getMonitor().setLogExceptionDetails(true);
         config.getMonitor().setPerformanceStatsEnabled(true);
         

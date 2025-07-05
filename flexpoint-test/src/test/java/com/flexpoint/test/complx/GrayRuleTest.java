@@ -1,12 +1,12 @@
 package com.flexpoint.test.complx;
 
-import com.flexpoint.common.annotations.ExtensionResolverSelector;
+import com.flexpoint.common.annotations.Selector;
 import com.flexpoint.core.FlexPoint;
 import com.flexpoint.core.FlexPointBuilder;
 import com.flexpoint.core.config.FlexPointConfig;
 import com.flexpoint.core.extension.ExtensionAbility;
-import com.flexpoint.core.resolution.AbstractExtensionResolutionStrategy;
-import com.flexpoint.core.resolution.ResolutionContext;
+import com.flexpoint.core.selector.AbstractSelector;
+import com.flexpoint.core.selector.SelectionContext;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,9 +17,9 @@ import java.util.Set;
 public class GrayRuleTest {
     private FlexPoint flexPoint;
 
-    @ExtensionResolverSelector("GrayStrategy")
-    interface GrayAbility extends ExtensionAbility {
-        String process(String userId);
+    @Selector("GrayStrategy")
+    public interface GrayAbility extends ExtensionAbility {
+        String process(String input);
     }
     static class GrayImpl implements GrayAbility {
         @Override public String getCode() { return "gray"; }
@@ -29,17 +29,17 @@ public class GrayRuleTest {
         @Override public String getCode() { return "normal"; }
         @Override public String process(String userId) { return "normal"; }
     }
-    static class GrayStrategy extends AbstractExtensionResolutionStrategy {
+    static class Gray extends AbstractSelector {
         private final Set<String> grayUsers;
-        public GrayStrategy(Set<String> grayUsers) { this.grayUsers = grayUsers; }
+        public Gray(Set<String> grayUsers) { this.grayUsers = grayUsers; }
         @Override
-        protected ResolutionContext extractContext() {
+        protected SelectionContext extractContext() {
             String userId = UserContext.get();
             String code = grayUsers.contains(userId) ? "gray" : "normal";
-            return new ResolutionContext(code, null);
+            return new SelectionContext(code, null);
         }
         @Override
-        public String getStrategyName() { return "GrayStrategy"; }
+        public String getName() { return "GrayStrategy"; }
     }
     static class UserContext {
         private static final ThreadLocal<String> holder = new ThreadLocal<>();
@@ -60,7 +60,7 @@ public class GrayRuleTest {
         Set<String> grayUsers = new HashSet<>();
         grayUsers.add("u1");
         grayUsers.add("u2");
-        flexPoint.registerResolver(new GrayStrategy(grayUsers));
+        flexPoint.registerSelector(new Gray(grayUsers));
         flexPoint.register(new GrayImpl());
         flexPoint.register(new NormalImpl());
 

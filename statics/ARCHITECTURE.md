@@ -21,7 +21,7 @@ graph TB
         A1[业务应用]
         A2[扩展点接口]
         A3[扩展点实现]
-        A4[场景解析器]
+        A4[场景选择器]
     end
 
     %% ===== 框架核心层 =====
@@ -29,7 +29,7 @@ graph TB
         B1[FlexPoint<br/>门面]
         B2[ExtensionAbilityRegistry<br/>注册中心]
         B3[ExtensionMonitor<br/>监控器]
-        B4[ExtensionResolutionStrategyRegistry<br/>策略注册表]
+        B4[SelectorRegistry<br/>策略注册表]
         C1[FlexPointConfig<br/>配置]
         C2[FlexPointConfigValidator<br/>校验]
     end
@@ -40,7 +40,7 @@ graph TB
       	D2[complx]
       	D3[config]
       	D4[extension]
-      	D5[resolution]
+      	D5[selector]
       	D6[integration]
     end
 
@@ -77,7 +77,7 @@ graph TB
 - **FlexPoint**：门面类，统一API，协调注册、查找、监控、策略
 - **ExtensionAbilityRegistry**：扩展点注册中心，负责扩展点的注册、查找、注销、并发安全
 - **ExtensionMonitor**：监控器，统计扩展点调用、异常、耗时等
-- **ExtensionResolutionStrategyRegistry**：解析策略注册表，支持多策略、注解优先、上下文动态选择
+- **SelectorRegistry**：选择器注册表，支持多策略、注解优先、上下文动态选择
 - **FlexPointConfig**：配置管理，支持灵活配置与校验
 
 ### flexpoint-common
@@ -99,9 +99,9 @@ flexPoint.register(new MallOrderProcessAbilityV1());
 flexPoint.register(new LogisticsOrderProcessAbility());
 ```
 
-### 2. 解析策略注册
+### 2. 选择器注册
 ```java
-flexPoint.registerResolver(new CustomExtensionResolutionStrategy());
+flexPoint.registerSelector(new CustomSelector());
 ```
 
 ### 3. 查找扩展点
@@ -123,8 +123,8 @@ flexPoint.unregister(extId);
 
 ---
 
-## 解析策略与业务规则
-- 支持注解（@ExtensionResolverSelector）指定策略
+## 选择器与业务规则
+- 支持注解（@Selector）指定策略
 - 支持上下文（如ThreadLocal、参数、环境变量）动态决策
 - 支持多字段（如code+version）匹配、灰度、A/B等复杂业务规则
 
@@ -135,19 +135,8 @@ flexPoint.unregister(extId);
 - **ConfigTest**：配置默认值、校验、禁用场景
 - **ExtensionRegistryTest**：注册、查找、注销、重复注册、并发注册
 - **MonitorTest**：调用统计、异常统计、指标重置
-- **ResolutionTest**：策略注册、注解优先、上下文动态选择、策略未找到异常
+- **SelectorTest**：策略注册、注解优先、上下文动态选择、策略未找到异常
 - **IntegrationTest**：注册、查找、解析、监控、注销等全流程
-- **complx/**：灰度、A/B、多字段动态匹配等复杂业务规则
+- **complx**：灰度、A/B、多字段动态匹配等复杂业务规则
 
 ---
-
-## 设计模式应用
-
-| 设计模式 | 应用场景 | 实现类 |
-|---------|---------|--------|
-| 门面模式 | 统一API | FlexPoint |
-| 工厂模式 | 扩展点创建 | ExtensionAbilityRegistry |
-| 策略模式 | 解析策略 | ExtensionResolutionStrategy |
-| 代理模式 | Spring集成 | ExtensionAbilityInvocationHandler |
-| 注册模式 | 扩展点管理 | ExtensionAbilityRegistry |
-| 观察者模式 | 监控 | ExtensionMonitor |

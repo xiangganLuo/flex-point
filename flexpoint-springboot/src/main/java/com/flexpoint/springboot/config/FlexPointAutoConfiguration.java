@@ -5,7 +5,7 @@ import com.flexpoint.core.FlexPoint;
 import com.flexpoint.spring.banner.FlexPointBanner;
 import com.flexpoint.spring.processor.ExtensionAbilityReferenceProcessor;
 import com.flexpoint.spring.register.SpringExtensionAbilityRegister;
-import com.flexpoint.spring.register.SpringExtensionResolverRegister;
+import com.flexpoint.spring.register.SpringExtensionSelectorRegister;
 import com.flexpoint.springboot.properties.FlexPointProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -57,13 +57,13 @@ public class FlexPointAutoConfiguration {
     }
 
     /**
-     * 创建解析策略自动注册器
+     * 创建选择器自动注册器
      * 根据配置决定是否启用
      */
     @Bean
     @ConditionalOnMissingBean
-    public SpringExtensionResolverRegister springExtensionResolverRegister(FlexPoint manager) {
-        return new SpringExtensionResolverRegister(manager);
+    public SpringExtensionSelectorRegister springExtensionSelectorRegister(FlexPoint manager) {
+        return new SpringExtensionSelectorRegister(manager);
     }
 
     /**

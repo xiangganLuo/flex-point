@@ -9,7 +9,7 @@
 - **ConfigTest**：配置模块测试
 - **ExtensionRegistryTest**：扩展点注册中心测试
 - **MonitorTest**：监控模块测试
-- **ResolutionTest**：解析策略相关测试
+- **SelectorTest**：选择器策略相关测试
 - **IntegrationTest**：全流程集成测试
 - **complx/**：复杂业务规则场景测试（如灰度、A/B、多字段匹配等）
 
@@ -26,7 +26,7 @@
 ### 3. 监控（monitor）
 - 调用统计、异常统计、指标重置、监控开关
 
-### 4. 解析策略（resolution）
+### 4. 选择器策略（selector）
 - 策略注册、注解优先、上下文动态选择、策略未找到异常
 
 ### 5. 集成（integration）
@@ -55,10 +55,10 @@ mvn -pl flexpoint-test test
 - 根据用户分组动态选择灰度/普通实现
 
 ### 多版本动态切换
-- 解析策略根据 code+version 多字段动态选择实现
+- 选择器策略根据 code+version 多字段动态选择实现
 
 ### 注解优先级
-- @ExtensionResolverSelector 注解指定策略优先于全局策略
+- @Selector 注解指定策略优先于全局策略
 
 ### 并发注册
 - 多线程并发注册扩展点，验证线程安全
@@ -67,16 +67,7 @@ mvn -pl flexpoint-test test
 
 ## 🧩 扩展说明
 
-- 可根据实际业务需求，新增更复杂的解析策略、上下文注入、灰度比例、A/B分流等测试用例。
+- 可根据实际业务需求，新增更复杂的选择器策略、上下文注入、灰度比例、A/B分流等测试用例。
 - 推荐每个新特性/新场景都补充对应的单元测试，保障主流程和扩展机制的健壮性。
 
 ---
-
-## 📄 相关文档
-
-- [Flex Point 主项目 README](../README.md)
-- [核心架构说明](../statics/ARCHITECTURE.md)
-
----
-
-如有更多测试需求或建议，欢迎补充！ 

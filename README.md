@@ -26,7 +26,7 @@ Flex Point 是一款面向企业级应用的高可扩展性扩展点（Extension
 
 **核心特性：**
 - 🚀 **轻量级设计** - 无缓存依赖，专注于核心扩展点功能
-- 🎯 **灵活解析** - 支持自定义扩展点解析策略
+- 🎯 **灵活解析** - 支持自定义扩展点场景选择器
 - 🔧 **多环境支持** - Spring Boot、Java原生环境
 - 📊 **监控集成** - 内置扩展点调用监控和性能统计并预留了各种扩展点
 - 🏗️ **模块化架构** - 清晰的模块划分，按需引入
@@ -117,7 +117,7 @@ FlexPoint/
 ### 2. 定义扩展点接口
 
 ```java
-@ExtensionResolverSelector("customStrategy")
+@Selector("customStrategy")
 public interface OrderProcessAbility extends ExtensionAbility {
     String processOrder(String orderId, double amount);
 
@@ -159,18 +159,18 @@ public class LogisticsOrderProcessAbility implements OrderProcessAbility {
 }
 ```
 
-### 4. 场景解析器
+### 4. 场景选择器
 
 ```java
 @Component
-public class CustomExtensionResolutionStrategy extends AbstractExtensionResolutionStrategy {
+public class CustomSelector extends AbstractSelector {
     @Override
-    protected ResolutionContext extractContext() {
+    protected SelectionContext extractContext() {
         // 例如：从ThreadLocal、上下文等获取业务code
-        return new ResolutionContext("mall", null);
+        return new SelectionContext("mall", null);
     }
     @Override
-    public String getStrategyName() {
+    public String getName() {
         return "customStrategy";
     }
 }
@@ -218,34 +218,34 @@ flexPoint.register(new MallOrderProcessAbilityV1());
 flexPoint.register(new MallOrderProcessAbilityV2());
 flexPoint.register(new LogisticsOrderProcessAbility());
 
-// 查找扩展点（自动根据解析器选择实现）
+// 查找扩展点（自动根据选择器选择实现）
 OrderProcessAbility ability = flexPoint.findAbility(OrderProcessAbility.class);
 ```
 
-### 解析器自定义与注册
+### 选择器自定义与注册
 
 ```java
-// 定义自定义解析器
-public class CustomExtensionResolutionStrategy extends AbstractExtensionResolutionStrategy {
+// 定义自定义选择器
+public class CustomSelector extends AbstractSelector {
     @Override
-    protected ResolutionContext extractContext() {
+    protected SelectionContext extractContext() {
         // 例如：从上下文获取业务code
-        return new ResolutionContext("mall", null);
+        return new SelectionContext("mall", null);
     }
     @Override
-    public String getStrategyName() {
+    public String getName() {
         return "customStrategy";
     }
 }
 
-// 注册自定义解析器
-flexPoint.registerResolver(new CustomExtensionResolutionStrategy());
+// 注册自定义选择器
+flexPoint.registerSelector(new CustomSelector());
 ```
 
-- 通过 @ExtensionResolverSelector 注解在扩展点接口上指定解析器：
+- 通过 @Selector 注解在扩展点接口上指定选择器：
 
 ```java
-@ExtensionResolverSelector("customStrategy")
+@Selector("customStrategy")
 public interface OrderProcessAbility extends ExtensionAbility {
     String processOrder(String orderId, double amount);
     String version();
@@ -285,7 +285,7 @@ flexpoint:
 | flexpoint.enabled | boolean | true | 是否启用Flex Point框架 |
 | flexpoint.monitor.enabled | boolean | true | 是否启用扩展点监控功能 |
 | flexpoint.monitor.log-invocation | boolean | true | 是否记录扩展点调用日志 |
-| flexpoint.monitor.log-resolution | boolean | true | 是否记录扩展点解析日志 |
+| flexpoint.monitor.log-selection | boolean | true | 是否记录扩展点选择日志 |
 | flexpoint.monitor.log-exception-details | boolean | true | 是否记录异常详情 |
 | flexpoint.monitor.performance-stats-enabled | boolean | true | 是否启用性能统计 |
 | flexpoint.monitor.async-enabled | boolean | false | 是否启用异步处理 |
@@ -302,7 +302,7 @@ flexpoint:
 - **所有扩展点可选 version() 方法，默认1.0.0**。
 - **注册扩展点时只需 flexPoint.register(ability)**，无需类型和元数据。
 - **查找扩展点时直接 flexPoint.findAbility(AbilityClass.class)**。
-- **自定义解析策略通过 flexPoint.registerResolver(...) 注册。**
+- **自定义场景选择器通过 flexPoint.registerSelector(...) 注册。**
 - **推荐通过BOM统一依赖版本。**
 
 ---
@@ -333,34 +333,34 @@ public class AppAuthFilter implements Filter {
 }
 ```
 
-#### 2. 自定义解析器（结合过滤器上下文）
+#### 2. 自定义选择器（结合过滤器上下文）
 
 ```java
-// src/main/java/com/flexpoint/example/springboot/framework/flexpoint/CustomExtensionResolutionStrategy.java
+// src/main/java/com/flexpoint/example/springboot/framework/flexpoint/CustomSelector.java
 @Component
-public class CustomExtensionResolutionStrategy extends AbstractExtensionResolutionStrategy {
+public class CustomSelector extends AbstractSelector {
     @Override
-    protected ResolutionContext extractContext() {
+    protected SelectionContext extractContext() {
         // 从SysAppContext获取appCode
         String code = SysAppContext.getAppCode();
-        return new ResolutionContext(code, null);
+        return new SelectionContext(code, null);
     }
     @Override
-    public String getStrategyName() { return "customStrategy"; }
+    public String getName() { return "customStrategy"; }
 }
 ```
 
 #### 3. 扩展点接口与实现
 
 ```java
-// src/main/java/com/flexpoint/example/springboot/framework/flexpoint/ability/OrderProcessAbility.java
-@ExtensionResolverSelector("customStrategy")
+// src/main/java/com/flexpoint/example/springboot/ext/OrderProcessAbility.java
+@Selector("customStrategy")
 public interface OrderProcessAbility extends ExtensionAbility {
     String processOrder(String orderId, double amount);
     String version();
 }
 
-// src/main/java/com/flexpoint/example/springboot/framework/flexpoint/ability/mall/MallOrderProcessAbility.java
+// src/main/java/com/flexpoint/example/springboot/ext/mall/MallOrderProcessAbility.java
 @Component
 public class MallOrderProcessAbility implements OrderProcessAbility {
     @Override

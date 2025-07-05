@@ -1,13 +1,13 @@
 package com.flexpoint.test;
 
-import com.flexpoint.common.annotations.ExtensionResolverSelector;
+import com.flexpoint.common.annotations.Selector;
 import com.flexpoint.core.FlexPoint;
 import com.flexpoint.core.FlexPointBuilder;
 import com.flexpoint.core.config.FlexPointConfig;
 import com.flexpoint.core.extension.ExtensionAbility;
 import com.flexpoint.core.monitor.ExtensionMonitor;
-import com.flexpoint.core.resolution.AbstractExtensionResolutionStrategy;
-import com.flexpoint.core.resolution.ResolutionContext;
+import com.flexpoint.core.selector.AbstractSelector;
+import com.flexpoint.core.selector.SelectionContext;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,8 +15,8 @@ import org.junit.jupiter.api.Test;
 public class IntegrationTest {
     private FlexPoint flexPoint;
 
-    @ExtensionResolverSelector("DemoStrategy")
-    interface DemoAbilityDef extends ExtensionAbility {
+    @Selector("DemoStrategy")
+    public interface DemoAbilityDef extends ExtensionAbility {
     }
 
     static class DemoAbility implements DemoAbilityDef {
@@ -25,11 +25,11 @@ public class IntegrationTest {
     static class SpecialAbility implements DemoAbilityDef {
         @Override public String getCode() { return "special"; }
     }
-    static class DemoStrategy extends AbstractExtensionResolutionStrategy {
+    static class Demo extends AbstractSelector {
         @Override
-        protected ResolutionContext extractContext() { return new ResolutionContext("special", null); }
+        protected SelectionContext extractContext() { return new SelectionContext("special", null); }
         @Override
-        public String getStrategyName() { return "DemoStrategy"; }
+        public String getName() { return "DemoStrategy"; }
     }
 
     @BeforeEach
@@ -43,8 +43,8 @@ public class IntegrationTest {
 
     @Test
     public void testFullIntegrationFlow() {
-        // 注册解析策略
-        flexPoint.registerResolver(new DemoStrategy());
+        // 注册选择器
+        flexPoint.registerSelector(new Demo());
         // 注册扩展点
         flexPoint.register(new DemoAbility());
         flexPoint.register(new SpecialAbility());

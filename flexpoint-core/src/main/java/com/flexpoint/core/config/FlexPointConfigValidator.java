@@ -92,15 +92,15 @@ public class FlexPointConfigValidator {
             log.info("扩展点监控已禁用");
             
             // 如果监控被禁用，但其他监控相关配置被启用，给出警告
-            if (monitor.isLogInvocation() || monitor.isLogResolution() || 
+            if (monitor.isLogInvocation() || monitor.isLogSelection() || 
                 monitor.isLogExceptionDetails() || monitor.isPerformanceStatsEnabled()) {
                 log.warn("监控已禁用，但部分监控配置项仍被启用，这些配置将被忽略");
             }
         }
         
-        log.debug("监控配置验证通过: enabled={}, logInvocation={}, logResolution={}, " +
+        log.debug("监控配置验证通过: enabled={}, logInvocation={}, logSelection={}, " +
                  "logExceptionDetails={}, performanceStatsEnabled={}",
-                monitor.isEnabled(), monitor.isLogInvocation(), monitor.isLogResolution(),
+                monitor.isEnabled(), monitor.isLogInvocation(), monitor.isLogSelection(),
                 monitor.isLogExceptionDetails(), monitor.isPerformanceStatsEnabled());
     }
     
@@ -172,7 +172,7 @@ public class FlexPointConfigValidator {
             log.info("  启用状态: {}", monitor.isEnabled() ? "已启用" : "已禁用");
             if (monitor.isEnabled()) {
                 log.info("  调用日志: {}", monitor.isLogInvocation() ? "已启用" : "已禁用");
-                log.info("  解析日志: {}", monitor.isLogResolution() ? "已启用" : "已禁用");
+                log.info("  选择器日志: {}", monitor.isLogSelection() ? "已启用" : "已禁用");
                 log.info("  异常详情: {}", monitor.isLogExceptionDetails() ? "已启用" : "已禁用");
                 log.info("  性能统计: {}", monitor.isPerformanceStatsEnabled() ? "已启用" : "已禁用");
             }
