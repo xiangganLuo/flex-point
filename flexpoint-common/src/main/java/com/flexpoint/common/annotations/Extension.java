@@ -12,7 +12,7 @@ import java.lang.annotation.*;
 @Target({ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-public @interface ExtensionAbilityReference {
+public @interface Extension {
     
     /**
      * 业务标识

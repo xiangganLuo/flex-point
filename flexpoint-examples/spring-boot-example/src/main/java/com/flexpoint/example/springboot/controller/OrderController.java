@@ -1,8 +1,9 @@
 package com.flexpoint.example.springboot.controller;
 
+import com.flexpoint.common.annotations.Extension;
 import com.flexpoint.core.FlexPoint;
-import com.flexpoint.example.springboot.framework.common.CommonResult;
 import com.flexpoint.example.springboot.ext.OrderProcessAbility;
+import com.flexpoint.example.springboot.framework.common.CommonResult;
 import com.flexpoint.example.springboot.framework.flexpoint.context.SysAppContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +20,10 @@ import java.util.Map;
 @RequestMapping("/api/v1/orders")
 @RequiredArgsConstructor
 public class OrderController {
-    
+
+    /**
+     * 通过门面类进行获取扩展点实例
+     */
     private final FlexPoint flexPoint;
 
     /**
@@ -45,6 +49,12 @@ public class OrderController {
             return CommonResult.error("PROCESS_FAILED", "处理订单失败: " + e.getMessage());
         }
     }
+
+    /**
+     * 通过@Extension 注解获取扩展点实例
+     */
+    @Extension
+    private OrderProcessAbility orderProcessAbility;
     
     /**
      * 获取订单状态
@@ -54,24 +64,16 @@ public class OrderController {
         log.info("查询订单状态: orderId={}, appCode={}", orderId, SysAppContext.getAppCode());
         
         try {
-            OrderProcessAbility ability = flexPoint.findAbility(OrderProcessAbility.class);
-            if (ability == null) {
+            if (orderProcessAbility == null) {
                 return CommonResult.error("EXTENSION_NOT_FOUND", "未找到对应的扩展点实现");
             }
             
-            String status = ability.getOrderStatus(orderId);
+            String status = orderProcessAbility.getOrderStatus(orderId);
             return CommonResult.success(status);
         } catch (Exception e) {
             log.error("查询订单状态失败", e);
             return CommonResult.error("QUERY_FAILED", "查询订单状态失败: " + e.getMessage());
         }
     }
-    
-    /**
-     * 健康检查
-     */
-    @GetMapping("/health")
-    public CommonResult<String> health() {
-        return CommonResult.success("OK");
-    }
+
 } 

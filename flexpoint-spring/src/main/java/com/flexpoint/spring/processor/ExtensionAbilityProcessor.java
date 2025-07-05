@@ -1,7 +1,7 @@
 package com.flexpoint.spring.processor;
 
 import com.flexpoint.core.extension.ExtensionAbility;
-import com.flexpoint.common.annotations.ExtensionAbilityReference;
+import com.flexpoint.common.annotations.Extension;
 import com.flexpoint.core.FlexPoint;
 import com.flexpoint.spring.proxy.ExtensionAbilityInvocationHandler;
 import lombok.RequiredArgsConstructor;
@@ -13,13 +13,13 @@ import java.lang.reflect.Field;
 
 /**
  * 扩展点引用处理器
- * 处理@ExtensionAbilityReference注解的字段注入
+ * 处理@Extension注解的字段注入
  *
  * @author xiangganluo
  * @version 1.0.0
  */
 @RequiredArgsConstructor
-public class ExtensionAbilityReferenceProcessor implements BeanPostProcessor {
+public class ExtensionAbilityProcessor implements BeanPostProcessor {
 
     private final FlexPoint flexPoint;
 
@@ -27,7 +27,7 @@ public class ExtensionAbilityReferenceProcessor implements BeanPostProcessor {
     public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
         Class<?> clazz = bean.getClass();
         for (Field field : clazz.getDeclaredFields()) {
-            ExtensionAbilityReference reference = field.getAnnotation(ExtensionAbilityReference.class);
+            Extension reference = field.getAnnotation(Extension.class);
             if (reference != null) {
                 Class<?> abilityClass = field.getType();
                 if (ExtensionAbility.class.isAssignableFrom(abilityClass) && abilityClass.isInterface()) {

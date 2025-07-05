@@ -184,7 +184,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 public class OrderController {
-    @ExtensionAbilityReference
+    @Extension
     private OrderProcessAbility orderProcessAbility;
 
     @GetMapping("/order/process")
@@ -380,7 +380,7 @@ public class MallOrderProcessAbility implements OrderProcessAbility {
 // src/main/java/com/flexpoint/example/springboot/controller/OrderController.java
 @RestController
 public class OrderController {
-    @ExtensionAbilityReference
+    @Extension
     private OrderProcessAbility orderProcessAbility;
 
     @GetMapping("/order/process")

@@ -13,7 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * 扩展点管理器建造者
- * 提供流式API来构建和配置FlexPointManager实例
+ * 提供流式API来构建和配置FlexPoint实例
  *
  * @author xiangganluo
  * @version 1.0.0
@@ -75,7 +75,7 @@ public class FlexPointBuilder {
     }
     
     /**
-     * 构建FlexPointManager实例
+     * 构建FlexPoint实例
      */
     public FlexPoint build() {
         // 如果没有配置，使用默认配置

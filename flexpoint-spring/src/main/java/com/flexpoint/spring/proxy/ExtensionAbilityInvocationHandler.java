@@ -1,6 +1,6 @@
 package com.flexpoint.spring.proxy;
 
-import com.flexpoint.common.annotations.ExtensionAbilityReference;
+import com.flexpoint.common.annotations.Extension;
 import com.flexpoint.common.constants.FlexPointConstants;
 import com.flexpoint.common.exception.ExtensionAbilityNotFoundException;
 import com.flexpoint.common.utils.ExtensionUtil;
@@ -22,7 +22,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class ExtensionAbilityInvocationHandler implements InvocationHandler {
 
-    private final ExtensionAbilityReference reference;
+    private final Extension reference;
 
     private final FlexPoint flexPoint;
 

@@ -9,10 +9,10 @@ import com.flexpoint.example.java.ability.OrderProcessAbility;
  */
 public class OrderService {
     
-    private final FlexPoint manager;
+    private final FlexPoint flexPoint;
     
-    public OrderService(FlexPoint manager) {
-        this.manager = manager;
+    public OrderService(FlexPoint flexPoint) {
+        this.flexPoint = flexPoint;
     }
     
     /**
@@ -28,7 +28,7 @@ public class OrderService {
         System.out.println("开始处理订单: orderId=" + orderId + ", amount=" + amount + ", businessType=" + businessType);
         
         // 查找订单处理扩展点
-        OrderProcessAbility orderProcessor = manager.findAbility(OrderProcessAbility.class);
+        OrderProcessAbility orderProcessor = flexPoint.findAbility(OrderProcessAbility.class);
         if (orderProcessor == null) {
             return "未找到对应的订单处理器";
         }
