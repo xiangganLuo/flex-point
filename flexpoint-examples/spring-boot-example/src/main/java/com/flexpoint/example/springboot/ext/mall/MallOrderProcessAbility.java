@@ -17,11 +17,6 @@ public class MallOrderProcessAbility implements OrderProcessAbility {
     }
 
     @Override
-    public String version() {
-        return "1.0.0";
-    }
-
-    @Override
     public String processOrder(String orderId, String orderData) {
         log.info("商城应用处理订单: orderId={}, orderData={}", orderId, orderData);
         return "商城订单处理完成: " + orderId;

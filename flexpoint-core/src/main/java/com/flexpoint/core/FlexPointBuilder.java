@@ -2,12 +2,12 @@ package com.flexpoint.core;
 
 import com.flexpoint.core.config.FlexPointConfig;
 import com.flexpoint.core.config.FlexPointConfigValidator;
+import com.flexpoint.core.context.ContextManager;
 import com.flexpoint.core.extension.DefaultExtensionAbilityRegistry;
 import com.flexpoint.core.extension.ExtensionAbilityRegistry;
 import com.flexpoint.core.monitor.ExtensionMonitor;
 import com.flexpoint.core.monitor.MonitorFactory;
 import com.flexpoint.core.selector.DefaultSelectorRegistry;
-import com.flexpoint.core.selector.ExtensionSelector;
 import com.flexpoint.core.selector.SelectorRegistry;
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,6 +24,7 @@ public class FlexPointBuilder {
     private ExtensionAbilityRegistry registry;
     private ExtensionMonitor monitor;
     private SelectorRegistry selectorRegistry;
+    private ContextManager contextManager;
     private FlexPointConfig config;
     
     /**
@@ -67,6 +68,15 @@ public class FlexPointBuilder {
     }
 
     /**
+     * 使用自定义选择器注册表
+     */
+    public FlexPointBuilder withContextManager(ContextManager contextManager) {
+        this.contextManager = contextManager;
+        return this;
+    }
+
+
+    /**
      * 使用配置
      */
     public FlexPointBuilder withConfig(FlexPointConfig config) {
@@ -101,8 +111,12 @@ public class FlexPointBuilder {
         if (selectorRegistry == null) {
             selectorRegistry = FlexPointComponentCreator.createSelectorRegistry();
         }
+
+        if (contextManager == null) {
+            contextManager = FlexPointComponentCreator.createSelectionContextManager();
+        }
         
-        return new FlexPoint(registry, monitor, selectorRegistry);
+        return new FlexPoint(registry, monitor, selectorRegistry, contextManager, config);
     }
 
     /**
@@ -134,6 +148,10 @@ public class FlexPointBuilder {
          */
         public static SelectorRegistry createSelectorRegistry() {
             return new DefaultSelectorRegistry();
+        }
+
+        public static ContextManager createSelectionContextManager() {
+            return new ContextManager();
         }
     }
 

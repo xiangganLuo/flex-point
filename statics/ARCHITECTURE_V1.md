@@ -1,4 +1,4 @@
-# Flex Point 核心架构
+# Flex Point 核心架构（V1）
 
 ## 项目核心作用
 

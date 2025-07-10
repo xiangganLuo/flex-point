@@ -1,12 +1,12 @@
 package com.flexpoint.test.complx;
 
-import com.flexpoint.common.annotations.Selector;
+import com.flexpoint.common.annotations.FpSelector;
 import com.flexpoint.core.FlexPoint;
 import com.flexpoint.core.FlexPointBuilder;
 import com.flexpoint.core.config.FlexPointConfig;
+import com.flexpoint.core.context.Context;
 import com.flexpoint.core.extension.ExtensionAbility;
-import com.flexpoint.core.selector.AbstractSelector;
-import com.flexpoint.core.selector.SelectionContext;
+import com.flexpoint.core.selector.Selector;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,7 +17,7 @@ import java.util.Set;
 public class GrayRuleTest {
     private FlexPoint flexPoint;
 
-    @Selector("GrayStrategy")
+    @FpSelector
     public interface GrayAbility extends ExtensionAbility {
         String process(String input);
     }
@@ -29,14 +29,19 @@ public class GrayRuleTest {
         @Override public String getCode() { return "normal"; }
         @Override public String process(String userId) { return "normal"; }
     }
-    static class Gray extends AbstractSelector {
+    static class GraySelector implements Selector {
         private final Set<String> grayUsers;
-        public Gray(Set<String> grayUsers) { this.grayUsers = grayUsers; }
+        public GraySelector(Set<String> grayUsers) { this.grayUsers = grayUsers; }
         @Override
-        protected SelectionContext extractContext() {
+        public <T extends ExtensionAbility> T select(java.util.List<T> candidates, Context context) {
             String userId = UserContext.get();
             String code = grayUsers.contains(userId) ? "gray" : "normal";
-            return new SelectionContext(code, null);
+            for (T ext : candidates) {
+                if (code.equals(ext.getCode())) {
+                    return ext;
+                }
+            }
+            return null;
         }
         @Override
         public String getName() { return "GrayStrategy"; }
@@ -60,7 +65,7 @@ public class GrayRuleTest {
         Set<String> grayUsers = new HashSet<>();
         grayUsers.add("u1");
         grayUsers.add("u2");
-        flexPoint.registerSelector(new Gray(grayUsers));
+        flexPoint.registerSelector(new GraySelector(grayUsers));
         flexPoint.register(new GrayImpl());
         flexPoint.register(new NormalImpl());
 
@@ -74,4 +79,4 @@ public class GrayRuleTest {
 
         UserContext.clear();
     }
-} 
+}

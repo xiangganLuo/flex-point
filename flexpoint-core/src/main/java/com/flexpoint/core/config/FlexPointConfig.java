@@ -2,6 +2,9 @@ package com.flexpoint.core.config;
 
 import lombok.Data;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * Flex Point框架配置
  * 提供框架的核心配置支持
@@ -26,6 +29,12 @@ public class FlexPointConfig {
      * 注册配置
      */
     private RegistryConfig registry = new RegistryConfig();
+
+    /**
+     * 选择器配置
+     * defaultChain: [tenantSelector, versionSelector, defaultSelector]
+     */
+    private SelectorConfig selector = new SelectorConfig();
     
     /**
      * 监控配置
@@ -83,6 +92,16 @@ public class FlexPointConfig {
          * 是否允许重复注册
          */
         private boolean allowDuplicateRegistration = false;
+    }
+
+    @Data
+    public static class SelectorConfig {
+
+        /**
+         * 选择器链
+         */
+        private Map<String, List<String>> chains;
+
     }
 
     /**

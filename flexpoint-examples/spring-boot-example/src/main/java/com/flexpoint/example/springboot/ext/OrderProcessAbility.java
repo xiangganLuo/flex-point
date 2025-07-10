@@ -1,12 +1,12 @@
 package com.flexpoint.example.springboot.ext;
 
-import com.flexpoint.common.annotations.Selector;
+import com.flexpoint.common.annotations.FpSelector;
 import com.flexpoint.core.extension.ExtensionAbility;
 
 /**
  * 订单处理扩展点接口
  */
-@Selector("ExampleSelectorStrategy")
+@FpSelector
 public interface OrderProcessAbility extends ExtensionAbility {
     
     /**

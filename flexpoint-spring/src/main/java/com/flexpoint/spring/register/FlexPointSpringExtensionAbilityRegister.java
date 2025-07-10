@@ -20,7 +20,7 @@ import java.util.Map;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class SpringExtensionAbilityRegister implements ApplicationContextAware, InitializingBean {
+public class FlexPointSpringExtensionAbilityRegister implements ApplicationContextAware, InitializingBean {
 
     private final ExtensionAbilityRegistry extensionAbilityRegistry;
     private ApplicationContext applicationContext;

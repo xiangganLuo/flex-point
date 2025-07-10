@@ -21,18 +21,13 @@
         <!-- 第三方依赖版本 -->
         <lombok.version>1.18.30</lombok.version>
         <slf4j.version>2.0.9</slf4j.version>
-        <spring.version>6.1.0</spring.version>
-        <spring-boot.version>3.2.0</spring-boot.version>
         <junit.version>5.10.0</junit.version>
         <spring-boot-dependencies.version>3.4.1</spring-boot-dependencies.version>
-        <captcha-plus.version>2.0.3</captcha-plus.version>
         <jsoup.version>1.18.1</jsoup.version>
         <lombok.version>1.18.36</lombok.version>
         <mapstruct.version>1.6.3</mapstruct.version>
         <hutool-5.version>5.8.35</hutool-5.version>
         <hutool-6.version>6.0.0-M19</hutool-6.version>
-        <easyexcel.verion>4.0.3</easyexcel.verion>
-        <velocity.version>2.4.1</velocity.version>
         <fastjson.version>1.2.83</fastjson.version>
         <guava.version>33.4.0-jre</guava.version>
         <transmittable-thread-local.version>2.14.5</transmittable-thread-local.version>
@@ -40,7 +35,6 @@
         <jsch.version>0.1.55</jsch.version>
         <tika-core.version>2.9.2</tika-core.version>
         <ip2region.version>2.7.0</ip2region.version>
-        <bizlog-sdk.version>3.0.6</bizlog-sdk.version>
         <reflections.version>0.10.2</reflections.version>
         <netty.version>4.1.116.Final</netty.version>
         <forest.version>1.6.4</forest.version>
@@ -106,17 +100,6 @@
                 <scope>import</scope>
             </dependency>
             <dependency>
-                <groupId>io.github.mouzt</groupId>
-                <artifactId>bizlog-sdk</artifactId>
-                <version>${bizlog-sdk.version}</version>
-                <exclusions>
-                    <exclusion> <!-- 排除掉springboot依赖使用项目的 -->
-                        <groupId>org.springframework.boot</groupId>
-                        <artifactId>spring-boot-starter</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-inline</artifactId>
                 <version>${mockito-inline.version}</version> <!-- 支持 Mockito 的 final 类与 static 方法的 mock -->
@@ -157,11 +140,6 @@
                 <version>${hutool-6.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.alibaba</groupId>
-                <artifactId>easyexcel</artifactId>
-                <version>${easyexcel.verion}</version>
-            </dependency>
-            <dependency>
                 <groupId>commons-io</groupId>
                 <artifactId>commons-io</artifactId>
                 <version>${commons-io.version}</version>
@@ -175,11 +153,6 @@
                 <groupId>org.apache.tika</groupId>
                 <artifactId>tika-core</artifactId> <!-- 文件类型的识别 -->
                 <version>${tika-core.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.velocity</groupId>
-                <artifactId>velocity-engine-core</artifactId>
-                <version>${velocity.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.alibaba</groupId>
@@ -205,11 +178,6 @@
                 <groupId>com.jcraft</groupId>
                 <artifactId>jsch</artifactId> <!-- 解决 sftp 连接 -->
                 <version>${jsch.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.xingyuv</groupId>
-                <artifactId>spring-boot-starter-captcha-plus</artifactId>
-                <version>${captcha-plus.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.lionsoul</groupId>

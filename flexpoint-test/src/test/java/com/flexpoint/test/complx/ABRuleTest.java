@@ -1,12 +1,13 @@
 package com.flexpoint.test.complx;
 
-import com.flexpoint.common.annotations.Selector;
+import com.flexpoint.common.annotations.FpSelector;
+import com.flexpoint.common.constants.FlexPointConstants;
 import com.flexpoint.core.FlexPoint;
 import com.flexpoint.core.FlexPointBuilder;
 import com.flexpoint.core.config.FlexPointConfig;
+import com.flexpoint.core.context.Context;
 import com.flexpoint.core.extension.ExtensionAbility;
-import com.flexpoint.core.selector.AbstractSelector;
-import com.flexpoint.core.selector.SelectionContext;
+import com.flexpoint.core.selector.Selector;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,7 +18,7 @@ import java.util.Map;
 public class ABRuleTest {
     private FlexPoint flexPoint;
 
-    @Selector("ABTestStrategy")
+    @FpSelector
     public interface ABTestAbility extends ExtensionAbility {
         String process(String input);
     }
@@ -29,15 +30,19 @@ public class ABRuleTest {
         @Override public String getCode() { return "normal"; }
         @Override public String process(String userId) { return "normal"; }
     }
-    static class ABTest extends AbstractSelector {
+    static class ABTestSelector implements Selector {
         private final Map<String, String> userGroup;
-        public ABTest(Map<String, String> userGroup) { this.userGroup = userGroup; }
+        public ABTestSelector(Map<String, String> userGroup) { this.userGroup = userGroup; }
         @Override
-        protected SelectionContext extractContext() {
-            // 假设从ThreadLocal获取userId
+        public <T extends ExtensionAbility> T select(java.util.List<T> candidates, Context context) {
             String userId = UserContext.get();
             String code = userGroup.getOrDefault(userId, "normal");
-            return new SelectionContext(code, null);
+            for (T ext : candidates) {
+                if (code.equals(ext.getCode())) {
+                    return ext;
+                }
+            }
+            return null;
         }
         @Override
         public String getName() { return "ABTestStrategy"; }
@@ -62,7 +67,7 @@ public class ABRuleTest {
         Map<String, String> userGroup = new HashMap<>();
         userGroup.put("user1", "gray");
         userGroup.put("user2", "normal");
-        flexPoint.registerSelector(new ABTest(userGroup));
+        flexPoint.registerSelector(new ABTestSelector(userGroup));
         flexPoint.register(new GrayAbility());
         flexPoint.register(new NormalAbility());
 
@@ -76,4 +81,4 @@ public class ABRuleTest {
 
         UserContext.clear();
     }
-} 
+}

@@ -1,6 +1,6 @@
 package com.flexpoint.example.springboot.controller;
 
-import com.flexpoint.common.annotations.Extension;
+import com.flexpoint.common.annotations.FpExt;
 import com.flexpoint.core.FlexPoint;
 import com.flexpoint.example.springboot.ext.OrderProcessAbility;
 import com.flexpoint.example.springboot.framework.common.CommonResult;
@@ -51,9 +51,9 @@ public class OrderController {
     }
 
     /**
-     * 通过@Extension 注解获取扩展点实例
+     * 通过@FpExt 注解获取扩展点实例
      */
-    @Extension
+    @FpExt
     private OrderProcessAbility orderProcessAbility;
     
     /**

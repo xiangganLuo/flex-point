@@ -96,9 +96,10 @@ FlexPoint/
 
 ## 📝 文档
 
-- [核心架构](statics/ARCHITECTURE.md)
+- [核心架构V1](statics/ARCHITECTURE_V1.md)
+- [项目计划](statics/FLEXPOINT_PLAN.md)
 - [多场景接入示例（Spring Boot/Java原生）](flexpoint-examples/README.md)
-- [测试用例](flexpoint-test/README.md)
+- [测试用例](flexpoint-test)
 
 ---
 
@@ -117,15 +118,10 @@ FlexPoint/
 ### 2. 定义扩展点接口
 
 ```java
-@Selector("customStrategy")
+@FpSelector // 可选 chainName = "customStrategy"
 public interface OrderProcessAbility extends ExtensionAbility {
-    String processOrder(String orderId, double amount);
-
-    /**
-     * 如果能力有版本需求则可定义为必须实现，默认ExtensionAbility.DEFAULT_VERSION
-     * @return 版本号
-     */
-    String version(); 
+    String processOrder(String orderId, String orderData);
+    String getOrderStatus(String orderId);
 }
 ```
 
@@ -135,15 +131,10 @@ public interface OrderProcessAbility extends ExtensionAbility {
 import org.springframework.stereotype.Component;
 
 @Component
-public class MallOrderProcessAbilityV1 implements OrderProcessAbility {
-    @Override
-    public String getCode() { return "mall"; }
-    @Override
-    public String version() { return "1.0.0"; }
-    @Override
-    public String processOrder(String orderId, double amount) {
-        return "商城订单处理完成V1";
-    }
+public class MallOrderProcessAbility implements OrderProcessAbility {
+    @Override public String getCode() { return "mall-app"; }
+    @Override public String processOrder(String orderId, String orderData) { return "商城订单处理完成"; }
+    @Override public String getOrderStatus(String orderId) { return "已支付"; }
 }
 
 @Component
@@ -162,17 +153,20 @@ public class LogisticsOrderProcessAbility implements OrderProcessAbility {
 ### 4. 场景选择器
 
 ```java
+import org.springframework.stereotype.Component;
+
 @Component
-public class CustomSelector extends AbstractSelector {
+public class CustomSelector implements Selector {
     @Override
-    protected SelectionContext extractContext() {
-        // 例如：从ThreadLocal、上下文等获取业务code
-        return new SelectionContext("mall", null);
+    public <T extends ExtensionAbility> T select(List<T> candidates, SelectionContext context) {
+        String code = SysAppContext.getAppCode();
+        for (T ext : candidates) {
+            if (code.equals(ext.getCode())) return ext;
+        }
+        return null;
     }
     @Override
-    public String getName() {
-        return "customStrategy";
-    }
+    public String getName() { return "customStrategy"; }
 }
 ```
 
@@ -184,7 +178,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 public class OrderController {
-    @Extension
+    @FpExt
     private OrderProcessAbility orderProcessAbility;
 
     @GetMapping("/order/process")
@@ -193,19 +187,6 @@ public class OrderController {
     }
 }
 ```
-
-### 6. 配置文件示例
-
-```yaml
-flexpoint:
-  enabled: true
-  monitor:
-    enabled: true
-    log-invocation: true
-  registry:
-    allow-duplicate-registration: false
-```
-
 ---
 
 ## 🔧 核心功能
@@ -224,22 +205,45 @@ OrderProcessAbility ability = flexPoint.findAbility(OrderProcessAbility.class);
 
 ### 选择器自定义与注册
 
+#### 推荐：默认场景选择器注册（Spring Boot最佳实践）
+
 ```java
-// 定义自定义选择器
-public class CustomSelector extends AbstractSelector {
-    @Override
-    protected SelectionContext extractContext() {
-        // 例如：从上下文获取业务code
-        return new SelectionContext("mall", null);
-    }
-    @Override
-    public String getName() {
-        return "customStrategy";
+import com.flexpoint.core.selector.resolves.CodeVersionSelector;
+import org.springframework.context.annotation.Bean;
+import org.springframework.stereotype.Component;
+
+@Component
+public class FlexPointConfig {
+    /**
+     * 注册默认的选择器链
+     */
+    @Bean
+    public CodeVersionSelector codeVersionSelector() {
+        return new CodeVersionSelector(context -> SysAppContext.getAppCode());
     }
 }
+```
 
-// 注册自定义选择器
-flexPoint.registerSelector(new CustomSelector());
+- 这样，业务代码只需在请求入口（如过滤器）设置好 `SysAppContext.setAppCode(appCode)`，能力查找时自动感知上下文。
+
+#### 进阶：自定义 Selector（如需特殊路由/多维选择）
+
+```java
+import org.springframework.stereotype.Component;
+
+@Component
+public class CustomSelector implements Selector {
+    @Override
+    public <T extends ExtensionAbility> T select(List<T> candidates, SelectionContext context) {
+        String code = SysAppContext.getAppCode();
+        for (T ext : candidates) {
+            if (code.equals(ext.getCode())) return ext;
+        }
+        return null;
+    }
+    @Override
+    public String getName() { return "customStrategy"; }
+}
 ```
 
 - 通过 @Selector 注解在扩展点接口上指定选择器：
@@ -261,37 +265,23 @@ System.out.println("调用次数: " + metrics.getTotalInvocations());
 System.out.println("平均耗时: " + metrics.getAverageDuration() + "ms");
 ```
 
-### 配置管理
-
-```yaml
-# application.yml
-flexpoint:
-  enabled: true
-  monitor:
-    enabled: true
-    log-invocation: true
-    performance-stats-enabled: true
-  registry:
-    enabled: true
-    allow-duplicate-registration: false
-```
-
 ---
 
 ## ⚙️ 配置项说明
 
-| 配置项 | 类型 | 默认值 | 说明 |
-|--------|------|--------|------|
-| flexpoint.enabled | boolean | true | 是否启用Flex Point框架 |
-| flexpoint.monitor.enabled | boolean | true | 是否启用扩展点监控功能 |
-| flexpoint.monitor.log-invocation | boolean | true | 是否记录扩展点调用日志 |
-| flexpoint.monitor.log-selection | boolean | true | 是否记录扩展点选择日志 |
-| flexpoint.monitor.log-exception-details | boolean | true | 是否记录异常详情 |
-| flexpoint.monitor.performance-stats-enabled | boolean | true | 是否启用性能统计 |
+| 配置项 | 类型 | 默认值   | 说明 |
+|--------|------|-------|------|
+| flexpoint.enabled | boolean | true  | 是否启用Flex Point框架 |
+| flexpoint.monitor.enabled | boolean | true  | 是否启用扩展点监控功能 |
+| flexpoint.monitor.log-invocation | boolean | true  | 是否记录扩展点调用日志 |
+| flexpoint.monitor.log-selection | boolean | true  | 是否记录扩展点选择日志 |
+| flexpoint.monitor.log-exception-details | boolean | true  | 是否记录异常详情 |
+| flexpoint.monitor.performance-stats-enabled | boolean | true  | 是否启用性能统计 |
 | flexpoint.monitor.async-enabled | boolean | false | 是否启用异步处理 |
-| flexpoint.monitor.async-queue-size | int | 1000 | 异步处理队列大小 |
-| flexpoint.registry.enabled | boolean | true | 是否启用扩展点自动注册 |
+| flexpoint.monitor.async-queue-size | int | 1000  | 异步处理队列大小 |
+| flexpoint.registry.enabled | boolean | true  | 是否启用扩展点自动注册 |
 | flexpoint.registry.allow-duplicate-registration | boolean | false | 是否允许重复注册扩展点 |
+| flexpoint.selector.chains | boolean | map   | 选择器链，默认注册：FlexPointConstants.DEFAULT_SELECTOR_CHAIN_NAME |
 
 > 以上配置可在 application.yml 或 application.properties 中灵活配置，详细含义见上表。
 
@@ -309,7 +299,7 @@ flexpoint:
 
 ### 🚦 Spring Boot 全流程实战
 
-以 `flexpoint-examples/spring-boot-example` 为例，演示如何实现"基于上下文动态切换扩展点"的完整链路：
+以 `flexpoint-examples/spring-boot-example` 为例，演示如何实现“基于上下文动态切换扩展点”的完整链路：
 
 #### 1. 过滤器编写（上下文注入/鉴权）
 
@@ -320,9 +310,7 @@ public class AppAuthFilter implements Filter {
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         HttpServletRequest req = (HttpServletRequest) request;
-        // 假设header中有appCode
         String appCode = req.getHeader("X-App-Code");
-        // 注入到ThreadLocal或自定义上下文
         SysAppContext.setAppCode(appCode);
         try {
             chain.doFilter(request, response);
@@ -333,20 +321,16 @@ public class AppAuthFilter implements Filter {
 }
 ```
 
-#### 2. 自定义选择器（结合过滤器上下文）
+#### 2. 默认选择器链注册（推荐方式）
 
 ```java
-// src/main/java/com/flexpoint/example/springboot/framework/flexpoint/CustomSelector.java
+// src/main/java/com/flexpoint/example/springboot/framework/flexpoint/FlexPointConfig.java
 @Component
-public class CustomSelector extends AbstractSelector {
-    @Override
-    protected SelectionContext extractContext() {
-        // 从SysAppContext获取appCode
-        String code = SysAppContext.getAppCode();
-        return new SelectionContext(code, null);
+public class FlexPointConfig {
+    @Bean
+    public CodeVersionSelector codeVersionSelector() {
+        return new CodeVersionSelector(context -> SysAppContext.getAppCode());
     }
-    @Override
-    public String getName() { return "customStrategy"; }
 }
 ```
 
@@ -354,23 +338,18 @@ public class CustomSelector extends AbstractSelector {
 
 ```java
 // src/main/java/com/flexpoint/example/springboot/ext/OrderProcessAbility.java
-@Selector("customStrategy")
+@FpSelector
 public interface OrderProcessAbility extends ExtensionAbility {
-    String processOrder(String orderId, double amount);
-    String version();
+    String processOrder(String orderId, String orderData);
+    String getOrderStatus(String orderId);
 }
 
 // src/main/java/com/flexpoint/example/springboot/ext/mall/MallOrderProcessAbility.java
 @Component
 public class MallOrderProcessAbility implements OrderProcessAbility {
-    @Override
-    public String getCode() { return "mall"; }
-    @Override
-    public String version() { return "1.0.0"; }
-    @Override
-    public String processOrder(String orderId, double amount) {
-        return "商城订单处理完成";
-    }
+    @Override public String getCode() { return "mall-app"; }
+    @Override public String processOrder(String orderId, String orderData) { return "商城订单处理完成"; }
+    @Override public String getOrderStatus(String orderId) { return "已支付"; }
 }
 ```
 
@@ -380,27 +359,33 @@ public class MallOrderProcessAbility implements OrderProcessAbility {
 // src/main/java/com/flexpoint/example/springboot/controller/OrderController.java
 @RestController
 public class OrderController {
-    @Extension
+    @FpExt
     private OrderProcessAbility orderProcessAbility;
 
-    @GetMapping("/order/process")
-    public String process(String orderId, double amount) {
-        return orderProcessAbility.processOrder(orderId, amount);
+    @PostMapping("/api/v1/orders/process")
+    public String processOrder(@RequestBody Map<String, String> request) {
+        String orderId = request.get("orderId");
+        String orderData = request.get("orderData");
+        return orderProcessAbility.processOrder(orderId, orderData);
     }
 }
 ```
 
-#### 5. 监控与配置
+#### 5. 配置文件示例
 
 ```yaml
-# src/main/resources/application.yml
 flexpoint:
   enabled: true
   monitor:
     enabled: true
     log-invocation: true
   registry:
+    enabled: true
     allow-duplicate-registration: false
+#  selector:
+#    chains:
+#      default-selector-chain:
+#        - codeVersionSelector
 ```
 
 可通过注入 `ExtensionMonitor` 获取扩展点调用统计：

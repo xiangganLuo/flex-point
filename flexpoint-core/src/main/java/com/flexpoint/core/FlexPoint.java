@@ -1,27 +1,29 @@
 package com.flexpoint.core;
 
-import com.flexpoint.common.annotations.Selector;
-import com.flexpoint.common.exception.ExtensionSelectorNotFoundException;
-import com.flexpoint.common.utils.ExtensionUtil;
+import com.flexpoint.common.annotations.FpSelector;
+import com.flexpoint.core.config.FlexPointConfig;
+import com.flexpoint.core.context.ContextProvider;
+import com.flexpoint.core.context.ContextManager;
 import com.flexpoint.core.extension.ExtensionAbility;
 import com.flexpoint.core.extension.ExtensionAbilityRegistry;
 import com.flexpoint.core.monitor.ExtensionMonitor;
-import com.flexpoint.core.selector.DefaultSelectorRegistry;
-import com.flexpoint.core.selector.ExtensionSelector;
+import com.flexpoint.core.context.Context;
+import com.flexpoint.core.selector.Selector;
+import com.flexpoint.core.selector.SelectorChain;
 import com.flexpoint.core.selector.SelectorRegistry;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static com.flexpoint.common.constants.FlexPointConstants.DEFAULT_SELECTOR_CHAIN_NAME;
+
 /**
  * 扩展点管理器
- * 提供扩展点的注册、查找、监控等统一管理功能
- *
- * @author xiangganluo
- * @version 1.0.0
+ * 只负责扩展点注册、查找、监控，选择器链由 SelectorRegistry 管理
  */
 @Slf4j
 public class FlexPoint {
@@ -32,192 +34,179 @@ public class FlexPoint {
     private final ExtensionMonitor extensionMonitor;
     @Getter
     private final SelectorRegistry selectorRegistry;
+    @Getter
+    private final ContextManager contextManager;
 
-    public FlexPoint(ExtensionAbilityRegistry extensionAbilityRegistry, ExtensionMonitor extensionMonitor) {
-        this(extensionAbilityRegistry, extensionMonitor, new DefaultSelectorRegistry());
-    }
+    @Getter
+    private final FlexPointConfig flexPointConfig;
 
-    public FlexPoint(ExtensionAbilityRegistry extensionAbilityRegistry, ExtensionMonitor extensionMonitor, SelectorRegistry selectorRegistry) {
+    public FlexPoint(ExtensionAbilityRegistry extensionAbilityRegistry,
+                     ExtensionMonitor extensionMonitor,
+                     SelectorRegistry selectorRegistry,
+                     ContextManager contextManager,
+                     FlexPointConfig flexPointConfig
+    ) {
         this.extensionAbilityRegistry = extensionAbilityRegistry;
         this.extensionMonitor = extensionMonitor;
-        this.selectorRegistry = selectorRegistry == null ? new DefaultSelectorRegistry() : selectorRegistry;
+        this.selectorRegistry = selectorRegistry;
+        this.contextManager = contextManager;
+        this.flexPointConfig = flexPointConfig;
     }
 
-    // ==================== 扩展点查找方法 ====================
-
     /**
-     * 查找扩展点
+     * ==================extension==================
      */
-    public <T extends ExtensionAbility> T findAbility(Class<T> extensionType) {
+    public <T extends ExtensionAbility> T findAbility(Class<T> extensionType, String selectorChainName, Context context) {
         String extensionId = null;
         try {
-            // 1. 获取选择器
-            ExtensionSelector selector = getSelector(extensionType);
-
-            // 2. 从注册中心获取所有扩展点
+            SelectorChain chain = selectorRegistry.getSelectorChain(selectorChainName);
+            if (chain == null) {
+                throw new IllegalArgumentException("未找到指定名称的 SelectorChain: " + selectorChainName);
+            }
             List<T> extensions = extensionAbilityRegistry.getAllExtensionAbility(extensionType);
             if (extensions.isEmpty()) {
                 log.warn("未找到扩展点实现: type={}", extensionType.getSimpleName());
                 return null;
             }
-
-            // 3. 使用选择器选择扩展点
-            T selectedExtension = selector.resolve(extensions);
-            if (selectedExtension == null) {
-                log.warn("选择器未找到匹配的扩展点: type={}", extensionType.getSimpleName());
+            T selected = chain.select(extensions, context);
+            if (selected == null) {
+                log.warn("SelectorChain 未找到匹配的扩展点: type={}, chain={}", extensionType.getSimpleName(), selectorChainName);
                 return null;
             }
-
-            // 4. 生成正确的extensionId用于监控
-            String code = selectedExtension.getCode();
-            String version = selectedExtension.version();
-            extensionId = ExtensionUtil.getExtensionId(code, version);
-
-            log.debug("成功获取扩展点: type={}, code={}, version={}, id={}, class={}",
-                    extensionType.getSimpleName(), code, version, extensionId, selectedExtension.getClass().getName());
-            return selectedExtension;
+            extensionId = selected.getCode() + ":" + selected.version();
+            log.debug("成功获取扩展点: type={}, id={}, class={}", extensionType.getSimpleName(), extensionId, selected.getClass().getName());
+            return selected;
         } catch (Exception e) {
             log.error("获取扩展点失败: type={}, id={}", extensionType.getSimpleName(), extensionId, e);
             throw e;
         }
     }
 
+    public <T extends ExtensionAbility> Optional<T> findAbilityOpt(Class<T> extensionType, String selectorChainName, Context context) {
+        return Optional.ofNullable(findAbility(extensionType, selectorChainName, context));
+    }
+
     /**
-     * 查找扩展点（返回Optional）
+     * 查找扩展点（使用默认选择器链）
+     * 从扩展点接口的 @FpSelector 注解中获取选择器链名称
+     */
+    public <T extends ExtensionAbility> T findAbility(Class<T> extensionType) {
+        FpSelector selectorAnno = extensionType.getAnnotation(FpSelector.class);
+        if (selectorAnno == null || selectorAnno.value().isEmpty()) {
+            throw new IllegalArgumentException("扩展点接口 " + extensionType.getName() + " 缺少 @FpSelector 注解或未指定选择器链名称");
+        }
+        return findAbility(extensionType, selectorAnno.value(), new Context());
+    }
+
+    /**
+     * 查找扩展点（使用默认选择器链）- Optional版本
      */
     public <T extends ExtensionAbility> Optional<T> findAbilityOpt(Class<T> extensionType) {
         return Optional.ofNullable(findAbility(extensionType));
     }
 
-    /**
-     * 根据扩展点ID查找扩展点
-     */
     public <T extends ExtensionAbility> T findAbilityById(String extensionId) {
         return extensionAbilityRegistry.getExtensionById(extensionId);
     }
 
-    /**
-     * 根据业务代码查找扩展点
-     */
-    public <T extends ExtensionAbility> T findAbilityByCode(String code) {
-        return extensionAbilityRegistry.getExtensionById(ExtensionUtil.getExtensionId(code, null));
+    public <T extends ExtensionAbility> List<T> getAllExtensions(Class<T> extensionType) {
+        return extensionAbilityRegistry.getAllExtensionAbility(extensionType);
     }
 
-    /**
-     * 根据业务代码和版本查找扩展点
-     */
-    public <T extends ExtensionAbility> T findAbilityByCodeAndVersion(String code, String version) {
-        return extensionAbilityRegistry.getExtensionById(ExtensionUtil.getExtensionId(code, version));
+    public int getExtensionCount() {
+        return extensionAbilityRegistry.getAllExtensionAbility(ExtensionAbility.class).size();
     }
 
-    // ==================== 扩展点注册方法 ====================
+    public boolean exists(String extensionId) {
+        return extensionAbilityRegistry.exists(extensionId);
+    }
 
-    /**
-     * 注册扩展点
-     */
     public void register(ExtensionAbility extension) {
         extensionAbilityRegistry.register(extension);
-        log.info("注册扩展点: code={}, version={}, class={}",
-                extension.getCode(), extension.version(), extension.getClass().getName());
+        log.info("注册扩展点: code={}, version={}, class={}", extension.getCode(), extension.version(), extension.getClass().getName());
     }
 
-    /**
-     * 注销扩展点
-     */
     public void unregister(String extensionId) {
         extensionAbilityRegistry.unregister(extensionId);
         log.info("注销扩展点: id={}", extensionId);
     }
 
-    // ==================== 扩展点查询方法 ====================
-
     /**
-     * 获取指定类型的所有扩展点
+     * ==================selector==================
      */
-    public <T extends ExtensionAbility> List<T> getAllExtensions(Class<T> extensionType) {
-        return extensionAbilityRegistry.getAllExtensionAbility(extensionType);
+    public void registerSelector(Selector selector) {
+        this.registerSelector(DEFAULT_SELECTOR_CHAIN_NAME, selector);
+    }
+
+    public void registerSelector(String chainName, Selector selector) {
+        selectorRegistry.registerSelector(chainName, selector);
+        log.info("注册选择器: name={}", selector.getName());
     }
 
     /**
-     * 获取注册的扩展点总数
+     * 注销选择器
      */
-    public int getExtensionCount() {
-        return extensionAbilityRegistry.getAllExtensionAbility(ExtensionAbility.class).size();
+    public void unregisterSelector(String chainName, String selectorName) {
+        selectorRegistry.unregisterSelector(chainName, selectorName);
+        log.info("注销选择器: name={}", selectorName);
     }
 
     /**
-     * 检查扩展点是否存在
+     * 注册选择器链
      */
-    public boolean exists(String extensionId) {
-        return extensionAbilityRegistry.exists(extensionId);
+    public void registerSelectorChain(com.flexpoint.core.selector.SelectorChain chain) {
+        selectorRegistry.registerSelectorChain(chain);
+        log.info("注册选择器链: name={}", chain.getName());
     }
 
-    // ==================== 监控方法 ====================
+    /**
+     * 注销选择器链
+     */
+    public void unregisterSelectorChain(String chainName) {
+        selectorRegistry.unregisterSelectorChain(chainName);
+        log.info("注销选择器链: name={}", chainName);
+    }
 
     /**
-     * 获取扩展点监控指标
+     * ==================context==================
+     */
+    
+    /**
+     * 注册上下文提供者
+     */
+    public void registerContextProvider(ContextProvider provider) {
+        contextManager.registerProvider(provider);
+        log.info("注册上下文提供者: name={}, priority={}", provider.getName(), provider.getPriority());
+    }
+
+    /**
+     * 注销上下文提供者
+     */
+    public void unregisterContextProvider(String providerName) {
+        contextManager.unregisterProvider(providerName);
+        log.info("注销上下文提供者: name={}", providerName);
+    }
+
+    /**
+     * ==================monitor==================
      */
     public ExtensionMonitor.ExtensionMetrics getExtensionMetrics(String extensionId) {
         return extensionMonitor.getMetrics(extensionId);
     }
 
-    /**
-     * 获取所有扩展点监控指标
-     */
     public Map<String, ExtensionMonitor.ExtensionMetrics> getAllExtensionMetrics() {
         return extensionMonitor.getAllMetrics();
     }
 
-    /**
-     * 记录扩展点调用
-     */
     public void recordInvocation(String extensionId, long duration, boolean success) {
         this.extensionMonitor.recordInvocation(extensionId, duration, success);
     }
 
-    /**
-     * 记录扩展点异常
-     */
     public void recordException(String extensionId, Throwable exception) {
         this.extensionMonitor.recordException(extensionId, exception);
     }
 
-    /**
-     * 重置扩展点指标
-     */
     public void resetMetrics(String extensionId) {
         this.extensionMonitor.resetMetrics(extensionId);
     }
-
-    // ==================== 选择器管理 ====================
-
-    /**
-     * 注册自定义选择器
-     */
-    public void registerSelector(ExtensionSelector selector) {
-        if (selectorRegistry instanceof DefaultSelectorRegistry) {
-            selectorRegistry.registerSelector(selector);
-            log.info("注册选择器: {}", selector.getName());
-        } else {
-            log.warn("当前选择器注册表不支持动态注册: {}", selectorRegistry.getClass().getSimpleName());
-        }
-    }
-
-    // ==================== 私有方法 ====================
-
-    /**
-     * 获取选择器
-     */
-    private ExtensionSelector getSelector(Class<?> extensionType) {
-        Selector selector = extensionType.getAnnotation(Selector.class);
-        if (selector == null) {
-            throw new ExtensionSelectorNotFoundException("扩展点类型 " + extensionType.getSimpleName() + " 未指定@Selector，无法确定选择器！");
-        }
-        ExtensionSelector extensionSelector = selectorRegistry.getSelector(selector.value());
-        if (extensionSelector == null) {
-            throw new ExtensionSelectorNotFoundException("未找到指定名称的ExtensionSelector选择器: " + selector.value());
-        }
-        return extensionSelector;
-    }
-    
 }

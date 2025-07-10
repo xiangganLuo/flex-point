@@ -1,5 +1,7 @@
 package com.flexpoint.core.extension;
 
+import static com.flexpoint.common.constants.FlexPointConstants.DEFAULT_EXTENSION_VERSION;
+
 /**
  * 扩展点能力接口
  * 所有扩展点实现类都应该实现此接口
@@ -8,8 +10,6 @@ package com.flexpoint.core.extension;
  * @version 1.0.0
  */
 public interface ExtensionAbility {
-
-    String DEFAULT_VERSION = "0.0.0";
 
     /**
      * 获取业务标识
@@ -23,7 +23,7 @@ public interface ExtensionAbility {
      * 版本号
      */
     default String version() {
-        return DEFAULT_VERSION;
+        return DEFAULT_EXTENSION_VERSION;
     }
 
 }

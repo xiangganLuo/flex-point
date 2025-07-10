@@ -65,6 +65,11 @@
       "type": "java.lang.Boolean",
       "description": "是否允许重复注册扩展点",
       "defaultValue": false
+    },
+    {
+      "name": "flexpoint.selector.chains",
+      "type": "java.util.Map",
+      "description": "选择器链，默认注册：FlexPointConstants.DEFAULT_SELECTOR_CHAIN_NAME"
     }
   ],
   "hints": [

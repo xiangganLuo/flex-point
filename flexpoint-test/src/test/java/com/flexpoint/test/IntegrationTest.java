@@ -1,13 +1,13 @@
 package com.flexpoint.test;
 
-import com.flexpoint.common.annotations.Selector;
+import com.flexpoint.common.annotations.FpSelector;
 import com.flexpoint.core.FlexPoint;
 import com.flexpoint.core.FlexPointBuilder;
 import com.flexpoint.core.config.FlexPointConfig;
+import com.flexpoint.core.context.Context;
 import com.flexpoint.core.extension.ExtensionAbility;
 import com.flexpoint.core.monitor.ExtensionMonitor;
-import com.flexpoint.core.selector.AbstractSelector;
-import com.flexpoint.core.selector.SelectionContext;
+import com.flexpoint.core.selector.Selector;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
 public class IntegrationTest {
     private FlexPoint flexPoint;
 
-    @Selector("DemoStrategy")
+    @FpSelector
     public interface DemoAbilityDef extends ExtensionAbility {
     }
 
@@ -25,9 +25,16 @@ public class IntegrationTest {
     static class SpecialAbility implements DemoAbilityDef {
         @Override public String getCode() { return "special"; }
     }
-    static class Demo extends AbstractSelector {
+    static class DemoSelector implements Selector {
         @Override
-        protected SelectionContext extractContext() { return new SelectionContext("special", null); }
+        public <T extends ExtensionAbility> T select(java.util.List<T> candidates, Context context) {
+            for (T ext : candidates) {
+                if ("special".equals(ext.getCode())) {
+                    return ext;
+                }
+            }
+            return null;
+        }
         @Override
         public String getName() { return "DemoStrategy"; }
     }
@@ -44,7 +51,7 @@ public class IntegrationTest {
     @Test
     public void testFullIntegrationFlow() {
         // 注册选择器
-        flexPoint.registerSelector(new Demo());
+        flexPoint.registerSelector(new DemoSelector());
         // 注册扩展点
         flexPoint.register(new DemoAbility());
         flexPoint.register(new SpecialAbility());

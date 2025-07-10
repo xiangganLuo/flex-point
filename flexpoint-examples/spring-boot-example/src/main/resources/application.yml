@@ -4,15 +4,25 @@ server:
 spring:
   application:
     name: flexpoint-spring-boot-example
-
+  
+# 日志配置
 logging:
   level:
     com.flexpoint: DEBUG
-    com.flexpoint.example.springboot: DEBUG
+    org.springframework.boot: INFO
   pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
 
-# Flex Point框架配置
+# FlexPoint 配置
 flexpoint:
-  # 是否启用Flex Point框架
   enabled: true
+  monitor:
+    enabled: true
+    log-invocation: true
+  registry:
+    enabled: true
+    allow-duplicate-registration: false
+#  selector:
+#    chains:
+#      default-selector-chain:
+#        - codeVersionSelector

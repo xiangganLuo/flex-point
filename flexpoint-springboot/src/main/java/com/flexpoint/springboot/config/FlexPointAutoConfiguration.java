@@ -2,10 +2,12 @@ package com.flexpoint.springboot.config;
 
 import com.flexpoint.core.FlexPoint;
 import com.flexpoint.core.FlexPointBuilder;
+import com.flexpoint.core.context.ContextProvider;
 import com.flexpoint.spring.banner.FlexPointBanner;
 import com.flexpoint.spring.processor.ExtensionAbilityProcessor;
-import com.flexpoint.spring.register.SpringExtensionAbilityRegister;
-import com.flexpoint.spring.register.SpringExtensionSelectorRegister;
+import com.flexpoint.spring.register.FlexPointContextProviderRegister;
+import com.flexpoint.spring.register.FlexPointSpringExtensionAbilityRegister;
+import com.flexpoint.spring.register.FlexPointSpringSelectorChainRegister;
 import com.flexpoint.springboot.properties.FlexPointProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -13,6 +15,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.List;
 
 /**
  * 扩展点框架自动配置
@@ -45,8 +49,8 @@ public class FlexPointAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = FlexPointProperties.PREFIX + ".registry", name = "enabled", havingValue = "true", matchIfMissing = true)
-    public SpringExtensionAbilityRegister springExtensionAbilityRegister(FlexPoint flexPoint) {
-        return new SpringExtensionAbilityRegister(flexPoint.getExtensionAbilityRegistry());
+    public FlexPointSpringExtensionAbilityRegister springExtensionAbilityRegister(FlexPoint flexPoint) {
+        return new FlexPointSpringExtensionAbilityRegister(flexPoint.getExtensionAbilityRegistry());
     }
 
     @Bean
@@ -62,17 +66,35 @@ public class FlexPointAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    public SpringExtensionSelectorRegister springExtensionSelectorRegister(FlexPoint flexPoint) {
-        return new SpringExtensionSelectorRegister(flexPoint);
+    public FlexPointSpringSelectorChainRegister springExtensionSelectorRegister(FlexPoint flexPoint) {
+        return new FlexPointSpringSelectorChainRegister(flexPoint);
     }
 
     /**
      * 创建扩展点引用处理器
-     * 用于处理@Extension注解
+     * 用于处理@FpExt注解
      */
     @Bean
     @ConditionalOnMissingBean
     public ExtensionAbilityProcessor extensionAbilityProcessor(FlexPoint flexPoint) {
         return new ExtensionAbilityProcessor(flexPoint);
+    }
+
+    /**
+     * 创建选择器链自动注册器
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public FlexPointSpringSelectorChainRegister springSelectorChainRegister(FlexPoint flexPoint) {
+        return new FlexPointSpringSelectorChainRegister(flexPoint);
+    }
+
+    /**
+     * 自动注册上下文提供者到FlexPoint
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public FlexPointContextProviderRegister flexPointContextProviderInitializer(FlexPoint flexPoint, List<ContextProvider> providers) {
+        return new FlexPointContextProviderRegister(flexPoint, providers);
     }
 } 
