@@ -1,6 +1,7 @@
 package com.flexpoint.core.monitor;
 
 import com.flexpoint.core.config.FlexPointConfig;
+import com.flexpoint.core.extension.ExtensionAbility;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
@@ -34,10 +35,16 @@ public class AsyncExtensionMonitor implements ExtensionMonitor {
     public AsyncExtensionMonitor(FlexPointConfig.MonitorConfig config) {
         this.queueSize = config.getAsyncQueueSize();
         this.workQueue = new LinkedBlockingQueue<>(queueSize);
+
+        // 队列满时由调用线程执行
         this.executor = new ThreadPoolExecutor(
-            1, 1, 0L, TimeUnit.MILLISECONDS, workQueue,
+            config.getAsyncCorePoolSize(),
+            config.getAsyncMaxPoolSize(), 
+            config.getAsyncKeepAliveTime(), 
+            TimeUnit.SECONDS, 
+            workQueue,
             r -> {
-                Thread t = new Thread(r, "flexpoint-async-monitor");
+                Thread t = new Thread(r, "flexpoint-async-monitor-" + Thread.currentThread().getId());
                 t.setDaemon(true);
                 return t;
             },
@@ -45,32 +52,34 @@ public class AsyncExtensionMonitor implements ExtensionMonitor {
         );
         this.delegate = new DefaultExtensionMonitor(config);
         
-        log.info("创建异步监控器: queueSize={}", queueSize);
+        log.info("创建异步监控器: corePoolSize={}, maxPoolSize={}, keepAliveTime={}s, queueSize={}", 
+                config.getAsyncCorePoolSize(), config.getAsyncMaxPoolSize(), 
+                config.getAsyncKeepAliveTime(), queueSize);
     }
     
     @Override
-    public void recordInvocation(String extensionId, long duration, boolean success) {
-        submitTask(() -> delegate.recordInvocation(extensionId, duration, success));
+    public void recordInvocation(ExtensionAbility extensionAbility, long duration, boolean success) {
+        submitTask(() -> delegate.recordInvocation(extensionAbility, duration, success));
     }
     
     @Override
-    public void recordInvocation(String extensionId, long duration, boolean success, Map<String, Object> context) {
-        submitTask(() -> delegate.recordInvocation(extensionId, duration, success, context));
+    public void recordInvocation(ExtensionAbility extensionAbility, long duration, boolean success, Map<String, Object> context) {
+        submitTask(() -> delegate.recordInvocation(extensionAbility, duration, success, context));
     }
     
     @Override
-    public void recordException(String extensionId, Throwable exception) {
-        submitTask(() -> delegate.recordException(extensionId, exception));
+    public void recordException(ExtensionAbility extensionAbility, Throwable exception) {
+        submitTask(() -> delegate.recordException(extensionAbility, exception));
     }
     
     @Override
-    public void recordException(String extensionId, Throwable exception, Map<String, Object> context) {
-        submitTask(() -> delegate.recordException(extensionId, exception, context));
+    public void recordException(ExtensionAbility extensionAbility, Throwable exception, Map<String, Object> context) {
+        submitTask(() -> delegate.recordException(extensionAbility, exception, context));
     }
     
     @Override
-    public ExtensionMetrics getMetrics(String extensionId) {
-        return delegate.getMetrics(extensionId);
+    public ExtensionMetrics getMetrics(ExtensionAbility extensionAbility) {
+        return delegate.getMetrics(extensionAbility);
     }
     
     @Override
@@ -79,8 +88,8 @@ public class AsyncExtensionMonitor implements ExtensionMonitor {
     }
     
     @Override
-    public void resetMetrics(String extensionId) {
-        submitTask(() -> delegate.resetMetrics(extensionId));
+    public void resetMetrics(ExtensionAbility extensionAbility) {
+        submitTask(() -> delegate.resetMetrics(extensionAbility));
     }
     
     @Override
@@ -127,6 +136,24 @@ public class AsyncExtensionMonitor implements ExtensionMonitor {
      */
     public QueueStatus getQueueStatus() {
         return new QueueStatus(workQueue.size(), queueSize);
+    }
+    
+    /**
+     * 获取线程池状态
+     */
+    public ThreadPoolStatus getThreadPoolStatus() {
+        if (executor instanceof ThreadPoolExecutor) {
+            ThreadPoolExecutor tpe = (ThreadPoolExecutor) executor;
+            return new ThreadPoolStatus(
+                    tpe.getCorePoolSize(),
+                tpe.getMaximumPoolSize(),
+                tpe.getActiveCount(),
+                tpe.getPoolSize(),
+                tpe.getTaskCount(),
+                tpe.getCompletedTaskCount()
+            );
+        }
+        return null;
     }
     
     /**
@@ -193,4 +220,71 @@ public class AsyncExtensionMonitor implements ExtensionMonitor {
             return currentSize >= maxSize;
         }
     }
-} 
+    
+    /**
+     * 线程池状态
+     */
+    public static class ThreadPoolStatus {
+        private final int corePoolSize;
+        private final int maxPoolSize;
+        private final int activeCount;
+        private final int poolSize;
+        private final long taskCount;
+        private final long completedTaskCount;
+
+        public ThreadPoolStatus(int corePoolSize, int maxPoolSize, int activeCount,
+                               int poolSize, long taskCount, long completedTaskCount) {
+            this.corePoolSize = corePoolSize;
+            this.maxPoolSize = maxPoolSize;
+            this.activeCount = activeCount;
+            this.poolSize = poolSize;
+            this.taskCount = taskCount;
+            this.completedTaskCount = completedTaskCount;
+        }
+
+        public int getCorePoolSize() {
+            return corePoolSize;
+        }
+
+        public int getMaxPoolSize() {
+            return maxPoolSize;
+        }
+
+        public int getActiveCount() {
+            return activeCount;
+        }
+
+        public int getPoolSize() {
+            return poolSize;
+        }
+
+        public long getTaskCount() {
+            return taskCount;
+        }
+
+        public long getCompletedTaskCount() {
+            return completedTaskCount;
+        }
+
+        /**
+         * 获取线程池利用率
+         */
+        public double getUtilization() {
+            return maxPoolSize > 0 ? (double) activeCount / maxPoolSize : 0.0;
+        }
+
+        /**
+         * 获取任务完成率
+         */
+        public double getCompletionRate() {
+            return taskCount > 0 ? (double) completedTaskCount / taskCount : 0.0;
+        }
+
+        /**
+         * 是否接近满负荷
+         */
+        public boolean isNearCapacity() {
+            return getUtilization() > 0.8; // 超过80%认为接近满负荷
+        }
+    }
+}

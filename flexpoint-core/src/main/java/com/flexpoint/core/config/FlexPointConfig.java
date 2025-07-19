@@ -67,6 +67,21 @@ public class FlexPointConfig {
          */
         private int asyncQueueSize = 1000;
         
+        /**
+         * 异步监控核心线程数
+         */
+        private int asyncCorePoolSize = 2;
+        
+        /**
+         * 异步监控最大线程数
+         */
+        private int asyncMaxPoolSize = 4;
+        
+        /**
+         * 异步监控线程保活时间（秒）
+         */
+        private long asyncKeepAliveTime = 60L;
+        
     }
     
     /**

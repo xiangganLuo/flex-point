@@ -17,16 +17,46 @@ import java.util.stream.Collectors;
 public class ExtensionUtil {
 
     /**
-     * 生成扩展点ID（直接使用code）
+     * 生成扩展点ID
      *
-     * @param code 业务标识
+     * @param extensionAbility 扩展点实例（规则：扩展点定义类名#子类实现全限定类名)
      * @return 扩展点ID
      */
-    public static String getExtensionId(String code) {
-        if (code != null && !code.trim().isEmpty()) {
-            return code.trim();
+    public static String getExtensionId(ExtensionAbility extensionAbility) {
+        if (extensionAbility == null) {
+            return "unknown";
         }
-        return "unknown";
+        Class<? extends ExtensionAbility> extensionType = getExtensionType(extensionAbility);
+        return extensionType.getSimpleName() + "#" + extensionAbility.getClass().getName();
+    }
+
+    /**
+     * 获取扩展点类型
+     * 查找实例实现的第一个ExtensionAbility接口
+     */
+    @SuppressWarnings("unchecked")
+    public static Class<? extends ExtensionAbility> getExtensionType(ExtensionAbility instance) {
+        Class<?> clazz = instance.getClass();
+
+        // 检查直接实现的接口
+        for (Class<?> iface : clazz.getInterfaces()) {
+            if (ExtensionAbility.class.isAssignableFrom(iface) && iface != ExtensionAbility.class) {
+                return (Class<? extends ExtensionAbility>) iface;
+            }
+        }
+
+        // 检查父类的接口
+        Class<?> superClass = clazz.getSuperclass();
+        while (superClass != null && superClass != Object.class) {
+            for (Class<?> iface : superClass.getInterfaces()) {
+                if (ExtensionAbility.class.isAssignableFrom(iface) && iface != ExtensionAbility.class) {
+                    return (Class<? extends ExtensionAbility>) iface;
+                }
+            }
+            superClass = superClass.getSuperclass();
+        }
+
+        return ExtensionAbility.class;
     }
 
     /**

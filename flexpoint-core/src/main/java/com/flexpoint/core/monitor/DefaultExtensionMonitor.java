@@ -1,6 +1,7 @@
 package com.flexpoint.core.monitor;
 
 import com.flexpoint.core.config.FlexPointConfig;
+import com.flexpoint.core.extension.ExtensionAbility;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
@@ -59,24 +60,32 @@ public class DefaultExtensionMonitor implements ExtensionMonitor {
     }
     
     @Override
-    public void recordInvocation(String extensionId, long duration, boolean success) {
-        recordInvocation(extensionId, duration, success, null);
+    public void recordInvocation(ExtensionAbility extensionAbility, long duration, boolean success) {
+        recordInvocation(extensionAbility, duration, success, null);
     }
     
     @Override
-    public void recordInvocation(String extensionId, long duration, boolean success, Map<String, Object> context) {
+    public void recordInvocation(ExtensionAbility extensionAbility, long duration, boolean success, Map<String, Object> context) {
         if (!config.isEnabled()) {
             return;
         }
         
         if (config.isAsyncEnabled() && asyncExecutor != null) {
-            asyncExecutor.submit(() -> doRecordInvocation(extensionId, duration, success, context));
+            asyncExecutor.submit(() -> doRecordInvocation(extensionAbility, duration, success, context));
         } else {
-            doRecordInvocation(extensionId, duration, success, context);
+            doRecordInvocation(extensionAbility, duration, success, context);
         }
     }
     
-    private void doRecordInvocation(String extensionId, long duration, boolean success, Map<String, Object> context) {
+    /**
+     * 生成扩展点ID
+     */
+    private String generateExtensionId(ExtensionAbility extensionAbility) {
+        return extensionAbility.getClass().getSimpleName();
+    }
+    
+    private void doRecordInvocation(ExtensionAbility extensionAbility, long duration, boolean success, Map<String, Object> context) {
+        String extensionId = generateExtensionId(extensionAbility);
         ExtensionMetricsImpl metrics = null;
         if (config.isPerformanceStatsEnabled()) {
             metrics = metricsMap.computeIfAbsent(extensionId, k -> new ExtensionMetricsImpl());
@@ -90,29 +99,30 @@ public class DefaultExtensionMonitor implements ExtensionMonitor {
         
         // 埋点：统一交给MonitorPipeline
         if (pipeline != null) {
-            pipeline.afterInvoke(extensionId, duration, success, context, metrics);
+            pipeline.afterInvoke(extensionAbility, duration, success, context, metrics);
         }
     }
     
     @Override
-    public void recordException(String extensionId, Throwable exception) {
-        recordException(extensionId, exception, null);
+    public void recordException(ExtensionAbility extensionAbility, Throwable exception) {
+        recordException(extensionAbility, exception, null);
     }
     
     @Override
-    public void recordException(String extensionId, Throwable exception, Map<String, Object> context) {
+    public void recordException(ExtensionAbility extensionAbility, Throwable exception, Map<String, Object> context) {
         if (!config.isEnabled()) {
             return;
         }
         
         if (config.isAsyncEnabled() && asyncExecutor != null) {
-            asyncExecutor.submit(() -> doRecordException(extensionId, exception, context));
+            asyncExecutor.submit(() -> doRecordException(extensionAbility, exception, context));
         } else {
-            doRecordException(extensionId, exception, context);
+            doRecordException(extensionAbility, exception, context);
         }
     }
     
-    private void doRecordException(String extensionId, Throwable exception, Map<String, Object> context) {
+    private void doRecordException(ExtensionAbility extensionAbility, Throwable exception, Map<String, Object> context) {
+        String extensionId = generateExtensionId(extensionAbility);
         ExtensionMetricsImpl metrics = null;
         if (config.isPerformanceStatsEnabled()) {
             metrics = metricsMap.computeIfAbsent(extensionId, k -> new ExtensionMetricsImpl());
@@ -129,15 +139,16 @@ public class DefaultExtensionMonitor implements ExtensionMonitor {
         
         // 埋点：统一交给MonitorPipeline
         if (pipeline != null) {
-            pipeline.onException(extensionId, exception, context, metrics);
+            pipeline.onException(extensionAbility, exception, context, metrics);
         }
     }
     
     @Override
-    public ExtensionMetrics getMetrics(String extensionId) {
+    public ExtensionMetrics getMetrics(ExtensionAbility extensionAbility) {
         if (!config.isEnabled() || !config.isPerformanceStatsEnabled()) {
             return new ExtensionMetricsImpl();
         }
+        String extensionId = generateExtensionId(extensionAbility);
         return metricsMap.getOrDefault(extensionId, new ExtensionMetricsImpl());
     }
     
@@ -150,18 +161,19 @@ public class DefaultExtensionMonitor implements ExtensionMonitor {
     }
     
     @Override
-    public void resetMetrics(String extensionId) {
+    public void resetMetrics(ExtensionAbility extensionAbility) {
         if (!config.isEnabled()) {
             return;
         }
         
+        String extensionId = generateExtensionId(extensionAbility);
         metricsMap.remove(extensionId);
         log.info("扩展点指标已重置: id={}", extensionId);
         
         // 通知监听器
         // 埋点：统一交给MonitorPipeline
         if (pipeline != null) {
-            pipeline.onMetricsReset(extensionId, null);
+            pipeline.onMetricsReset(extensionAbility, null);
         }
     }
     

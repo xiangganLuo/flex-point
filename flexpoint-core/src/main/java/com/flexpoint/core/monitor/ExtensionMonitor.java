@@ -1,5 +1,7 @@
 package com.flexpoint.core.monitor;
 
+import com.flexpoint.core.extension.ExtensionAbility;
+
 import java.util.Map;
 
 /**
@@ -14,60 +16,60 @@ public interface ExtensionMonitor {
     /**
      * 记录扩展点调用
      *
-     * @param extensionId 扩展点ID
+     * @param extensionAbility 扩展点能力实例
      * @param duration 调用耗时（毫秒）
      * @param success 是否成功
      */
-    void recordInvocation(String extensionId, long duration, boolean success);
+    void recordInvocation(ExtensionAbility extensionAbility, long duration, boolean success);
     
     /**
      * 记录扩展点调用（带上下文信息）
      *
-     * @param extensionId 扩展点ID
+     * @param extensionAbility 扩展点能力实例
      * @param duration 调用耗时（毫秒）
      * @param success 是否成功
      * @param context 调用上下文
      */
-    void recordInvocation(String extensionId, long duration, boolean success, Map<String, Object> context);
+    void recordInvocation(ExtensionAbility extensionAbility, long duration, boolean success, Map<String, Object> context);
     
     /**
      * 记录扩展点异常
      *
-     * @param extensionId 扩展点ID
+     * @param extensionAbility 扩展点能力实例
      * @param exception 异常信息
      */
-    void recordException(String extensionId, Throwable exception);
+    void recordException(ExtensionAbility extensionAbility, Throwable exception);
     
     /**
      * 记录扩展点异常（带上下文信息）
      *
-     * @param extensionId 扩展点ID
+     * @param extensionAbility 扩展点能力实例
      * @param exception 异常信息
      * @param context 异常上下文
      */
-    void recordException(String extensionId, Throwable exception, Map<String, Object> context);
+    void recordException(ExtensionAbility extensionAbility, Throwable exception, Map<String, Object> context);
     
     /**
      * 获取扩展点指标
      *
-     * @param extensionId 扩展点ID
+     * @param extensionAbility 扩展点能力实例
      * @return 扩展点指标
      */
-    ExtensionMetrics getMetrics(String extensionId);
+    ExtensionMetrics getMetrics(ExtensionAbility extensionAbility);
     
     /**
      * 获取所有扩展点指标
      *
-     * @return 所有扩展点指标
+     * @return 所有扩展点指标，key为扩展点标识符
      */
     Map<String, ExtensionMetrics> getAllMetrics();
     
     /**
      * 重置扩展点指标
      *
-     * @param extensionId 扩展点ID
+     * @param extensionAbility 扩展点能力实例
      */
-    void resetMetrics(String extensionId);
+    void resetMetrics(ExtensionAbility extensionAbility);
     
     /**
      * 获取监控器状态

@@ -15,7 +15,9 @@ public class Context {
 
     public Context() {}
     public Context(Map<String, Object> attributes) {
-        if (attributes != null) this.attributes.putAll(attributes);
+        if (attributes != null) {
+            this.attributes.putAll(attributes);
+        }
     }
 
     public void set(String key, Object value) {

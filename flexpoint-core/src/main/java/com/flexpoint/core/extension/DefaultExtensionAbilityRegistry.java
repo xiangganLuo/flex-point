@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+import static com.flexpoint.core.utils.ExtensionUtil.getExtensionType;
+
 /**
  * 默认扩展点注册中心实现
  * 支持扩展点注册、查找
@@ -49,36 +51,6 @@ public class DefaultExtensionAbilityRegistry implements ExtensionAbilityRegistry
             return Collections.emptyList();
         }
         return list.stream().map(extensionType::cast).collect(Collectors.toList());
-    }
-
-    /**
-     * 获取扩展点类型
-     * 查找实例实现的第一个ExtensionAbility接口
-     */
-    @SuppressWarnings("unchecked")
-    private Class<? extends ExtensionAbility> getExtensionType(ExtensionAbility instance) {
-        Class<?> clazz = instance.getClass();
-        
-        // 检查直接实现的接口
-        for (Class<?> iface : clazz.getInterfaces()) {
-            if (ExtensionAbility.class.isAssignableFrom(iface) && iface != ExtensionAbility.class) {
-                return (Class<? extends ExtensionAbility>) iface;
-            }
-        }
-        
-        // 检查父类的接口
-        Class<?> superClass = clazz.getSuperclass();
-        while (superClass != null && superClass != Object.class) {
-            for (Class<?> iface : superClass.getInterfaces()) {
-                if (ExtensionAbility.class.isAssignableFrom(iface) && iface != ExtensionAbility.class) {
-                    return (Class<? extends ExtensionAbility>) iface;
-                }
-            }
-            superClass = superClass.getSuperclass();
-        }
-        
-        // 如果没找到具体的业务接口，返回ExtensionAbility
-        return ExtensionAbility.class;
     }
 
     /**

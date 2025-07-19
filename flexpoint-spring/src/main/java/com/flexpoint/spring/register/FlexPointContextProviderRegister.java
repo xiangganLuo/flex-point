@@ -30,8 +30,6 @@ public class FlexPointContextProviderRegister implements InitializingBean {
                 log.info("注册上下文提供者到FlexPoint: name={}, priority={}", provider.getName(), provider.getPriority());
             }
             log.info("FlexPoint上下文提供者初始化完成，共注册{}个提供者", providers.size());
-        } else {
-            log.warn("未找到任何上下文提供者");
         }
     }
 } 

@@ -179,24 +179,24 @@ public class FlexPoint {
     /**
      * ==================monitor==================
      */
-    public ExtensionMonitor.ExtensionMetrics getExtensionMetrics(String extensionId) {
-        return extensionMonitor.getMetrics(extensionId);
+    public ExtensionMonitor.ExtensionMetrics getExtensionMetrics(ExtensionAbility extensionAbility) {
+        return extensionMonitor.getMetrics(extensionAbility);
     }
 
     public Map<String, ExtensionMonitor.ExtensionMetrics> getAllExtensionMetrics() {
         return extensionMonitor.getAllMetrics();
     }
 
-    public void recordInvocation(String extensionId, long duration, boolean success) {
-        this.extensionMonitor.recordInvocation(extensionId, duration, success);
+    public void recordInvocation(ExtensionAbility extensionAbility, long duration, boolean success) {
+        this.extensionMonitor.recordInvocation(extensionAbility, duration, success);
     }
 
-    public void recordException(String extensionId, Throwable exception) {
-        this.extensionMonitor.recordException(extensionId, exception);
+    public void recordException(ExtensionAbility extensionAbility, Throwable exception) {
+        this.extensionMonitor.recordException(extensionAbility, exception);
     }
 
-    public void resetMetrics(String extensionId) {
-        this.extensionMonitor.resetMetrics(extensionId);
+    public void resetMetrics(ExtensionAbility extensionAbility) {
+        this.extensionMonitor.resetMetrics(extensionAbility);
     }
 
 }

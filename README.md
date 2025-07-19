@@ -281,8 +281,10 @@ System.out.println("平均耗时: " + metrics.getAverageDuration() + "ms");
 | flexpoint.monitor.performance-stats-enabled | boolean | true  | 是否启用性能统计 |
 | flexpoint.monitor.async-enabled | boolean | false | 是否启用异步处理 |
 | flexpoint.monitor.async-queue-size | int | 1000  | 异步处理队列大小 |
+| flexpoint.monitor.async-core-pool-size | int | 2  | 异步监控核心线程数 |
+| flexpoint.monitor.async-max-pool-size | int | 4  | 异步监控最大线程数 |
+| flexpoint.monitor.async-keep-alive-time | long | 60  | 异步监控线程保活时间（秒） |
 | flexpoint.registry.enabled | boolean | true  | 是否启用扩展点自动注册 |
-| flexpoint.registry.allow-duplicate-registration | boolean | false | 是否允许重复注册扩展点 |
 
 
 > 以上配置可在 application.yml 或 application.properties 中灵活配置，详细含义见上表。
@@ -382,9 +384,13 @@ flexpoint:
   monitor:
     enabled: true
     log-invocation: true
+    async-enabled: true      # 启用异步监控
+    async-queue-size: 2000   # 队列大小
+    async-core-pool-size: 4  # 核心线程数
+    async-max-pool-size: 8   # 最大线程数
+    async-keep-alive-time: 120  # 线程保活时间(秒)
   registry:
     enabled: true
-    allow-duplicate-registration: false
 ```
 
 可通过注入 `ExtensionMonitor` 获取扩展点调用统计：

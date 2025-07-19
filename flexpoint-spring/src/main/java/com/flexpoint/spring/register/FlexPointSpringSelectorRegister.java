@@ -28,7 +28,6 @@ public class FlexPointSpringSelectorRegister implements InitializingBean, Applic
         Map<String, Selector> selectorBeans = applicationContext.getBeansOfType(Selector.class);
         
         if (selectorBeans.isEmpty()) {
-            log.warn("未找到任何Selector Bean，跳过选择器注册");
             return;
         }
         

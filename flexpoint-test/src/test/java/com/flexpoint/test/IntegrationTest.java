@@ -6,10 +6,7 @@ import com.flexpoint.core.FlexPointBuilder;
 import com.flexpoint.core.config.FlexPointConfig;
 import com.flexpoint.core.context.Context;
 import com.flexpoint.core.extension.ExtensionAbility;
-import com.flexpoint.core.monitor.ExtensionMonitor;
-import com.flexpoint.core.selector.Selector;
 import com.flexpoint.core.selector.resolves.CodeSelector;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

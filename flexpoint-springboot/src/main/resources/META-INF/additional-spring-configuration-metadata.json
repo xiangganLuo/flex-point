@@ -55,16 +55,28 @@
       "defaultValue": 1000
     },
     {
+      "name": "flexpoint.monitor.async-core-pool-size",
+      "type": "java.lang.Integer",
+      "description": "异步监控核心线程数",
+      "defaultValue": 2
+    },
+    {
+      "name": "flexpoint.monitor.async-max-pool-size",
+      "type": "java.lang.Integer",
+      "description": "异步监控最大线程数",
+      "defaultValue": 4
+    },
+    {
+      "name": "flexpoint.monitor.async-keep-alive-time",
+      "type": "java.lang.Long",
+      "description": "异步监控线程保活时间（秒）",
+      "defaultValue": 60
+    },
+    {
       "name": "flexpoint.registry.enabled",
       "type": "java.lang.Boolean",
       "description": "是否启用自动注册",
       "defaultValue": true
-    },
-    {
-      "name": "flexpoint.registry.allow-duplicate-registration",
-      "type": "java.lang.Boolean",
-      "description": "是否允许重复注册扩展点",
-      "defaultValue": false
     }
   ],
   "hints": [
@@ -91,6 +103,19 @@
         {
           "value": false,
           "description": "禁用扩展点自动注册"
+        }
+      ]
+    },
+    {
+      "name": "flexpoint.monitor.async-enabled",
+      "values": [
+        {
+          "value": true,
+          "description": "启用异步监控处理，提升性能但增加内存开销"
+        },
+        {
+          "value": false,
+          "description": "使用同步监控处理，资源占用较少"
         }
       ]
     }

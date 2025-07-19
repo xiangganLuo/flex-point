@@ -4,12 +4,9 @@ import com.flexpoint.core.extension.ExtensionAbility;
 import com.flexpoint.core.extension.ExtensionAbilityRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 
-import java.util.Map;
+import java.util.List;
 
 /**
  * Spring扩展点注册器
@@ -20,32 +17,19 @@ import java.util.Map;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class FlexPointSpringExtensionAbilityRegister implements ApplicationContextAware, InitializingBean {
+public class FlexPointSpringExtensionAbilityRegister implements InitializingBean {
 
     private final ExtensionAbilityRegistry extensionAbilityRegistry;
-    private ApplicationContext applicationContext;
-
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
-    }
+    private final List<ExtensionAbility> abilities;
 
     @Override
     public void afterPropertiesSet() {
-        Map<String, ExtensionAbility> beans = applicationContext.getBeansOfType(ExtensionAbility.class);
-
-        for (Map.Entry<String, ExtensionAbility> entry : beans.entrySet()) {
-            ExtensionAbility ability = entry.getValue();
-            String beanName = entry.getKey();
-
-            Class<? extends ExtensionAbility> abilityClass = ability.getClass();
-            Class<?>[] interfaces = abilityClass.getInterfaces();
-
-            for (Class<?> anInterface : interfaces) {
-                if (ExtensionAbility.class.isAssignableFrom(anInterface)) {
-                    extensionAbilityRegistry.register(ability);
-                }
-            }
+        if (abilities == null || abilities.isEmpty()) {
+            return;
         }
+        abilities.forEach(ability -> {
+            extensionAbilityRegistry.register(ability);
+            log.info("注册扩展点: code={}, tags={}, class={}", ability.getCode(), ability.getTags(), ability.getClass().getName());
+        });
     }
 }

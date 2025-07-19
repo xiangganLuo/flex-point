@@ -37,15 +37,14 @@ public class ExtensionAbilityInvocationHandler implements InvocationHandler {
         
         // 记录调用指标
         long startTime = System.currentTimeMillis();
-        String extensionId = ExtensionUtil.getExtensionId(ability.getCode());
         Object ret;
         try {
             ret = method.invoke(ability, args);
             long duration = System.currentTimeMillis() - startTime;
-            flexPoint.recordInvocation(extensionId, duration, true);
+            flexPoint.recordInvocation(ability, duration, true);
         } catch (Throwable throwable) {
             long duration = System.currentTimeMillis() - startTime;
-            flexPoint.recordInvocation(extensionId, duration, false);
+            flexPoint.recordInvocation(ability, duration, false);
             throw throwable;
         }
         return ret;

@@ -1,5 +1,6 @@
 package com.flexpoint.core.monitor;
 
+import com.flexpoint.core.extension.ExtensionAbility;
 import com.flexpoint.core.monitor.alert.AlertStrategy;
 import com.flexpoint.core.monitor.enums.AlertType;
 import com.flexpoint.core.monitor.enums.CollectorType;
@@ -65,7 +66,8 @@ public class MonitorPipeline {
     /**
      * 调用前（可选）
      */
-    public void beforeInvoke(String extensionId, Map<String, Object> context) {
+    public void beforeInvoke(ExtensionAbility extensionAbility, Map<String, Object> context) {
+        String extensionId = generateExtensionId(extensionAbility);
         for (MonitorEventListener l : eventListeners) {
             try {
                 l.onEvent(EventType.CUSTOM, extensionId, context);
@@ -78,7 +80,8 @@ public class MonitorPipeline {
     /**
      * 调用后
      */
-    public void afterInvoke(String extensionId, long duration, boolean success, Map<String, Object> context, ExtensionMonitor.ExtensionMetrics metrics) {
+    public void afterInvoke(ExtensionAbility extensionAbility, long duration, boolean success, Map<String, Object> context, ExtensionMonitor.ExtensionMetrics metrics) {
+        String extensionId = generateExtensionId(extensionAbility);
         for (MetricsCollector c : collectors) {
             try {
                 c.collect(extensionId, metrics, context, CollectorType.REALTIME);
@@ -109,7 +112,8 @@ public class MonitorPipeline {
     /**
      * 异常
      */
-    public void onException(String extensionId, Throwable exception, Map<String, Object> context, ExtensionMonitor.ExtensionMetrics metrics) {
+    public void onException(ExtensionAbility extensionAbility, Throwable exception, Map<String, Object> context, ExtensionMonitor.ExtensionMetrics metrics) {
+        String extensionId = generateExtensionId(extensionAbility);
         for (MetricsCollector c : collectors) {
             try {
                 c.collect(extensionId, metrics, context, CollectorType.REALTIME);
@@ -138,7 +142,8 @@ public class MonitorPipeline {
     /**
      * 阈值超限
      */
-    public void onThreshold(String extensionId, String message, Map<String, Object> context) {
+    public void onThreshold(ExtensionAbility extensionAbility, String message, Map<String, Object> context) {
+        String extensionId = generateExtensionId(extensionAbility);
         for (MonitorEventListener l : eventListeners) {
             try {
                 l.onEvent(EventType.THRESHOLD_EXCEEDED, extensionId, context);
@@ -160,7 +165,8 @@ public class MonitorPipeline {
     /**
      * 指标重置
      */
-    public void onMetricsReset(String extensionId, Map<String, Object> context) {
+    public void onMetricsReset(ExtensionAbility extensionAbility, Map<String, Object> context) {
+        String extensionId = extensionAbility != null ? generateExtensionId(extensionAbility) : "unknown";
         for (MonitorEventListener l : eventListeners) {
             try {
                 l.onEvent(EventType.METRICS_RESET, extensionId, context);
@@ -175,5 +181,12 @@ public class MonitorPipeline {
                 log.warn("采集器onMetricsReset异常: {}", e.getMessage());
             }
         }
+    }
+    
+    /**
+     * 生成扩展点ID
+     */
+    private String generateExtensionId(ExtensionAbility extensionAbility) {
+        return extensionAbility.getClass().getSimpleName();
     }
 } 
