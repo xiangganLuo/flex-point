@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
 /**
- * 选择器链注册配置
+ * 选择器注册配置
  * @author luoxianggan
  */
 @Component
@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 public class FlexPointConfig {
 
     /**
-     * 注册默认的选择器链
+     * 注册默认的选择器
      */
     @Bean
     public CodeVersionSelector codeVersionSelector() {

@@ -1,10 +1,10 @@
 package com.flexpoint.example.java.manager;
 
-import com.flexpoint.common.constants.FlexPointConstants;
 import com.flexpoint.core.FlexPoint;
 import com.flexpoint.core.FlexPointBuilder;
 import com.flexpoint.core.context.Context;
 import com.flexpoint.core.selector.resolves.CodeVersionSelector;
+import com.flexpoint.example.java.ability.OrderProcessAbility;
 import com.flexpoint.example.java.ability.impl.LogisticsOrderProcessAbility;
 import com.flexpoint.example.java.ability.impl.MallOrderProcessAbility;
 import com.flexpoint.example.java.context.AppContext;
@@ -19,16 +19,18 @@ public class FlexPointManager {
     private final OrderService orderService;
 
     private FlexPointManager() {
-        // 初始化FlexPoint并注册选择器链
+        // 初始化FlexPoint
         this.flexPoint = FlexPointBuilder.create().build();
-        // 注册解析器
-        this.flexPoint.registerSelector(FlexPointConstants.DEFAULT_SELECTOR_CHAIN_NAME, new CodeVersionSelector(new CodeVersionSelector.CodeVersionResolver() {
+        
+        // 注册选择器
+        this.flexPoint.registerSelector(new CodeVersionSelector(new CodeVersionSelector.CodeVersionResolver() {
             @Override
             public String resolveCode(Context context) {
                 return AppContext.getAppCode();
             }
         }));
-        // 注册扩展器
+        
+        // 注册扩展点实现
         this.flexPoint.register(new LogisticsOrderProcessAbility());
         this.flexPoint.register(new MallOrderProcessAbility());
         this.orderService = new OrderService(flexPoint);

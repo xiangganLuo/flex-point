@@ -17,7 +17,7 @@ import java.util.Set;
 public class GrayRuleTest {
     private FlexPoint flexPoint;
 
-    @FpSelector
+    @FpSelector("GraySelector")
     public interface GrayAbility extends ExtensionAbility {
         String process(String input);
     }
@@ -44,7 +44,7 @@ public class GrayRuleTest {
             return null;
         }
         @Override
-        public String getName() { return "GrayStrategy"; }
+        public String getName() { return "GraySelector"; }
     }
     static class UserContext {
         private static final ThreadLocal<String> holder = new ThreadLocal<>();

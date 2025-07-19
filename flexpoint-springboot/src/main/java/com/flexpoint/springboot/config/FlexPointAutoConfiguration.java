@@ -7,7 +7,7 @@ import com.flexpoint.spring.banner.FlexPointBanner;
 import com.flexpoint.spring.processor.ExtensionAbilityProcessor;
 import com.flexpoint.spring.register.FlexPointContextProviderRegister;
 import com.flexpoint.spring.register.FlexPointSpringExtensionAbilityRegister;
-import com.flexpoint.spring.register.FlexPointSpringSelectorChainRegister;
+import com.flexpoint.spring.register.FlexPointSpringSelectorRegister;
 import com.flexpoint.springboot.properties.FlexPointProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -66,8 +66,8 @@ public class FlexPointAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    public FlexPointSpringSelectorChainRegister springExtensionSelectorRegister(FlexPoint flexPoint) {
-        return new FlexPointSpringSelectorChainRegister(flexPoint);
+    public FlexPointSpringSelectorRegister springSelectorRegister(FlexPoint flexPoint) {
+        return new FlexPointSpringSelectorRegister(flexPoint);
     }
 
     /**
@@ -78,15 +78,6 @@ public class FlexPointAutoConfiguration {
     @ConditionalOnMissingBean
     public ExtensionAbilityProcessor extensionAbilityProcessor(FlexPoint flexPoint) {
         return new ExtensionAbilityProcessor(flexPoint);
-    }
-
-    /**
-     * 创建选择器链自动注册器
-     */
-    @Bean
-    @ConditionalOnMissingBean
-    public FlexPointSpringSelectorChainRegister springSelectorChainRegister(FlexPoint flexPoint) {
-        return new FlexPointSpringSelectorChainRegister(flexPoint);
     }
 
     /**

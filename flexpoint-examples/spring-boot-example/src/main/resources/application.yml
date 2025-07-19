@@ -22,7 +22,3 @@ flexpoint:
   registry:
     enabled: true
     allow-duplicate-registration: false
-#  selector:
-#    chains:
-#      default-selector-chain:
-#        - codeVersionSelector

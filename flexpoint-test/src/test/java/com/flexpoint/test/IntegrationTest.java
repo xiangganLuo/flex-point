@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
 public class IntegrationTest {
     private FlexPoint flexPoint;
 
-    @FpSelector
+    @FpSelector("DemoStrategy")
     public interface DemoAbilityDef extends ExtensionAbility {
     }
 

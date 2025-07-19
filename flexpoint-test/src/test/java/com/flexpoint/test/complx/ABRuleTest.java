@@ -18,7 +18,7 @@ import java.util.Map;
 public class ABRuleTest {
     private FlexPoint flexPoint;
 
-    @FpSelector
+    @FpSelector("ABTestSelector")
     public interface ABTestAbility extends ExtensionAbility {
         String process(String input);
     }
@@ -45,7 +45,7 @@ public class ABRuleTest {
             return null;
         }
         @Override
-        public String getName() { return "ABTestStrategy"; }
+        public String getName() { return "ABTestSelector"; }
     }
     static class UserContext {
         private static final ThreadLocal<String> holder = new ThreadLocal<>();

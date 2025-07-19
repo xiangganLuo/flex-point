@@ -1,29 +1,26 @@
 package com.flexpoint.core;
 
 import com.flexpoint.common.annotations.FpSelector;
+import com.flexpoint.common.exception.SelectorNotFoundException;
 import com.flexpoint.core.config.FlexPointConfig;
-import com.flexpoint.core.context.ContextProvider;
+import com.flexpoint.core.context.Context;
 import com.flexpoint.core.context.ContextManager;
+import com.flexpoint.core.context.ContextProvider;
 import com.flexpoint.core.extension.ExtensionAbility;
 import com.flexpoint.core.extension.ExtensionAbilityRegistry;
 import com.flexpoint.core.monitor.ExtensionMonitor;
-import com.flexpoint.core.context.Context;
 import com.flexpoint.core.selector.Selector;
-import com.flexpoint.core.selector.SelectorChain;
 import com.flexpoint.core.selector.SelectorRegistry;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static com.flexpoint.common.constants.FlexPointConstants.DEFAULT_SELECTOR_CHAIN_NAME;
-
 /**
  * 扩展点管理器
- * 只负责扩展点注册、查找、监控，选择器链由 SelectorRegistry 管理
+ * 负责扩展点注册、查找、监控，选择器通过名称管理
  */
 @Slf4j
 public class FlexPoint {
@@ -56,25 +53,42 @@ public class FlexPoint {
     /**
      * ==================extension==================
      */
-    public <T extends ExtensionAbility> T findAbility(Class<T> extensionType, String selectorChainName, Context context) {
+    
+    /**
+     * 查找扩展点（使用指定的上下文）
+     */
+    public <T extends ExtensionAbility> T findAbility(Class<T> extensionType, Context context) {
         String extensionId = null;
         try {
-            SelectorChain chain = selectorRegistry.getSelectorChain(selectorChainName);
-            if (chain == null) {
-                throw new IllegalArgumentException("未找到指定名称的 SelectorChain: " + selectorChainName);
+            // 从扩展点接口的@FpSelector注解获取选择器名称
+            FpSelector selectorAnno = extensionType.getAnnotation(FpSelector.class);
+            if (selectorAnno == null) {
+                log.warn("扩展点类型[{}]缺少@FpSelector注解", extensionType.getSimpleName());
+                return null;
             }
+            
+            String selectorName = selectorAnno.value();
+            Selector selector = selectorRegistry.getSelector(selectorName);
+            if (selector == null) {
+                log.warn("未找到名称为[{}]的选择器", selectorName);
+                throw new SelectorNotFoundException("未找到名称为[" + selectorName + "]的选择器");
+            }
+            
             List<T> extensions = extensionAbilityRegistry.getAllExtensionAbility(extensionType);
             if (extensions.isEmpty()) {
                 log.warn("未找到扩展点实现: type={}", extensionType.getSimpleName());
                 return null;
             }
-            T selected = chain.select(extensions, context);
+            
+            T selected = selector.select(extensions, context);
             if (selected == null) {
-                log.warn("SelectorChain 未找到匹配的扩展点: type={}, chain={}", extensionType.getSimpleName(), selectorChainName);
+                log.warn("选择器[{}]未找到匹配的扩展点: type={}", selectorName, extensionType.getSimpleName());
                 return null;
             }
+            
             extensionId = selected.getCode() + ":" + selected.version();
-            log.debug("成功获取扩展点: type={}, id={}, class={}", extensionType.getSimpleName(), extensionId, selected.getClass().getName());
+            log.debug("成功获取扩展点: type={}, id={}, selector={}, class={}", 
+                    extensionType.getSimpleName(), extensionId, selectorName, selected.getClass().getName());
             return selected;
         } catch (Exception e) {
             log.error("获取扩展点失败: type={}, id={}", extensionType.getSimpleName(), extensionId, e);
@@ -82,24 +96,23 @@ public class FlexPoint {
         }
     }
 
-    public <T extends ExtensionAbility> Optional<T> findAbilityOpt(Class<T> extensionType, String selectorChainName, Context context) {
-        return Optional.ofNullable(findAbility(extensionType, selectorChainName, context));
+    /**
+     * 查找扩展点（使用指定的上下文）- Optional版本
+     */
+    public <T extends ExtensionAbility> Optional<T> findAbilityOpt(Class<T> extensionType, Context context) {
+        return Optional.ofNullable(findAbility(extensionType, context));
     }
 
     /**
-     * 查找扩展点（使用默认选择器链）
-     * 从扩展点接口的 @FpSelector 注解中获取选择器链名称
+     * 查找扩展点（使用默认上下文）
      */
     public <T extends ExtensionAbility> T findAbility(Class<T> extensionType) {
-        FpSelector selectorAnno = extensionType.getAnnotation(FpSelector.class);
-        if (selectorAnno == null || selectorAnno.value().isEmpty()) {
-            throw new IllegalArgumentException("扩展点接口 " + extensionType.getName() + " 缺少 @FpSelector 注解或未指定选择器链名称");
-        }
-        return findAbility(extensionType, selectorAnno.value(), new Context());
+        Context context = new Context();
+        return findAbility(extensionType, context);
     }
 
     /**
-     * 查找扩展点（使用默认选择器链）- Optional版本
+     * 查找扩展点（使用默认上下文）- Optional版本
      */
     public <T extends ExtensionAbility> Optional<T> findAbilityOpt(Class<T> extensionType) {
         return Optional.ofNullable(findAbility(extensionType));
@@ -134,37 +147,28 @@ public class FlexPoint {
     /**
      * ==================selector==================
      */
+    
+    /**
+     * 注册选择器
+     */
     public void registerSelector(Selector selector) {
-        this.registerSelector(DEFAULT_SELECTOR_CHAIN_NAME, selector);
-    }
-
-    public void registerSelector(String chainName, Selector selector) {
-        selectorRegistry.registerSelector(chainName, selector);
-        log.info("注册选择器: name={}", selector.getName());
+        selectorRegistry.registerSelector(selector);
+        log.info("注册选择器[{}]", selector.getName());
     }
 
     /**
-     * 注销选择器
+     * 移除指定名称的选择器
      */
-    public void unregisterSelector(String chainName, String selectorName) {
-        selectorRegistry.unregisterSelector(chainName, selectorName);
-        log.info("注销选择器: name={}", selectorName);
+    public void unregisterSelector(String selectorName) {
+        selectorRegistry.unregisterSelector(selectorName);
+        log.info("移除选择器[{}]", selectorName);
     }
 
     /**
-     * 注册选择器链
+     * 检查指定名称的选择器是否已注册
      */
-    public void registerSelectorChain(com.flexpoint.core.selector.SelectorChain chain) {
-        selectorRegistry.registerSelectorChain(chain);
-        log.info("注册选择器链: name={}", chain.getName());
-    }
-
-    /**
-     * 注销选择器链
-     */
-    public void unregisterSelectorChain(String chainName) {
-        selectorRegistry.unregisterSelectorChain(chainName);
-        log.info("注销选择器链: name={}", chainName);
+    public boolean hasSelector(String selectorName) {
+        return selectorRegistry.hasSelector(selectorName);
     }
 
     /**

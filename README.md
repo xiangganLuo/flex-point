@@ -21,12 +21,12 @@
 
 ## 📚 简介
 
-Flex Point 是一款面向企业级应用的高可扩展性扩展点（Extension Point）框架，专为多业务场景下的“能力解耦、动态路由、灵活扩展”而设计。
+Flex Point 是一款面向企业级应用的高可扩展性扩展点（Extension Point）框架，专为多业务场景下的"能力解耦、动态路由、灵活扩展"而设计。
 它支持在不同业务上下文、租户、版本、A/B测试等多种场景下，动态选择和切换业务实现，极大提升了系统的可维护性和业务创新能力。
 
 **核心特性：**
 - 🚀 **轻量级设计** - 无缓存依赖，专注于核心扩展点功能
-- 🎯 **灵活解析** - 支持自定义扩展点场景选择器
+- 🎯 **灵活解析** - 支持自定义扩展点选择器，基于选择器名称管理
 - 🔧 **多环境支持** - Spring Boot、Java原生环境
 - 📊 **监控集成** - 内置扩展点调用监控和性能统计并预留了各种扩展点
 - 🏗️ **模块化架构** - 清晰的模块划分，按需引入
@@ -118,7 +118,7 @@ FlexPoint/
 ### 2. 定义扩展点接口
 
 ```java
-@FpSelector // 可选 chainName = "customStrategy"
+@FpSelector("codeVersionSelector")  // 指定使用的选择器名称
 public interface OrderProcessAbility extends ExtensionAbility {
     String processOrder(String orderId, String orderData);
     String getOrderStatus(String orderId);
@@ -144,29 +144,30 @@ public class LogisticsOrderProcessAbility implements OrderProcessAbility {
     @Override
     public String version() { return "1.0.0"; }
     @Override
-    public String processOrder(String orderId, double amount) {
+    public String processOrder(String orderId, String orderData) {
         return "物流订单处理完成";
     }
 }
 ```
 
-### 4. 场景选择器
+### 4. 定义选择器
 
 ```java
 import org.springframework.stereotype.Component;
 
 @Component
-public class CustomSelector implements Selector {
+public class CodeVersionSelector implements Selector {
     @Override
-    public <T extends ExtensionAbility> T select(List<T> candidates, SelectionContext context) {
+    public <T extends ExtensionAbility> T select(List<T> candidates, Context context) {
         String code = SysAppContext.getAppCode();
         for (T ext : candidates) {
             if (code.equals(ext.getCode())) return ext;
         }
         return null;
     }
+    
     @Override
-    public String getName() { return "customStrategy"; }
+    public String getName() { return "codeVersionSelector"; }  // 与@FpSelector注解中的名称一致
 }
 ```
 
@@ -182,8 +183,8 @@ public class OrderController {
     private OrderProcessAbility orderProcessAbility;
 
     @GetMapping("/order/process")
-    public String process(String orderId, double amount) {
-        return orderProcessAbility.processOrder(orderId, amount);
+    public String process(String orderId, String orderData) {
+        return orderProcessAbility.processOrder(orderId, orderData);
     }
 }
 ```
@@ -199,13 +200,13 @@ flexPoint.register(new MallOrderProcessAbilityV1());
 flexPoint.register(new MallOrderProcessAbilityV2());
 flexPoint.register(new LogisticsOrderProcessAbility());
 
-// 查找扩展点（自动根据选择器选择实现）
+// 查找扩展点（自动根据@FpSelector注解指定的选择器进行选择）
 OrderProcessAbility ability = flexPoint.findAbility(OrderProcessAbility.class);
 ```
 
 ### 选择器自定义与注册
 
-#### 推荐：默认场景选择器注册（Spring Boot最佳实践）
+#### 推荐：默认选择器注册（Spring Boot最佳实践）
 
 ```java
 import com.flexpoint.core.selector.resolves.CodeVersionSelector;
@@ -215,7 +216,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class FlexPointConfig {
     /**
-     * 注册默认的选择器链
+     * 注册默认的代码版本选择器
      */
     @Bean
     public CodeVersionSelector codeVersionSelector() {
@@ -234,24 +235,25 @@ import org.springframework.stereotype.Component;
 @Component
 public class CustomSelector implements Selector {
     @Override
-    public <T extends ExtensionAbility> T select(List<T> candidates, SelectionContext context) {
+    public <T extends ExtensionAbility> T select(List<T> candidates, Context context) {
         String code = SysAppContext.getAppCode();
         for (T ext : candidates) {
             if (code.equals(ext.getCode())) return ext;
         }
         return null;
     }
+    
     @Override
-    public String getName() { return "customStrategy"; }
+    public String getName() { return "customSelector"; }
 }
 ```
 
-- 通过 @Selector 注解在扩展点接口上指定选择器：
+- 通过 @FpSelector 注解在扩展点接口上指定选择器名称：
 
 ```java
-@Selector("customStrategy")
+@FpSelector("customSelector")  // 指定使用名为customSelector的选择器
 public interface OrderProcessAbility extends ExtensionAbility {
-    String processOrder(String orderId, double amount);
+    String processOrder(String orderId, String orderData);
     String version();
 }
 ```
@@ -281,7 +283,7 @@ System.out.println("平均耗时: " + metrics.getAverageDuration() + "ms");
 | flexpoint.monitor.async-queue-size | int | 1000  | 异步处理队列大小 |
 | flexpoint.registry.enabled | boolean | true  | 是否启用扩展点自动注册 |
 | flexpoint.registry.allow-duplicate-registration | boolean | false | 是否允许重复注册扩展点 |
-| flexpoint.selector.chains | boolean | map   | 选择器链，默认注册：FlexPointConstants.DEFAULT_SELECTOR_CHAIN_NAME |
+
 
 > 以上配置可在 application.yml 或 application.properties 中灵活配置，详细含义见上表。
 
@@ -291,15 +293,16 @@ System.out.println("平均耗时: " + metrics.getAverageDuration() + "ms");
 
 - **所有扩展点可选 version() 方法，默认1.0.0**。
 - **注册扩展点时只需 flexPoint.register(ability)**，无需类型和元数据。
-- **查找扩展点时直接 flexPoint.findAbility(AbilityClass.class)**。
-- **自定义场景选择器通过 flexPoint.registerSelector(...) 注册。**
+- **查找扩展点时直接 flexPoint.findAbility(AbilityClass.class)**，框架会根据@FpSelector注解自动查找对应的选择器。
+- **自定义选择器通过 @Component 注解自动注册，或者手动调用 flexPoint.registerSelector(selector) 注册。**
+- **选择器的名称（getName()方法返回值）必须与@FpSelector注解中指定的名称一致。**
 - **推荐通过BOM统一依赖版本。**
 
 ---
 
 ### 🚦 Spring Boot 全流程实战
 
-以 `flexpoint-examples/spring-boot-example` 为例，演示如何实现“基于上下文动态切换扩展点”的完整链路：
+以 `flexpoint-examples/spring-boot-example` 为例，演示如何实现"基于上下文动态切换扩展点"的完整链路：
 
 #### 1. 过滤器编写（上下文注入/鉴权）
 
@@ -321,7 +324,7 @@ public class AppAuthFilter implements Filter {
 }
 ```
 
-#### 2. 默认选择器链注册（推荐方式）
+#### 2. 选择器注册（推荐方式）
 
 ```java
 // src/main/java/com/flexpoint/example/springboot/framework/flexpoint/FlexPointConfig.java
@@ -338,7 +341,7 @@ public class FlexPointConfig {
 
 ```java
 // src/main/java/com/flexpoint/example/springboot/ext/OrderProcessAbility.java
-@FpSelector
+@FpSelector("codeVersionSelector")  // 指定使用codeVersionSelector选择器
 public interface OrderProcessAbility extends ExtensionAbility {
     String processOrder(String orderId, String orderData);
     String getOrderStatus(String orderId);
@@ -382,10 +385,6 @@ flexpoint:
   registry:
     enabled: true
     allow-duplicate-registration: false
-#  selector:
-#    chains:
-#      default-selector-chain:
-#        - codeVersionSelector
 ```
 
 可通过注入 `ExtensionMonitor` 获取扩展点调用统计：

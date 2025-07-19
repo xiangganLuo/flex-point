@@ -1,39 +1,35 @@
 package com.flexpoint.core.selector;
 
 /**
- * 选择器链注册表接口
+ * 选择器注册表接口
+ * 管理选择器名称与选择器实例的映射关系
  * @author luoxianggan
  */
 public interface SelectorRegistry {
+    
     /**
-     * 获取选择器链
-     * @param name 链名
-     * @return 选择器链
+     * 注册选择器
+     * @param selector 选择器实例
      */
-    SelectorChain getSelectorChain(String name);
-
+    void registerSelector(Selector selector);
+    
     /**
-     * 注册选择器链
-     * @param chain 选择器链
+     * 根据名称获取选择器
+     * @param selectorName 选择器名称
+     * @return 选择器实例，如果未注册则返回null
      */
-    void registerSelectorChain(SelectorChain chain);
+    Selector getSelector(String selectorName);
+    
     /**
-     * 移除选择器链
-     * @param chainName 链名字
+     * 移除指定名称的选择器
+     * @param selectorName 选择器名称
      */
-    void unregisterSelectorChain(String chainName);
+    void unregisterSelector(String selectorName);
+    
     /**
-     * 动态注册选择器到指定链
-     *
-     * @param chainName 链名字
-     * @param selector 选择器
+     * 检查指定名称的选择器是否已注册
+     * @param selectorName 选择器名称
+     * @return 是否已注册
      */
-    void registerSelector(String chainName, Selector selector);
-    /**
-     * 从指定链中移除选择器
-     *
-     * @param chainName 链名字
-     * @param selectorName 选择器名字
-     */
-    void unregisterSelector(String chainName, String selectorName);
+    boolean hasSelector(String selectorName);
 } 

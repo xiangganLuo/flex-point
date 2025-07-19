@@ -34,7 +34,7 @@ public class ExtensionAbilityProcessor implements BeanPostProcessor {
                     Object proxy = Proxy.newProxyInstance(
                             abilityClass.getClassLoader(),
                             new Class[]{abilityClass},
-                            new ExtensionAbilityInvocationHandler(reference, flexPoint, abilityClass)
+                            new ExtensionAbilityInvocationHandler(flexPoint, abilityClass)
                     );
                     field.setAccessible(true);
                     try {

@@ -6,64 +6,54 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * 默认选择器链注册表实现
+ * 默认选择器注册表实现
+ * 管理选择器名称与选择器实例的映射关系
  * @author luoxianggan
  */
 @Slf4j
 public class DefaultSelectorRegistry implements SelectorRegistry {
-    private final Map<String, SelectorChain> chains = new ConcurrentHashMap<>();
+    
+    private final Map<String, Selector> selectorMap = new ConcurrentHashMap<>();
+    
     @Override
-    public SelectorChain getSelectorChain(String name) {
-        return chains.get(name);
-    }
-
-    @Override
-    public void registerSelectorChain(SelectorChain chain) {
-        if (chain != null && chain.getName() != null) {
-            chains.put(chain.getName(), chain);
-        }
-    }
-
-    @Override
-    public void unregisterSelectorChain(String chainName) {
-        chains.remove(chainName);
-    }
-
-    @Override
-    public void registerSelector(String chainName, Selector selector) {
-        if (chainName == null || selector == null) {
-            log.warn("链名字或选择器为空，无法注册");
+    public void registerSelector(Selector selector) {
+        if (selector == null) {
+            log.warn("选择器为空，无法注册");
             return;
         }
-
-        // 获取或创建选择器链
-        SelectorChain chain = getSelectorChain(chainName);
-        if (chain == null) {
-            chain = new SelectorChain(chainName);
-            registerSelectorChain(chain);
-            log.info("创建新的选择器链: {}", chainName);
+        
+        String selectorName = selector.getName();
+        if (selectorName == null || selectorName.trim().isEmpty()) {
+            log.warn("选择器名称为空，无法注册");
+            return;
         }
-
-        // 添加选择器到链中
-        chain.addSelector(selector);
-        log.info("选择器[{}] 已添加到链[{}]", selector.getName(), chainName);
+        
+        selectorMap.put(selectorName, selector);
+        log.info("注册选择器[{}]", selectorName);
     }
-
+    
     @Override
-    public void unregisterSelector(String chainName, String selectorName) {
-        if (chainName == null || selectorName == null) {
-            log.warn("链名字或选择器名字为空，无法移除");
-            return;
-        }
-
-        SelectorChain chain = getSelectorChain(chainName);
-        if (chain == null) {
-            log.warn("未找到选择器链: {}", chainName);
-            return;
-        }
-
-        chain.removeSelector(selectorName);
-        log.info("从链[{}] 中移除选择器[{}]", chainName, selectorName);
+    public Selector getSelector(String selectorName) {
+        return selectorMap.get(selectorName);
     }
-
+    
+    @Override
+    public void unregisterSelector(String selectorName) {
+        if (selectorName == null || selectorName.trim().isEmpty()) {
+            log.warn("选择器名称为空，无法移除");
+            return;
+        }
+        
+        Selector removed = selectorMap.remove(selectorName);
+        if (removed != null) {
+            log.info("移除选择器[{}]", selectorName);
+        } else {
+            log.warn("选择器[{}]未注册", selectorName);
+        }
+    }
+    
+    @Override
+    public boolean hasSelector(String selectorName) {
+        return selectorMap.containsKey(selectorName);
+    }
 }
