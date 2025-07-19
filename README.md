@@ -293,7 +293,6 @@ System.out.println("平均耗时: " + metrics.getAverageDuration() + "ms");
 
 ## 🎯 最佳实践
 
-- **所有扩展点可选 version() 方法，默认1.0.0**。
 - **注册扩展点时只需 flexPoint.register(ability)**，无需类型和元数据。
 - **查找扩展点时直接 flexPoint.findAbility(AbilityClass.class)**，框架会根据@FpSelector注解自动查找对应的选择器。
 - **自定义选择器通过 @Component 注解自动注册，或者手动调用 flexPoint.registerSelector(selector) 注册。**
@@ -398,7 +397,7 @@ flexpoint:
 @Autowired
 private ExtensionMonitor extensionMonitor;
 
-ExtensionMonitor.ExtensionMetrics metrics = extensionMonitor.getExtensionMetrics("mall:1.0.0");
+ExtensionMonitor.ExtensionMetrics metrics = extensionMonitor.getExtensionMetrics(扩展点实例);
 ```
 
 ---

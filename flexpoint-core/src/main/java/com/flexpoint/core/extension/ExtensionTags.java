@@ -1,4 +1,4 @@
-package com.flexpoint.common.tags;
+package com.flexpoint.core.extension;
 
 import java.util.*;
 

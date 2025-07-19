@@ -1,7 +1,5 @@
 package com.flexpoint.core.extension;
 
-import com.flexpoint.common.tags.ExtensionTags;
-
 /**
  * 扩展点能力接口
  * 所有扩展点实现类都应该实现此接口

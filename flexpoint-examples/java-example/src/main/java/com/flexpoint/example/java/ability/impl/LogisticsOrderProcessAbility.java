@@ -1,6 +1,6 @@
 package com.flexpoint.example.java.ability.impl;
 
-import com.flexpoint.common.tags.ExtensionTags;
+import com.flexpoint.core.extension.ExtensionTags;
 import com.flexpoint.example.java.ability.OrderProcessAbility;
 
 /**

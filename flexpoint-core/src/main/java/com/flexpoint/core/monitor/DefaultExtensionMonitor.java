@@ -2,6 +2,7 @@ package com.flexpoint.core.monitor;
 
 import com.flexpoint.core.config.FlexPointConfig;
 import com.flexpoint.core.extension.ExtensionAbility;
+import com.flexpoint.core.utils.ExtensionUtil;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
@@ -77,15 +78,8 @@ public class DefaultExtensionMonitor implements ExtensionMonitor {
         }
     }
     
-    /**
-     * 生成扩展点ID
-     */
-    private String generateExtensionId(ExtensionAbility extensionAbility) {
-        return extensionAbility.getClass().getSimpleName();
-    }
-    
     private void doRecordInvocation(ExtensionAbility extensionAbility, long duration, boolean success, Map<String, Object> context) {
-        String extensionId = generateExtensionId(extensionAbility);
+        String extensionId = ExtensionUtil.getExtensionId(extensionAbility);
         ExtensionMetricsImpl metrics = null;
         if (config.isPerformanceStatsEnabled()) {
             metrics = metricsMap.computeIfAbsent(extensionId, k -> new ExtensionMetricsImpl());
@@ -122,7 +116,7 @@ public class DefaultExtensionMonitor implements ExtensionMonitor {
     }
     
     private void doRecordException(ExtensionAbility extensionAbility, Throwable exception, Map<String, Object> context) {
-        String extensionId = generateExtensionId(extensionAbility);
+        String extensionId = ExtensionUtil.getExtensionId(extensionAbility);
         ExtensionMetricsImpl metrics = null;
         if (config.isPerformanceStatsEnabled()) {
             metrics = metricsMap.computeIfAbsent(extensionId, k -> new ExtensionMetricsImpl());
@@ -148,7 +142,7 @@ public class DefaultExtensionMonitor implements ExtensionMonitor {
         if (!config.isEnabled() || !config.isPerformanceStatsEnabled()) {
             return new ExtensionMetricsImpl();
         }
-        String extensionId = generateExtensionId(extensionAbility);
+        String extensionId = ExtensionUtil.getExtensionId((extensionAbility);
         return metricsMap.getOrDefault(extensionId, new ExtensionMetricsImpl());
     }
     
@@ -166,7 +160,7 @@ public class DefaultExtensionMonitor implements ExtensionMonitor {
             return;
         }
         
-        String extensionId = generateExtensionId(extensionAbility);
+        String extensionId = ExtensionUtil.getExtensionId(extensionAbility);
         metricsMap.remove(extensionId);
         log.info("扩展点指标已重置: id={}", extensionId);
         

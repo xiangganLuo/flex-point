@@ -9,7 +9,6 @@ import com.flexpoint.core.monitor.event.MonitorEventListener;
 import com.flexpoint.core.monitor.metrics.MetricsCollector;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -24,44 +23,6 @@ public class MonitorPipeline {
     private final List<MetricsCollector> collectors = new CopyOnWriteArrayList<>();
     private final List<AlertStrategy> alertStrategies = new CopyOnWriteArrayList<>();
     private final List<MonitorEventListener> eventListeners = new CopyOnWriteArrayList<>();
-
-    public void addMetricsCollector(MetricsCollector collector) {
-        if (collector != null) {
-            collectors.add(collector);
-        }
-    }
-    public void removeMetricsCollector(MetricsCollector collector) {
-        collectors.remove(collector);
-    }
-    public List<MetricsCollector> getCollectors() {
-        return Collections.unmodifiableList(collectors);
-    }
-
-    public void addAlertStrategy(AlertStrategy strategy) {
-        if (strategy != null) {
-            alertStrategies.add(strategy);
-        }
-    }
-    public void removeAlertStrategy(AlertStrategy strategy) {
-        alertStrategies.remove(strategy);
-    }
-    public List<AlertStrategy> getAlertStrategies() {
-        return Collections.unmodifiableList(alertStrategies);
-    }
-
-    public void addEventListener(MonitorEventListener listener) {
-        if (listener != null) {
-            eventListeners.add(listener);
-        }
-    }
-    public void removeEventListener(MonitorEventListener listener) {
-        eventListeners.remove(listener);
-    }
-    public List<MonitorEventListener> getEventListeners() {
-        return Collections.unmodifiableList(eventListeners);
-    }
-
-    // --- 埋点触发方法 ---
 
     /**
      * 调用前（可选）
