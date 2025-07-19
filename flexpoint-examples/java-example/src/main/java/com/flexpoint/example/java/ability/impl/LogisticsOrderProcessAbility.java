@@ -6,6 +6,7 @@ import com.flexpoint.example.java.ability.OrderProcessAbility;
 /**
  * 物流订单处理实现
  * 演示物流业务场景的订单处理逻辑
+ * @author xiangganluo
  */
 public class LogisticsOrderProcessAbility implements OrderProcessAbility {
     @Override

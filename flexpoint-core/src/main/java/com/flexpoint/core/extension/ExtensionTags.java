@@ -6,6 +6,7 @@ import java.util.*;
  * 扩展点标签系统
  * 完全抽象化的键值对存储，类似HTTP请求头和RPC元数据
  * 不包含任何业务概念，支持任意场景的标签存储
+ * @author xiangganluo
  */
 public class ExtensionTags {
     

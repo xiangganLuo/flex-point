@@ -4,7 +4,7 @@ import lombok.Data;
 
 /**
  * 通用结果
- * @author luoxianggan
+ * @author xiangganluo
  */
 @Data
 public class CommonResult<T> {

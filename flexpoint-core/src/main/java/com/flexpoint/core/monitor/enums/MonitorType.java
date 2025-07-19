@@ -2,7 +2,7 @@ package com.flexpoint.core.monitor.enums;
 
 /**
      * 监控器类型
- * @author luoxianggan
+ * @author xiangganluo
  */
     public enum MonitorType {
         /**

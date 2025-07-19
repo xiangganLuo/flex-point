@@ -8,7 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * 默认选择器注册表实现
  * 管理选择器名称与选择器实例的映射关系
- * @author luoxianggan
+ * @author xiangganluo
  */
 @Slf4j
 public class DefaultSelectorRegistry implements SelectorRegistry {

@@ -7,7 +7,7 @@ import java.util.Map;
 
 /**
  * 选择器上下文，支持多维扩展。
- * @author luoxianggan
+ * @author xiangganluo
  */
 @Getter
 public class Context {

@@ -14,7 +14,7 @@ import java.util.Map;
 /**
  * Spring选择器自动注册器
  * 启动时自动扫描并注册所有选择器Bean
- * @author luoxianggan
+ * @author xiangganluo
  */
 @Slf4j
 @RequiredArgsConstructor

@@ -2,6 +2,7 @@ package com.flexpoint.example.java.context;
 
 /**
  * Java原生环境下的应用上下文（仿照Spring Boot SysAppContext）
+ * @author xiangganluo
  */
 public class AppContext {
     private static final ThreadLocal<String> APP_CODE_HOLDER = new ThreadLocal<>();

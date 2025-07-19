@@ -7,6 +7,7 @@ import java.util.Map;
 /**
  * 告警策略扩展接口
  * 仅定义扩展点，无具体实现
+ * @author xiangganluo
  */
 public interface AlertStrategy {
 

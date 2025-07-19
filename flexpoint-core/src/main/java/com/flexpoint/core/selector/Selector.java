@@ -7,6 +7,7 @@ import java.util.List;
 /**
  * 选择器接口，所有选择器必须实现。
  * 选择器可以返回多个候选者，由调用方决定如何处理
+ * @author xiangganluo
  */
 public interface Selector {
     

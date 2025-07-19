@@ -12,6 +12,7 @@ import lombok.Getter;
 
 /**
  * Java原生环境下的FlexPoint管理器
+ * @author xiangganluo
  */
 public class FlexPointManager {
     private static final FlexPointManager INSTANCE = new FlexPointManager();

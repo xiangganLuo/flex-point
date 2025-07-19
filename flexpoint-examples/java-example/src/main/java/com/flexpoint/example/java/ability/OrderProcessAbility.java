@@ -6,6 +6,7 @@ import com.flexpoint.core.extension.ExtensionAbility;
 /**
  * 订单处理扩展点接口
  * 演示多业务场景的扩展点定义
+ * @author xiangganluo
  */
 @FpSelector("codeVersionSelector")
 public interface OrderProcessAbility extends ExtensionAbility {

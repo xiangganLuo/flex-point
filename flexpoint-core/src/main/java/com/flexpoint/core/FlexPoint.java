@@ -21,6 +21,7 @@ import java.util.Optional;
 /**
  * 扩展点管理器
  * 负责扩展点注册、查找、监控，选择器通过名称管理
+ * @author xiangganluo
  */
 @Slf4j
 public class FlexPoint {

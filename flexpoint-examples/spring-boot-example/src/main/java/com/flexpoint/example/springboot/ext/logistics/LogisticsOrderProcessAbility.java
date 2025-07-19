@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * 物流应用订单处理实现
+ * @author xiangganluo
  */
 @Slf4j
 @Component

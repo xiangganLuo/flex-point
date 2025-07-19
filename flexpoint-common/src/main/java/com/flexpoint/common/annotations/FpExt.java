@@ -4,7 +4,7 @@ import java.lang.annotation.*;
 
 /**
  * 扩展点引用注解
- * @author luoxianggan
+ * @author xiangganluo
  */
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)

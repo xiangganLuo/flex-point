@@ -14,6 +14,10 @@ import org.junit.jupiter.api.Test;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * 灰度规则测试类
+ * @author xiangganluo
+ */
 public class GrayRuleTest {
     private FlexPoint flexPoint;
 

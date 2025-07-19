@@ -3,7 +3,7 @@ package com.flexpoint.core.selector;
 /**
  * 选择器注册表接口
  * 管理选择器名称与选择器实例的映射关系
- * @author luoxianggan
+ * @author xiangganluo
  */
 public interface SelectorRegistry {
     

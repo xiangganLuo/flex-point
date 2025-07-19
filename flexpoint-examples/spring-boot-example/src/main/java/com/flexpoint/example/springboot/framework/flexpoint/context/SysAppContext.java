@@ -2,6 +2,7 @@ package com.flexpoint.example.springboot.framework.flexpoint.context;
 
 /**
  * 系统应用上下文
+ * @author xiangganluo
  */
 public class SysAppContext {
     

@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 /**
  * code 选择器，强制业务方实现 CodeResolver。
  * 选择匹配指定code的第一个扩展点
- * @author luoxianggan
+ * @author xiangganluo
  */
 @RequiredArgsConstructor
 public class CodeSelector extends AbstractSelector {

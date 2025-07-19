@@ -2,6 +2,7 @@ package com.flexpoint.example.springboot.framework.constants;
 
 /**
  * 错误码常量
+ * @author xiangganluo
  */
 public class ErrorCodeConstants {
     

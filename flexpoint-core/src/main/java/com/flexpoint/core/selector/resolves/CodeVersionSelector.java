@@ -10,7 +10,7 @@ import java.util.Optional;
 /**
  * code+version 选择器，强制业务方实现 CodeVersionResolver。
  * 选择匹配指定code和version的第一个扩展点
- * @author luoxianggan
+ * @author xiangganluo
  */
 public class CodeVersionSelector extends CodeSelector {
 

@@ -24,7 +24,7 @@ import java.util.Objects;
 
 /**
  * 应用接入认证过滤器
- * @author luoxianggan
+ * @author xiangganluo
  */
 @Slf4j
 @Component

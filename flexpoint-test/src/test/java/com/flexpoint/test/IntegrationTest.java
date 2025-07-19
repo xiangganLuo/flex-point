@@ -10,6 +10,10 @@ import com.flexpoint.core.selector.resolves.CodeSelector;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+/**
+ * 集成测试类
+ * @author xiangganluo
+ */
 public class IntegrationTest {
     private FlexPoint flexPoint;
 

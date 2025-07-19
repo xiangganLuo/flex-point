@@ -7,6 +7,7 @@ import com.flexpoint.example.java.service.OrderService;
 /**
  * Java原生环境下的Flex Point使用示例
  * 演示如何通过上下文自动选择扩展点实现
+ * @author xiangganluo
  */
 public class JavaExampleMain {
     public static void main(String[] args) {

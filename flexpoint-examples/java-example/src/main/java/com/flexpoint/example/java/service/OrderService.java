@@ -6,6 +6,7 @@ import com.flexpoint.example.java.ability.OrderProcessAbility;
 /**
  * 订单服务类
  * 演示如何在业务服务中使用扩展点，自动感知上下文
+ * @author xiangganluo
  */
 public class OrderService {
 

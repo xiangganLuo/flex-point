@@ -15,6 +15,10 @@ import org.junit.jupiter.api.Test;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * AB测试规则测试类
+ * @author xiangganluo
+ */
 public class ABRuleTest {
     private FlexPoint flexPoint;
 

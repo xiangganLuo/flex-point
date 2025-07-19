@@ -8,6 +8,7 @@ import java.util.Map;
 
 /**
  * 系统应用管理器
+ * @author xiangganluo
  */
 @Service
 public class SysAppManager {

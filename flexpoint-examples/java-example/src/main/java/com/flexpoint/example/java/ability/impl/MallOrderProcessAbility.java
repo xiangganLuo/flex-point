@@ -6,6 +6,7 @@ import com.flexpoint.example.java.ability.OrderProcessAbility;
 /**
  * 商城订单处理实现 - V1版本
  * 演示商城业务场景的订单处理逻辑
+ * @author xiangganluo
  */
 public class MallOrderProcessAbility implements OrderProcessAbility {
     @Override

@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * FlexPoint 配置
+ * @author xiangganluo
  */
 @Configuration
 public class FlexPointConfig {

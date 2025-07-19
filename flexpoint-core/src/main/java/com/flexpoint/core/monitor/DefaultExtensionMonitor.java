@@ -142,7 +142,7 @@ public class DefaultExtensionMonitor implements ExtensionMonitor {
         if (!config.isEnabled() || !config.isPerformanceStatsEnabled()) {
             return new ExtensionMetricsImpl();
         }
-        String extensionId = ExtensionUtil.getExtensionId((extensionAbility);
+        String extensionId = ExtensionUtil.getExtensionId(extensionAbility);
         return metricsMap.getOrDefault(extensionId, new ExtensionMetricsImpl());
     }
     
