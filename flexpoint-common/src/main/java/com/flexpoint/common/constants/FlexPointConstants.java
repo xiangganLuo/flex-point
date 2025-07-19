@@ -8,9 +8,5 @@ package com.flexpoint.common.constants;
  */
 public interface FlexPointConstants {
 
-    /**
-     * 默认扩展点版本
-     */
-    String DEFAULT_EXTENSION_VERSION = "0.0.0";
 
 } 

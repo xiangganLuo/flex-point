@@ -51,7 +51,7 @@ public class FlexPointConfigValidator {
             throw e;
         } catch (Exception e) {
             log.error("配置验证过程中发生未知错误", e);
-            throw new FlexPointConfigException("配置验证失败", e);
+            throw FlexPointConfigException.create("配置验证失败", e);
         }
     }
     
@@ -60,7 +60,7 @@ public class FlexPointConfigValidator {
      */
     private static void validateMainConfiguration(FlexPointConfig config) {
         if (config == null) {
-            throw new FlexPointConfigException("配置对象不能为空");
+            throw FlexPointConfigException.create("配置对象不能为空");
         }
         
         log.debug("主配置验证通过: enabled={}", config.isEnabled());
@@ -78,6 +78,17 @@ public class FlexPointConfigValidator {
         // 验证监控配置的合理性
         if (monitor.isEnabled()) {
             log.debug("监控已启用，验证监控配置项...");
+            
+            // 验证异步配置
+            if (monitor.isAsyncEnabled()) {
+                if (monitor.getAsyncQueueSize() <= 0) {
+                    throw FlexPointConfigException.invalidValue("monitor", "asyncQueueSize", 
+                        String.valueOf(monitor.getAsyncQueueSize()), "正整数");
+                }
+                if (monitor.getAsyncQueueSize() > 100000) {
+                    log.warn("异步队列大小[{}]过大，可能消耗过多内存", monitor.getAsyncQueueSize());
+                }
+            }
             
             // 如果启用了性能统计，但禁用了调用日志，给出警告
             if (monitor.isPerformanceStatsEnabled() && !monitor.isLogInvocation()) {
@@ -99,9 +110,10 @@ public class FlexPointConfigValidator {
         }
         
         log.debug("监控配置验证通过: enabled={}, logInvocation={}, logSelection={}, " +
-                 "logExceptionDetails={}, performanceStatsEnabled={}",
+                 "logExceptionDetails={}, performanceStatsEnabled={}, asyncEnabled={}, asyncQueueSize={}",
                 monitor.isEnabled(), monitor.isLogInvocation(), monitor.isLogSelection(),
-                monitor.isLogExceptionDetails(), monitor.isPerformanceStatsEnabled());
+                monitor.isLogExceptionDetails(), monitor.isPerformanceStatsEnabled(), 
+                monitor.isAsyncEnabled(), monitor.getAsyncQueueSize());
     }
     
     /**
@@ -119,7 +131,7 @@ public class FlexPointConfigValidator {
             
             // 如果允许重复注册，给出警告
             if (registry.isAllowDuplicateRegistration()) {
-                log.warn("允许重复注册已启用，可能导致扩展点覆盖");
+                log.warn("允许重复注册已启用，可能导致扩展点覆盖，建议在生产环境中禁用");
             }
         } else {
             log.info("扩展点自动注册已禁用");
@@ -152,6 +164,11 @@ public class FlexPointConfigValidator {
             if (!registry.isEnabled() && monitor.isEnabled()) {
                 log.info("建议：启用自动注册以便自动发现和注册扩展点");
             }
+            
+            // 如果启用了异步监控但禁用了性能统计，给出警告
+            if (monitor.isAsyncEnabled() && !monitor.isPerformanceStatsEnabled()) {
+                log.warn("异步监控已启用但性能统计已禁用，异步监控的效果可能受限");
+            }
         }
 
         log.debug("配置一致性验证通过");
@@ -175,6 +192,10 @@ public class FlexPointConfigValidator {
                 log.info("  选择器日志: {}", monitor.isLogSelection() ? "已启用" : "已禁用");
                 log.info("  异常详情: {}", monitor.isLogExceptionDetails() ? "已启用" : "已禁用");
                 log.info("  性能统计: {}", monitor.isPerformanceStatsEnabled() ? "已启用" : "已禁用");
+                log.info("  异步处理: {}", monitor.isAsyncEnabled() ? "已启用" : "已禁用");
+                if (monitor.isAsyncEnabled()) {
+                    log.info("  异步队列大小: {}", monitor.getAsyncQueueSize());
+                }
             }
         }
         

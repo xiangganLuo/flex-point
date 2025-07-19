@@ -1,6 +1,6 @@
 package com.flexpoint.core.extension;
 
-import static com.flexpoint.common.constants.FlexPointConstants.DEFAULT_EXTENSION_VERSION;
+import com.flexpoint.common.tags.ExtensionTags;
 
 /**
  * 扩展点能力接口
@@ -20,10 +20,13 @@ public interface ExtensionAbility {
     String getCode();
 
     /**
-     * 版本号
+     * 获取扩展点标签
+     * 所有扩展点属性都通过标签表达，包括版本号
+     * 
+     * @return 扩展点标签，默认为空标签
      */
-    default String version() {
-        return DEFAULT_EXTENSION_VERSION;
+    default ExtensionTags getTags() {
+        return ExtensionTags.empty();
     }
 
 }

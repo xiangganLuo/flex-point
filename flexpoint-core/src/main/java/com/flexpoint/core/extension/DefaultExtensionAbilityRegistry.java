@@ -9,11 +9,10 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-import static com.flexpoint.common.utils.ExtensionUtil.getExtensionId;
-
 /**
  * 默认扩展点注册中心实现
- * 支持扩展点注册、查找、注销、存在性判断
+ * 支持扩展点注册、查找
+ * 一个code可以对应多个扩展点实现，通过标签区分
  * @author xiangganluo
  * @version 1.0.0
  * @email xiangganluo@gmail.com
@@ -24,9 +23,6 @@ public class DefaultExtensionAbilityRegistry implements ExtensionAbilityRegistry
     // 类型 -> 扩展点实例列表
     private final Map<Class<? extends ExtensionAbility>, List<ExtensionAbility>> extensionMap = new ConcurrentHashMap<>();
 
-    // 扩展点ID -> 实例
-    private final Map<String, ExtensionAbility> instanceMap = new ConcurrentHashMap<>();
-
     public DefaultExtensionAbilityRegistry(FlexPointConfig.RegistryConfig registryConfig) {
         this.registryConfig = registryConfig;
     }
@@ -36,22 +32,14 @@ public class DefaultExtensionAbilityRegistry implements ExtensionAbilityRegistry
         if (instance == null) {
             throw new IllegalArgumentException("扩展点实例不能为空");
         }
+        
         Class<? extends ExtensionAbility> extensionType = getExtensionType(instance);
         if (extensionType == null) {
             throw new IllegalArgumentException("扩展点实例必须实现ExtensionAbility接口: " + instance.getClass().getName());
         }
         
-        // 修复：正确传递参数
-        String extensionId = getExtensionId(instance.getCode(), instance.version());
-        if (!registryConfig.isAllowDuplicateRegistration() && instanceMap.containsKey(extensionId)) {
-            throw new IllegalStateException("扩展点已存在，不允许重复注册: " + extensionId);
-        }
-        
-        // 注册到类型映射
+        // 注册到类型映射 - 允许同一个code的多个实现
         extensionMap.computeIfAbsent(extensionType, k -> new ArrayList<>()).add(instance);
-        
-        // 注册到实例映射
-        instanceMap.put(extensionId, instance);
     }
 
     @Override
@@ -63,42 +51,64 @@ public class DefaultExtensionAbilityRegistry implements ExtensionAbilityRegistry
         return list.stream().map(extensionType::cast).collect(Collectors.toList());
     }
 
-    @Override
+    /**
+     * 获取扩展点类型
+     * 查找实例实现的第一个ExtensionAbility接口
+     */
     @SuppressWarnings("unchecked")
-    public <T extends ExtensionAbility> T getExtensionById(String extensionId) {
-        return (T) instanceMap.get(extensionId);
-    }
-
-    @Override
-    public synchronized void unregister(String extensionId) {
-        ExtensionAbility instance = instanceMap.remove(extensionId);
-        if (instance != null) {
-            Class<? extends ExtensionAbility> extensionType = getExtensionType(instance);
-            if (extensionType != null) {
-                List<ExtensionAbility> list = extensionMap.get(extensionType);
-                if (list != null) {
-                    list.remove(instance);
-                    if (list.isEmpty()) {
-                        extensionMap.remove(extensionType);
-                    }
+    private Class<? extends ExtensionAbility> getExtensionType(ExtensionAbility instance) {
+        Class<?> clazz = instance.getClass();
+        
+        // 检查直接实现的接口
+        for (Class<?> iface : clazz.getInterfaces()) {
+            if (ExtensionAbility.class.isAssignableFrom(iface) && iface != ExtensionAbility.class) {
+                return (Class<? extends ExtensionAbility>) iface;
+            }
+        }
+        
+        // 检查父类的接口
+        Class<?> superClass = clazz.getSuperclass();
+        while (superClass != null && superClass != Object.class) {
+            for (Class<?> iface : superClass.getInterfaces()) {
+                if (ExtensionAbility.class.isAssignableFrom(iface) && iface != ExtensionAbility.class) {
+                    return (Class<? extends ExtensionAbility>) iface;
                 }
             }
+            superClass = superClass.getSuperclass();
         }
+        
+        // 如果没找到具体的业务接口，返回ExtensionAbility
+        return ExtensionAbility.class;
     }
 
-    @Override
-    public boolean exists(String extensionId) {
-        return instanceMap.containsKey(extensionId);
+    /**
+     * 获取注册的扩展点总数
+     */
+    public int getRegisteredCount() {
+        return extensionMap.values().stream()
+            .mapToInt(List::size)
+            .sum();
     }
 
-    private Class<? extends ExtensionAbility> getExtensionType(ExtensionAbility instance) {
-        for (Class<?> iface : instance.getClass().getInterfaces()) {
-            if (ExtensionAbility.class.isAssignableFrom(iface)) {
-                @SuppressWarnings("unchecked")
-                Class<? extends ExtensionAbility> type = (Class<? extends ExtensionAbility>) iface;
-                return type;
-            }
-        }
-        return null;
+    /**
+     * 获取指定类型的扩展点数量
+     */
+    public <T extends ExtensionAbility> int getCountByType(Class<T> extensionType) {
+        List<ExtensionAbility> list = extensionMap.get(extensionType);
+        return list != null ? list.size() : 0;
+    }
+
+    /**
+     * 清空所有注册的扩展点
+     */
+    public synchronized void clear() {
+        extensionMap.clear();
+    }
+
+    /**
+     * 检查是否有指定类型的扩展点
+     */
+    public <T extends ExtensionAbility> boolean hasExtension(Class<T> extensionType) {
+        return getCountByType(extensionType) > 0;
     }
 }

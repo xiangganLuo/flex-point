@@ -27,28 +27,4 @@ public interface ExtensionAbilityRegistry {
      */
     <T extends ExtensionAbility> List<T> getAllExtensionAbility(Class<T> extensionType);
 
-    /**
-     * 根据ID获取扩展点
-     *
-     * @param extensionId 扩展点ID
-     * @param <T> 扩展点类型
-     * @return 扩展点实例
-     */
-    <T extends ExtensionAbility> T getExtensionById(String extensionId);
-
-    /**
-     * 注销扩展点
-     *
-     * @param extensionId 扩展点ID
-     */
-    void unregister(String extensionId);
-
-    /**
-     * 检查扩展点是否存在
-     *
-     * @param extensionId 扩展点ID
-     * @return 是否存在
-     */
-    boolean exists(String extensionId);
-    
 }

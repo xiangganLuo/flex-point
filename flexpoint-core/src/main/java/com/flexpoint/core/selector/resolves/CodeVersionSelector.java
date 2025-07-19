@@ -1,38 +1,47 @@
 package com.flexpoint.core.selector.resolves;
 
-import com.flexpoint.core.extension.ExtensionAbility;
 import com.flexpoint.core.context.Context;
-import com.flexpoint.core.selector.Selector;
-import lombok.RequiredArgsConstructor;
+import com.flexpoint.core.extension.ExtensionAbility;
 
 import java.util.List;
-
-import static com.flexpoint.common.constants.FlexPointConstants.DEFAULT_EXTENSION_VERSION;
+import java.util.Objects;
+import java.util.Optional;
 
 /**
  * code+version 选择器，强制业务方实现 CodeVersionResolver。
+ * 选择匹配指定code和version的第一个扩展点
  * @author luoxianggan
  */
-@RequiredArgsConstructor
-public class CodeVersionSelector implements Selector {
+public class CodeVersionSelector extends CodeSelector {
 
-    private final CodeVersionResolver resolver;
+    public static final String VERSION_TAG_KEY = "version";
+    public static final String DEFAULT_VERSION = "1.0.0";
 
+    public CodeVersionSelector(CodeVersionResolver codeVersionResolver) {
+        super(codeVersionResolver);
+    }
+
+    /**
+     * 重写过滤逻辑，先按code过滤，再按version过滤
+     */
     @Override
-    public <T extends ExtensionAbility> T select(List<T> candidates, Context context) {
-        if (resolver == null) {
-            throw new IllegalStateException("CodeVersionResolver 未实现：请通过 CodeVersionSelector.setResolver() 注册业务自定义实现");
+    protected <T extends ExtensionAbility> List<T> filterByCode(List<T> candidates, Context context) {
+        // 先按code过滤
+        List<T> codeFiltered = super.filterByCode(candidates, context);
+        
+        // 如果resolver是CodeVersionResolver，则进一步按版本过滤
+        if (resolver instanceof CodeVersionResolver) {
+            String targetVersion = Optional.ofNullable(((CodeVersionResolver) resolver).resolveVersion(context))
+                .orElse(DEFAULT_VERSION);
+            
+            // 安全地过滤版本号
+            codeFiltered.removeIf(ability -> {
+                String abilityVersion = ability.getTags().getString(VERSION_TAG_KEY, DEFAULT_VERSION);
+                return !Objects.equals(targetVersion, abilityVersion);
+            });
         }
-        String code = resolver.resolveCode(context);
-        String version = resolver.resolveVersion(context);
-        for (T ext : candidates) {
-            if (code != null && code.equals(ext.getCode())) {
-                if (version == null || version.equals(ext.version())) {
-                    return ext;
-                }
-            }
-        }
-        return null;
+        
+        return codeFiltered;
     }
 
     @Override
@@ -43,12 +52,10 @@ public class CodeVersionSelector implements Selector {
     /**
      * 业务方必须实现此接口自定义 code 获取逻辑
      */
-    public interface CodeVersionResolver {
-
-        String resolveCode(Context context);
+    public interface CodeVersionResolver extends CodeSelector.CodeResolver {
 
         default String resolveVersion(Context context) {
-            return DEFAULT_EXTENSION_VERSION;
-        };
+            return DEFAULT_VERSION;
+        }
     }
 } 

@@ -1,10 +1,10 @@
 package com.flexpoint.spring.proxy;
 
 import com.flexpoint.common.exception.ExtensionAbilityNotFoundException;
-import com.flexpoint.common.utils.ExtensionUtil;
 import com.flexpoint.core.FlexPoint;
 import com.flexpoint.core.context.Context;
 import com.flexpoint.core.extension.ExtensionAbility;
+import com.flexpoint.core.utils.ExtensionUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cglib.proxy.InvocationHandler;
 
@@ -32,12 +32,12 @@ public class ExtensionAbilityInvocationHandler implements InvocationHandler {
         // 根据扩展点类型和@FpSelector注解查找实例
         ExtensionAbility ability = flexPoint.findAbility((Class<ExtensionAbility>) targetClass, context);
         if (ability == null) {
-            throw new ExtensionAbilityNotFoundException("No ExtensionAbility implementation found for: " + targetClass.getName());
+            throw ExtensionAbilityNotFoundException.forType(targetClass.getSimpleName());
         }
         
         // 记录调用指标
         long startTime = System.currentTimeMillis();
-        String extensionId = ExtensionUtil.getExtensionId(ability.getCode(), ability.version());
+        String extensionId = ExtensionUtil.getExtensionId(ability.getCode());
         Object ret;
         try {
             ret = method.invoke(ability, args);

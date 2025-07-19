@@ -1,5 +1,6 @@
 package com.flexpoint.example.java.ability.impl;
 
+import com.flexpoint.common.tags.ExtensionTags;
 import com.flexpoint.example.java.ability.OrderProcessAbility;
 
 /**
@@ -22,6 +23,13 @@ public class MallOrderProcessAbility implements OrderProcessAbility {
     public String getOrderStatus(String orderId) {
         System.out.println("商城订单状态查询V1: orderId=" + orderId);
         return "商城订单状态(V1): 已支付";
+    }
+
+    @Override
+    public ExtensionTags getTags() {
+        return ExtensionTags.builder()
+            .set("version", "1.0.0")
+            .build();
     }
 
 } 

@@ -58,7 +58,6 @@ public class FlexPoint {
      * 查找扩展点（使用指定的上下文）
      */
     public <T extends ExtensionAbility> T findAbility(Class<T> extensionType, Context context) {
-        String extensionId = null;
         try {
             // 从扩展点接口的@FpSelector注解获取选择器名称
             FpSelector selectorAnno = extensionType.getAnnotation(FpSelector.class);
@@ -71,7 +70,7 @@ public class FlexPoint {
             Selector selector = selectorRegistry.getSelector(selectorName);
             if (selector == null) {
                 log.warn("未找到名称为[{}]的选择器", selectorName);
-                throw new SelectorNotFoundException("未找到名称为[" + selectorName + "]的选择器");
+                throw new SelectorNotFoundException(selectorName, extensionType.getSimpleName());
             }
             
             List<T> extensions = extensionAbilityRegistry.getAllExtensionAbility(extensionType);
@@ -86,12 +85,11 @@ public class FlexPoint {
                 return null;
             }
             
-            extensionId = selected.getCode() + ":" + selected.version();
-            log.debug("成功获取扩展点: type={}, id={}, selector={}, class={}", 
-                    extensionType.getSimpleName(), extensionId, selectorName, selected.getClass().getName());
+            log.debug("成功获取扩展点: type={}, code={}, selector={}, class={}",
+                    extensionType.getSimpleName(), selected.getCode(), selectorName, selected.getClass().getName());
             return selected;
         } catch (Exception e) {
-            log.error("获取扩展点失败: type={}, id={}", extensionType.getSimpleName(), extensionId, e);
+            log.error("获取扩展点失败: type={}", extensionType.getSimpleName(), e);
             throw e;
         }
     }
@@ -118,10 +116,6 @@ public class FlexPoint {
         return Optional.ofNullable(findAbility(extensionType));
     }
 
-    public <T extends ExtensionAbility> T findAbilityById(String extensionId) {
-        return extensionAbilityRegistry.getExtensionById(extensionId);
-    }
-
     public <T extends ExtensionAbility> List<T> getAllExtensions(Class<T> extensionType) {
         return extensionAbilityRegistry.getAllExtensionAbility(extensionType);
     }
@@ -130,18 +124,9 @@ public class FlexPoint {
         return extensionAbilityRegistry.getAllExtensionAbility(ExtensionAbility.class).size();
     }
 
-    public boolean exists(String extensionId) {
-        return extensionAbilityRegistry.exists(extensionId);
-    }
-
     public void register(ExtensionAbility extension) {
         extensionAbilityRegistry.register(extension);
-        log.info("注册扩展点: code={}, version={}, class={}", extension.getCode(), extension.version(), extension.getClass().getName());
-    }
-
-    public void unregister(String extensionId) {
-        extensionAbilityRegistry.unregister(extensionId);
-        log.info("注销扩展点: id={}", extensionId);
+        log.info("注册扩展点: code={}, tags={}, class={}", extension.getCode(), extension.getTags(), extension.getClass().getName());
     }
 
     /**
@@ -213,4 +198,5 @@ public class FlexPoint {
     public void resetMetrics(String extensionId) {
         this.extensionMonitor.resetMetrics(extensionId);
     }
+
 }
