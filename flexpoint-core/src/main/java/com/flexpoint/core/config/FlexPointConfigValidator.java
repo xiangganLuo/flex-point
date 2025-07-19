@@ -128,22 +128,9 @@ public class FlexPointConfigValidator {
         // 验证注册配置的合理性
         if (registry.isEnabled()) {
             log.debug("自动注册已启用，验证注册配置项...");
-            
-            // 如果允许重复注册，给出警告
-            if (registry.isAllowDuplicateRegistration()) {
-                log.warn("允许重复注册已启用，可能导致扩展点覆盖，建议在生产环境中禁用");
-            }
         } else {
             log.info("扩展点自动注册已禁用");
-            
-            // 如果注册被禁用，但允许重复注册被启用，给出警告
-            if (registry.isAllowDuplicateRegistration()) {
-                log.warn("自动注册已禁用，但允许重复注册仍被启用，此配置将被忽略");
-            }
         }
-        
-        log.debug("注册配置验证通过: enabled={}, allowDuplicateRegistration={}",
-                registry.isEnabled(), registry.isAllowDuplicateRegistration());
     }
     
     /**
@@ -202,9 +189,6 @@ public class FlexPointConfigValidator {
         if (registry != null) {
             log.info("注册配置:");
             log.info("  启用状态: {}", registry.isEnabled() ? "已启用" : "已禁用");
-            if (registry.isEnabled()) {
-                log.info("  重复注册: {}", registry.isAllowDuplicateRegistration() ? "允许" : "禁止");
-            }
         }
         log.info("========================");
     }

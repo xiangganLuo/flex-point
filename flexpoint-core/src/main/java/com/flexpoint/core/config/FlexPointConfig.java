@@ -74,15 +74,12 @@ public class FlexPointConfig {
      */
     @Data
     public static class RegistryConfig {
+
         /**
          * 是否启用自动注册
          */
         private boolean enabled = true;
-        
-        /**
-         * 是否允许重复注册
-         */
-        private boolean allowDuplicateRegistration = false;
+
     }
 
     /**
