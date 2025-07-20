@@ -1,10 +1,8 @@
 package com.flexpoint.spring.proxy;
 
-import com.flexpoint.common.exception.ExtensionAbilityNotFoundException;
+import com.flexpoint.common.exception.ExtNotFoundException;
 import com.flexpoint.core.FlexPoint;
-import com.flexpoint.core.context.Context;
-import com.flexpoint.core.extension.ExtensionAbility;
-import com.flexpoint.core.utils.ExtensionUtil;
+import com.flexpoint.core.ext.ExtAbility;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cglib.proxy.InvocationHandler;
 
@@ -18,7 +16,7 @@ import java.lang.reflect.Method;
  * @version 1.0.0
  */
 @RequiredArgsConstructor
-public class ExtensionAbilityInvocationHandler implements InvocationHandler {
+public class ExtAbilityInvocationHandler implements InvocationHandler {
 
     private final FlexPoint flexPoint;
     private final Class<?> targetClass;
@@ -26,13 +24,10 @@ public class ExtensionAbilityInvocationHandler implements InvocationHandler {
     @SuppressWarnings("unchecked")
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        // 获取上下文
-        Context context = flexPoint.getContextManager().getContext(method, args);
-        
         // 根据扩展点类型和@FpSelector注解查找实例
-        ExtensionAbility ability = flexPoint.findAbility((Class<ExtensionAbility>) targetClass, context);
+        ExtAbility ability = flexPoint.findAbility((Class<ExtAbility>) targetClass);
         if (ability == null) {
-            throw ExtensionAbilityNotFoundException.forType(targetClass.getSimpleName());
+            throw ExtNotFoundException.forType(targetClass.getSimpleName());
         }
         
         // 记录调用指标

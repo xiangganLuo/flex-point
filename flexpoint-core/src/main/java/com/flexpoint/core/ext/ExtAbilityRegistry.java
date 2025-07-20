@@ -1,4 +1,4 @@
-package com.flexpoint.core.extension;
+package com.flexpoint.core.ext;
 
 import java.util.List;
 
@@ -9,22 +9,22 @@ import java.util.List;
  * @author xiangganluo
  * @version 1.0.0
  */
-public interface ExtensionAbilityRegistry {
+public interface ExtAbilityRegistry {
     
     /**
      * 注册扩展点
      *
      * @param instance 扩展点实例
      */
-    void register(ExtensionAbility instance);
+    void register(ExtAbility instance);
     
     /**
      * 获取指定类型的所有扩展点
      *
      * @param <T> 扩展点类型
-     * @param extensionType 扩展点类型
+     * @param extType 扩展点类型
      * @return 扩展点列表
      */
-    <T extends ExtensionAbility> List<T> getAllExtensionAbility(Class<T> extensionType);
+    <T extends ExtAbility> List<T> getAllExtAbility(Class<T> extType);
 
 }

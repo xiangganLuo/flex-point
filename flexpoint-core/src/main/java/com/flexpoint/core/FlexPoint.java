@@ -3,12 +3,9 @@ package com.flexpoint.core;
 import com.flexpoint.common.annotations.FpSelector;
 import com.flexpoint.common.exception.SelectorNotFoundException;
 import com.flexpoint.core.config.FlexPointConfig;
-import com.flexpoint.core.context.Context;
-import com.flexpoint.core.context.ContextManager;
-import com.flexpoint.core.context.ContextProvider;
-import com.flexpoint.core.extension.ExtensionAbility;
-import com.flexpoint.core.extension.ExtensionAbilityRegistry;
-import com.flexpoint.core.monitor.ExtensionMonitor;
+import com.flexpoint.core.ext.ExtAbility;
+import com.flexpoint.core.ext.ExtAbilityRegistry;
+import com.flexpoint.core.monitor.ExtMonitor;
 import com.flexpoint.core.selector.Selector;
 import com.flexpoint.core.selector.SelectorRegistry;
 import lombok.Getter;
@@ -27,43 +24,39 @@ import java.util.Optional;
 public class FlexPoint {
 
     @Getter
-    private final ExtensionAbilityRegistry extensionAbilityRegistry;
+    private final ExtAbilityRegistry extAbilityRegistry;
     @Getter
-    private final ExtensionMonitor extensionMonitor;
+    private final ExtMonitor extMonitor;
     @Getter
     private final SelectorRegistry selectorRegistry;
-    @Getter
-    private final ContextManager contextManager;
 
     @Getter
     private final FlexPointConfig flexPointConfig;
 
-    public FlexPoint(ExtensionAbilityRegistry extensionAbilityRegistry,
-                     ExtensionMonitor extensionMonitor,
+    public FlexPoint(ExtAbilityRegistry extAbilityRegistry,
+                     ExtMonitor extMonitor,
                      SelectorRegistry selectorRegistry,
-                     ContextManager contextManager,
                      FlexPointConfig flexPointConfig
     ) {
-        this.extensionAbilityRegistry = extensionAbilityRegistry;
-        this.extensionMonitor = extensionMonitor;
+        this.extAbilityRegistry = extAbilityRegistry;
+        this.extMonitor = extMonitor;
         this.selectorRegistry = selectorRegistry;
-        this.contextManager = contextManager;
         this.flexPointConfig = flexPointConfig;
     }
 
     /**
-     * ==================extension==================
+     * ==================ext==================
      */
     
     /**
-     * 查找扩展点（使用指定的上下文）
+     * 查找扩展点
      */
-    public <T extends ExtensionAbility> T findAbility(Class<T> extensionType, Context context) {
+    public <T extends ExtAbility> T findAbility(Class<T> extType) {
         try {
             // 从扩展点接口的@FpSelector注解获取选择器名称
-            FpSelector selectorAnno = extensionType.getAnnotation(FpSelector.class);
+            FpSelector selectorAnno = extType.getAnnotation(FpSelector.class);
             if (selectorAnno == null) {
-                log.warn("扩展点类型[{}]缺少@FpSelector注解", extensionType.getSimpleName());
+                log.warn("扩展点类型[{}]缺少@FpSelector注解", extType.getSimpleName());
                 return null;
             }
             
@@ -71,63 +64,48 @@ public class FlexPoint {
             Selector selector = selectorRegistry.getSelector(selectorName);
             if (selector == null) {
                 log.warn("未找到名称为[{}]的选择器", selectorName);
-                throw new SelectorNotFoundException(selectorName, extensionType.getSimpleName());
+                throw new SelectorNotFoundException(selectorName, extType.getSimpleName());
             }
             
-            List<T> extensions = extensionAbilityRegistry.getAllExtensionAbility(extensionType);
-            if (extensions.isEmpty()) {
-                log.warn("未找到扩展点实现: type={}", extensionType.getSimpleName());
+            List<T> exts = extAbilityRegistry.getAllExtAbility(extType);
+            if (exts.isEmpty()) {
+                log.warn("未找到扩展点实现: type={}", extType.getSimpleName());
                 return null;
             }
-            
-            T selected = selector.select(extensions, context);
+
+            T selected = selector.select(exts);
             if (selected == null) {
-                log.warn("选择器[{}]未找到匹配的扩展点: type={}", selectorName, extensionType.getSimpleName());
+                log.warn("选择器[{}]未找到匹配的扩展点: type={}", selectorName, extType.getSimpleName());
                 return null;
             }
             
             log.debug("成功获取扩展点: type={}, code={}, selector={}, class={}",
-                    extensionType.getSimpleName(), selected.getCode(), selectorName, selected.getClass().getName());
+                    extType.getSimpleName(), selected.getCode(), selectorName, selected.getClass().getName());
             return selected;
         } catch (Exception e) {
-            log.error("获取扩展点失败: type={}", extensionType.getSimpleName(), e);
+            log.error("获取扩展点失败: type={}", extType.getSimpleName(), e);
             throw e;
         }
     }
 
     /**
-     * 查找扩展点（使用指定的上下文）- Optional版本
+     * 查找扩展点- Optional版本
      */
-    public <T extends ExtensionAbility> Optional<T> findAbilityOpt(Class<T> extensionType, Context context) {
-        return Optional.ofNullable(findAbility(extensionType, context));
+    public <T extends ExtAbility> Optional<T> findAbilityOpt(Class<T> extType) {
+        return Optional.ofNullable(findAbility(extType));
     }
 
-    /**
-     * 查找扩展点（使用默认上下文）
-     */
-    public <T extends ExtensionAbility> T findAbility(Class<T> extensionType) {
-        Context context = new Context();
-        return findAbility(extensionType, context);
+    public <T extends ExtAbility> List<T> getAllExt(Class<T> extType) {
+        return extAbilityRegistry.getAllExtAbility(extType);
     }
 
-    /**
-     * 查找扩展点（使用默认上下文）- Optional版本
-     */
-    public <T extends ExtensionAbility> Optional<T> findAbilityOpt(Class<T> extensionType) {
-        return Optional.ofNullable(findAbility(extensionType));
+    public int getExtCount() {
+        return extAbilityRegistry.getAllExtAbility(ExtAbility.class).size();
     }
 
-    public <T extends ExtensionAbility> List<T> getAllExtensions(Class<T> extensionType) {
-        return extensionAbilityRegistry.getAllExtensionAbility(extensionType);
-    }
-
-    public int getExtensionCount() {
-        return extensionAbilityRegistry.getAllExtensionAbility(ExtensionAbility.class).size();
-    }
-
-    public void register(ExtensionAbility extension) {
-        extensionAbilityRegistry.register(extension);
-        log.info("注册扩展点: code={}, tags={}, class={}", extension.getCode(), extension.getTags(), extension.getClass().getName());
+    public void register(ExtAbility ext) {
+        extAbilityRegistry.register(ext);
+        log.info("注册扩展点: code={}, tags={}, class={}", ext.getCode(), ext.getTags(), ext.getClass().getName());
     }
 
     /**
@@ -158,46 +136,26 @@ public class FlexPoint {
     }
 
     /**
-     * ==================context==================
-     */
-    
-    /**
-     * 注册上下文提供者
-     */
-    public void registerContextProvider(ContextProvider provider) {
-        contextManager.registerProvider(provider);
-        log.info("注册上下文提供者: name={}, priority={}", provider.getName(), provider.getPriority());
-    }
-
-    /**
-     * 注销上下文提供者
-     */
-    public void unregisterContextProvider(String providerName) {
-        contextManager.unregisterProvider(providerName);
-        log.info("注销上下文提供者: name={}", providerName);
-    }
-
-    /**
      * ==================monitor==================
      */
-    public ExtensionMonitor.ExtensionMetrics getExtensionMetrics(ExtensionAbility extensionAbility) {
-        return extensionMonitor.getMetrics(extensionAbility);
+    public ExtMonitor.ExtMetrics getExtMetrics(ExtAbility extAbility) {
+        return extMonitor.getMetrics(extAbility);
     }
 
-    public Map<String, ExtensionMonitor.ExtensionMetrics> getAllExtensionMetrics() {
-        return extensionMonitor.getAllMetrics();
+    public Map<String, ExtMonitor.ExtMetrics> getAllExtMetrics() {
+        return extMonitor.getAllMetrics();
     }
 
-    public void recordInvocation(ExtensionAbility extensionAbility, long duration, boolean success) {
-        this.extensionMonitor.recordInvocation(extensionAbility, duration, success);
+    public void recordInvocation(ExtAbility extAbility, long duration, boolean success) {
+        this.extMonitor.recordInvocation(extAbility, duration, success);
     }
 
-    public void recordException(ExtensionAbility extensionAbility, Throwable exception) {
-        this.extensionMonitor.recordException(extensionAbility, exception);
+    public void recordException(ExtAbility extAbility, Throwable exception) {
+        this.extMonitor.recordException(extAbility, exception);
     }
 
-    public void resetMetrics(ExtensionAbility extensionAbility) {
-        this.extensionMonitor.resetMetrics(extensionAbility);
+    public void resetMetrics(ExtAbility extAbility) {
+        this.extMonitor.resetMetrics(extAbility);
     }
 
 }

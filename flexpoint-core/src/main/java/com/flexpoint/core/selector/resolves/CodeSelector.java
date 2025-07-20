@@ -1,7 +1,6 @@
 package com.flexpoint.core.selector.resolves;
 
-import com.flexpoint.core.context.Context;
-import com.flexpoint.core.extension.ExtensionAbility;
+import com.flexpoint.core.ext.ExtAbility;
 import com.flexpoint.core.selector.AbstractSelector;
 import lombok.RequiredArgsConstructor;
 
@@ -20,18 +19,18 @@ public class CodeSelector extends AbstractSelector {
     protected final CodeResolver resolver;
 
     @Override
-    protected <T extends ExtensionAbility> List<T> filter(List<T> candidates, Context context) {
-        return filterByCode(candidates, context);
+    protected <T extends ExtAbility> List<T> filter(List<T> candidates) {
+        return filterByCode(candidates);
     }
 
     /**
      * 按code过滤候选者，子类可以覆盖此方法进行进一步过滤
      */
-    protected <T extends ExtensionAbility> List<T> filterByCode(List<T> candidates, Context context) {
+    protected <T extends ExtAbility> List<T> filterByCode(List<T> candidates) {
         if (resolver == null) {
             throw new IllegalStateException(getName() + "Selector中的 Resolver 不能为null，请注册业务自定义实现！");
         }
-        String code = resolver.resolveCode(context);
+        String code = resolver.resolveCode();
         if (code == null) {
             return Collections.emptyList();
         }
@@ -48,7 +47,7 @@ public class CodeSelector extends AbstractSelector {
      */
     public interface CodeResolver {
 
-        String resolveCode(Context context);
+        String resolveCode();
 
     }
-} 
+}

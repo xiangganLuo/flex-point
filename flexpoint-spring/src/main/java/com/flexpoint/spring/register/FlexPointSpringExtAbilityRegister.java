@@ -1,7 +1,7 @@
 package com.flexpoint.spring.register;
 
-import com.flexpoint.core.extension.ExtensionAbility;
-import com.flexpoint.core.extension.ExtensionAbilityRegistry;
+import com.flexpoint.core.ext.ExtAbility;
+import com.flexpoint.core.ext.ExtAbilityRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
@@ -17,10 +17,10 @@ import java.util.List;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class FlexPointSpringExtensionAbilityRegister implements InitializingBean {
+public class FlexPointSpringExtAbilityRegister implements InitializingBean {
 
-    private final ExtensionAbilityRegistry extensionAbilityRegistry;
-    private final List<ExtensionAbility> abilities;
+    private final ExtAbilityRegistry extAbilityRegistry;
+    private final List<ExtAbility> abilities;
 
     @Override
     public void afterPropertiesSet() {
@@ -28,7 +28,7 @@ public class FlexPointSpringExtensionAbilityRegister implements InitializingBean
             return;
         }
         abilities.forEach(ability -> {
-            extensionAbilityRegistry.register(ability);
+            extAbilityRegistry.register(ability);
             log.info("注册扩展点: code={}, tags={}, class={}", ability.getCode(), ability.getTags(), ability.getClass().getName());
         });
     }

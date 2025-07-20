@@ -1,7 +1,7 @@
 package com.flexpoint.core.monitor;
 
 import com.flexpoint.core.config.FlexPointConfig;
-import com.flexpoint.core.extension.ExtensionAbility;
+import com.flexpoint.core.ext.ExtAbility;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
@@ -15,9 +15,9 @@ import java.util.concurrent.*;
  * @version 1.0.0
  */
 @Slf4j
-public class AsyncExtensionMonitor implements ExtensionMonitor {
+public class AsyncExtMonitor implements ExtMonitor {
     
-    private final ExtensionMonitor delegate;
+    private final ExtMonitor delegate;
     private final ExecutorService executor;
     private final BlockingQueue<Runnable> workQueue;
     private final int queueSize;
@@ -25,14 +25,14 @@ public class AsyncExtensionMonitor implements ExtensionMonitor {
     /**
      * 使用默认配置创建异步监控器
      */
-    public AsyncExtensionMonitor() {
+    public AsyncExtMonitor() {
         this(new FlexPointConfig.MonitorConfig());
     }
     
     /**
      * 使用指定配置创建异步监控器
      */
-    public AsyncExtensionMonitor(FlexPointConfig.MonitorConfig config) {
+    public AsyncExtMonitor(FlexPointConfig.MonitorConfig config) {
         this.queueSize = config.getAsyncQueueSize();
         this.workQueue = new LinkedBlockingQueue<>(queueSize);
 
@@ -50,7 +50,7 @@ public class AsyncExtensionMonitor implements ExtensionMonitor {
             },
             new ThreadPoolExecutor.CallerRunsPolicy()
         );
-        this.delegate = new DefaultExtensionMonitor(config);
+        this.delegate = new DefaultExtMonitor(config);
         
         log.info("创建异步监控器: corePoolSize={}, maxPoolSize={}, keepAliveTime={}s, queueSize={}", 
                 config.getAsyncCorePoolSize(), config.getAsyncMaxPoolSize(), 
@@ -58,38 +58,28 @@ public class AsyncExtensionMonitor implements ExtensionMonitor {
     }
     
     @Override
-    public void recordInvocation(ExtensionAbility extensionAbility, long duration, boolean success) {
-        submitTask(() -> delegate.recordInvocation(extensionAbility, duration, success));
+    public void recordInvocation(ExtAbility extAbility, long duration, boolean success) {
+        submitTask(() -> delegate.recordInvocation(extAbility, duration, success));
+    }
+
+    @Override
+    public void recordException(ExtAbility extAbility, Throwable exception) {
+        submitTask(() -> delegate.recordException(extAbility, exception));
     }
     
     @Override
-    public void recordInvocation(ExtensionAbility extensionAbility, long duration, boolean success, Map<String, Object> context) {
-        submitTask(() -> delegate.recordInvocation(extensionAbility, duration, success, context));
+    public ExtMetrics getMetrics(ExtAbility extAbility) {
+        return delegate.getMetrics(extAbility);
     }
     
     @Override
-    public void recordException(ExtensionAbility extensionAbility, Throwable exception) {
-        submitTask(() -> delegate.recordException(extensionAbility, exception));
-    }
-    
-    @Override
-    public void recordException(ExtensionAbility extensionAbility, Throwable exception, Map<String, Object> context) {
-        submitTask(() -> delegate.recordException(extensionAbility, exception, context));
-    }
-    
-    @Override
-    public ExtensionMetrics getMetrics(ExtensionAbility extensionAbility) {
-        return delegate.getMetrics(extensionAbility);
-    }
-    
-    @Override
-    public Map<String, ExtensionMetrics> getAllMetrics() {
+    public Map<String, ExtMetrics> getAllMetrics() {
         return delegate.getAllMetrics();
     }
     
     @Override
-    public void resetMetrics(ExtensionAbility extensionAbility) {
-        submitTask(() -> delegate.resetMetrics(extensionAbility));
+    public void resetMetrics(ExtAbility extAbility) {
+        submitTask(() -> delegate.resetMetrics(extAbility));
     }
     
     @Override

@@ -17,36 +17,36 @@ public class SelectorNotFoundException extends RuntimeException {
     /**
      * 扩展点类型名称
      */
-    private final String extensionType;
+    private final String extType;
     
     public SelectorNotFoundException(String selectorName) {
         super(String.format("未找到名称为[%s]的选择器，请检查选择器是否已注册", selectorName));
         this.selectorName = selectorName;
-        this.extensionType = null;
+        this.extType = null;
     }
     
-    public SelectorNotFoundException(String selectorName, String extensionType) {
-        super(String.format("扩展点类型[%s]使用的选择器[%s]未找到，请检查选择器是否已注册", extensionType, selectorName));
+    public SelectorNotFoundException(String selectorName, String extType) {
+        super(String.format("扩展点类型[%s]使用的选择器[%s]未找到，请检查选择器是否已注册", extType, selectorName));
         this.selectorName = selectorName;
-        this.extensionType = extensionType;
+        this.extType = extType;
     }
     
-    public SelectorNotFoundException(String selectorName, String extensionType, String customMessage) {
+    public SelectorNotFoundException(String selectorName, String extType, String customMessage) {
         super(customMessage);
         this.selectorName = selectorName;
-        this.extensionType = extensionType;
+        this.extType = extType;
     }
     
     public SelectorNotFoundException(String selectorName, Throwable cause) {
         super(String.format("未找到名称为[%s]的选择器，请检查选择器是否已注册", selectorName), cause);
         this.selectorName = selectorName;
-        this.extensionType = null;
+        this.extType = null;
     }
     
-    public SelectorNotFoundException(String selectorName, String extensionType, Throwable cause) {
-        super(String.format("扩展点类型[%s]使用的选择器[%s]未找到，请检查选择器是否已注册", extensionType, selectorName), cause);
+    public SelectorNotFoundException(String selectorName, String extType, Throwable cause) {
+        super(String.format("扩展点类型[%s]使用的选择器[%s]未找到，请检查选择器是否已注册", extType, selectorName), cause);
         this.selectorName = selectorName;
-        this.extensionType = extensionType;
+        this.extType = extType;
     }
     
     /**
@@ -63,7 +63,7 @@ public class SelectorNotFoundException extends RuntimeException {
      * 
      * @return 扩展点类型名称，可能为null
      */
-    public String getExtensionType() {
-        return extensionType;
+    public String getExtType() {
+        return extType;
     }
 } 

@@ -5,7 +5,7 @@ import com.flexpoint.example.java.ability.OrderProcessAbility;
 
 /**
  * 订单服务类
- * 演示如何在业务服务中使用扩展点，自动感知上下文
+ * 演示如何在业务服务中使用扩展点
  * @author xiangganluo
  */
 public class OrderService {
@@ -17,7 +17,7 @@ public class OrderService {
     }
 
     /**
-     * 处理订单（自动根据上下文选择实现）
+     * 处理订单
      */
     public String processOrder(String orderId, String orderData) {
         OrderProcessAbility ability = flexPoint.findAbility(OrderProcessAbility.class);
@@ -28,7 +28,7 @@ public class OrderService {
     }
 
     /**
-     * 查询订单状态（自动根据上下文选择实现）
+     * 查询订单状态
      */
     public String getOrderStatus(String orderId) {
         OrderProcessAbility ability = flexPoint.findAbility(OrderProcessAbility.class);

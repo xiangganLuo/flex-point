@@ -1,8 +1,7 @@
 package com.flexpoint.core.selector;
 
-import com.flexpoint.common.exception.MultipleExtensionMatchedException;
-import com.flexpoint.core.context.Context;
-import com.flexpoint.core.extension.ExtensionAbility;
+import com.flexpoint.common.exception.MultipleExtMatchedException;
+import com.flexpoint.core.ext.ExtAbility;
 
 import java.util.List;
 
@@ -17,8 +16,8 @@ import java.util.List;
 public abstract class AbstractSelector implements Selector {
 
     @Override
-    public <T extends ExtensionAbility> T select(List<T> candidates, Context context) {
-        List<T> filtered = filter(candidates, context);
+    public <T extends ExtAbility> T select(List<T> candidates) {
+        List<T> filtered = filter(candidates);
         
         if (filtered.isEmpty()) {
             return null;
@@ -29,17 +28,16 @@ public abstract class AbstractSelector implements Selector {
         }
         
         // 有多个匹配结果，抛出专门的异常
-        throw new MultipleExtensionMatchedException(getName(), filtered.size());
+        throw new MultipleExtMatchedException(getName(), filtered.size());
     }
 
     /**
      * 从候选列表中过滤匹配的扩展点
-     *
+     * 
      * @param candidates 候选扩展点列表
-     * @param context 选择器上下文
      * @param <T> 扩展点类型
-     * @return 匹配的扩展点列表，可能为空但不应为null
+     * @return 匹配的扩展点列表
      */
-    protected abstract <T extends ExtensionAbility> List<T> filter(List<T> candidates, Context context);
+    protected abstract <T extends ExtAbility> List<T> filter(List<T> candidates);
 
 }

@@ -1,3 +1,2 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-com.flexpoint.springboot.config.FlexPointAutoConfiguration,\
-com.flexpoint.springboot.config.FlexPointContextAutoConfiguration
+com.flexpoint.springboot.config.FlexPointAutoConfiguration

@@ -1,7 +1,6 @@
 package com.flexpoint.core.selector;
 
-import com.flexpoint.core.context.Context;
-import com.flexpoint.core.extension.ExtensionAbility;
+import com.flexpoint.core.ext.ExtAbility;
 import java.util.List;
 
 /**
@@ -15,11 +14,10 @@ public interface Selector {
      * 从候选列表中选择匹配的扩展点
      * 
      * @param candidates 候选扩展点列表
-     * @param context 选择器上下文
      * @param <T> 扩展点类型
      * @return 匹配的扩展点
      */
-    <T extends ExtensionAbility> T select(List<T> candidates, Context context);
+    <T extends ExtAbility> T select(List<T> candidates);
 
     /**
      * 获取选择器名称

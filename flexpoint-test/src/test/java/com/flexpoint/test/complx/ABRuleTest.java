@@ -1,19 +1,18 @@
 package com.flexpoint.test.complx;
 
 import com.flexpoint.common.annotations.FpSelector;
-import com.flexpoint.common.constants.FlexPointConstants;
 import com.flexpoint.core.FlexPoint;
 import com.flexpoint.core.FlexPointBuilder;
 import com.flexpoint.core.config.FlexPointConfig;
-import com.flexpoint.core.context.Context;
-import com.flexpoint.core.extension.ExtensionAbility;
+import com.flexpoint.core.ext.ExtAbility;
+
+import java.util.Map;
 import com.flexpoint.core.selector.Selector;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
-import java.util.Map;
 
 /**
  * AB测试规则测试类
@@ -23,7 +22,7 @@ public class ABRuleTest {
     private FlexPoint flexPoint;
 
     @FpSelector("ABTestSelector")
-    public interface ABTestAbility extends ExtensionAbility {
+    public interface ABTestAbility extends ExtAbility {
         String process(String input);
     }
     static class GrayAbility implements ABTestAbility {
@@ -38,7 +37,7 @@ public class ABRuleTest {
         private final Map<String, String> userGroup;
         public ABTestSelector(Map<String, String> userGroup) { this.userGroup = userGroup; }
         @Override
-        public <T extends ExtensionAbility> T select(java.util.List<T> candidates, Context context) {
+        public <T extends ExtAbility> T select(java.util.List<T> candidates) {
             String userId = UserContext.get();
             String code = userGroup.getOrDefault(userId, "normal");
             for (T ext : candidates) {

@@ -1,7 +1,7 @@
 package com.flexpoint.example.java.ability;
 
 import com.flexpoint.common.annotations.FpSelector;
-import com.flexpoint.core.extension.ExtensionAbility;
+import com.flexpoint.core.ext.ExtAbility;
 
 /**
  * 订单处理扩展点接口
@@ -9,7 +9,7 @@ import com.flexpoint.core.extension.ExtensionAbility;
  * @author xiangganluo
  */
 @FpSelector("codeVersionSelector")
-public interface OrderProcessAbility extends ExtensionAbility {
+public interface OrderProcessAbility extends ExtAbility {
     /**
      * 处理订单
      */

@@ -2,7 +2,6 @@ package com.flexpoint.example.java.manager;
 
 import com.flexpoint.core.FlexPoint;
 import com.flexpoint.core.FlexPointBuilder;
-import com.flexpoint.core.context.Context;
 import com.flexpoint.core.selector.resolves.CodeVersionSelector;
 import com.flexpoint.example.java.ability.impl.LogisticsOrderProcessAbility;
 import com.flexpoint.example.java.ability.impl.MallOrderProcessAbility;
@@ -27,12 +26,12 @@ public class FlexPointManager {
         // 注册选择器
         CodeVersionSelector.CodeVersionResolver resolver = new CodeVersionSelector.CodeVersionResolver() {
             @Override
-            public String resolveCode(Context context) {
+            public String resolveCode() {
                 return AppContext.getAppCode();
             }
             
             @Override
-            public String resolveVersion(Context context) {
+            public String resolveVersion() {
                 return "1.0.0"; // 默认版本
             }
         };

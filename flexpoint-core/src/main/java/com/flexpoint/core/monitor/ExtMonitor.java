@@ -1,6 +1,6 @@
 package com.flexpoint.core.monitor;
 
-import com.flexpoint.core.extension.ExtensionAbility;
+import com.flexpoint.core.ext.ExtAbility;
 
 import java.util.Map;
 
@@ -11,65 +11,46 @@ import java.util.Map;
  * @author xiangganluo
  * @version 1.0.0
  */
-public interface ExtensionMonitor {
+public interface ExtMonitor {
     
     /**
      * 记录扩展点调用
      *
-     * @param extensionAbility 扩展点能力实例
+     * @param extAbility 扩展点能力实例
      * @param duration 调用耗时（毫秒）
      * @param success 是否成功
      */
-    void recordInvocation(ExtensionAbility extensionAbility, long duration, boolean success);
-    
-    /**
-     * 记录扩展点调用（带上下文信息）
-     *
-     * @param extensionAbility 扩展点能力实例
-     * @param duration 调用耗时（毫秒）
-     * @param success 是否成功
-     * @param context 调用上下文
-     */
-    void recordInvocation(ExtensionAbility extensionAbility, long duration, boolean success, Map<String, Object> context);
-    
+    void recordInvocation(ExtAbility extAbility, long duration, boolean success);
+
     /**
      * 记录扩展点异常
      *
-     * @param extensionAbility 扩展点能力实例
+     * @param extAbility 扩展点能力实例
      * @param exception 异常信息
      */
-    void recordException(ExtensionAbility extensionAbility, Throwable exception);
-    
-    /**
-     * 记录扩展点异常（带上下文信息）
-     *
-     * @param extensionAbility 扩展点能力实例
-     * @param exception 异常信息
-     * @param context 异常上下文
-     */
-    void recordException(ExtensionAbility extensionAbility, Throwable exception, Map<String, Object> context);
+    void recordException(ExtAbility extAbility, Throwable exception);
     
     /**
      * 获取扩展点指标
      *
-     * @param extensionAbility 扩展点能力实例
+     * @param extAbility 扩展点能力实例
      * @return 扩展点指标
      */
-    ExtensionMetrics getMetrics(ExtensionAbility extensionAbility);
+    ExtMetrics getMetrics(ExtAbility extAbility);
     
     /**
      * 获取所有扩展点指标
      *
      * @return 所有扩展点指标，key为扩展点标识符
      */
-    Map<String, ExtensionMetrics> getAllMetrics();
+    Map<String, ExtMetrics> getAllMetrics();
     
     /**
      * 重置扩展点指标
      *
-     * @param extensionAbility 扩展点能力实例
+     * @param extAbility 扩展点能力实例
      */
-    void resetMetrics(ExtensionAbility extensionAbility);
+    void resetMetrics(ExtAbility extAbility);
     
     /**
      * 获取监控器状态
@@ -81,7 +62,7 @@ public interface ExtensionMonitor {
     /**
      * 扩展点指标
      */
-    interface ExtensionMetrics {
+    interface ExtMetrics {
         /**
          * 获取总调用次数
          */

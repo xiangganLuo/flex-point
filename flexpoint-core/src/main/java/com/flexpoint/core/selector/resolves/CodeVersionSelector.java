@@ -1,7 +1,6 @@
 package com.flexpoint.core.selector.resolves;
 
-import com.flexpoint.core.context.Context;
-import com.flexpoint.core.extension.ExtensionAbility;
+import com.flexpoint.core.ext.ExtAbility;
 
 import java.util.List;
 import java.util.Objects;
@@ -25,13 +24,13 @@ public class CodeVersionSelector extends CodeSelector {
      * 重写过滤逻辑，先按code过滤，再按version过滤
      */
     @Override
-    protected <T extends ExtensionAbility> List<T> filterByCode(List<T> candidates, Context context) {
+    protected <T extends ExtAbility> List<T> filterByCode(List<T> candidates) {
         // 先按code过滤
-        List<T> codeFiltered = super.filterByCode(candidates, context);
+        List<T> codeFiltered = super.filterByCode(candidates);
         
         // 如果resolver是CodeVersionResolver，则进一步按版本过滤
         if (resolver instanceof CodeVersionResolver) {
-            String targetVersion = Optional.ofNullable(((CodeVersionResolver) resolver).resolveVersion(context))
+            String targetVersion = Optional.ofNullable(((CodeVersionResolver) resolver).resolveVersion())
                 .orElse(DEFAULT_VERSION);
             
             // 安全地过滤版本号
@@ -54,8 +53,8 @@ public class CodeVersionSelector extends CodeSelector {
      */
     public interface CodeVersionResolver extends CodeSelector.CodeResolver {
 
-        default String resolveVersion(Context context) {
+        default String resolveVersion() {
             return DEFAULT_VERSION;
         }
     }
-} 
+}

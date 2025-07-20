@@ -20,12 +20,12 @@ public class FlexPointConfig {
         // 创建CodeVersionResolver实现
         CodeVersionSelector.CodeVersionResolver resolver = new CodeVersionSelector.CodeVersionResolver() {
             @Override
-            public String resolveCode(com.flexpoint.core.context.Context context) {
+            public String resolveCode() {
                 return SysAppContext.getAppCode();
             }
             
             @Override
-            public String resolveVersion(com.flexpoint.core.context.Context context) {
+            public String resolveVersion() {
                 // 默认返回1.0.0，可以根据实际需要从其他地方获取版本信息
                 return "1.0.0";
             }

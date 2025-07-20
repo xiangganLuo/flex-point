@@ -4,8 +4,8 @@ import com.flexpoint.common.annotations.FpSelector;
 import com.flexpoint.core.FlexPoint;
 import com.flexpoint.core.FlexPointBuilder;
 import com.flexpoint.core.config.FlexPointConfig;
-import com.flexpoint.core.context.Context;
-import com.flexpoint.core.extension.ExtensionAbility;
+import com.flexpoint.core.ext.ExtAbility;
+
 import com.flexpoint.core.selector.resolves.CodeSelector;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,7 +18,7 @@ public class IntegrationTest {
     private FlexPoint flexPoint;
 
     @FpSelector("DemoStrategy")
-    public interface DemoAbilityDef extends ExtensionAbility {
+    public interface DemoAbilityDef extends ExtAbility {
     }
 
     static class DemoAbility implements DemoAbilityDef {
@@ -49,7 +49,7 @@ public class IntegrationTest {
         // 注册选择器
         flexPoint.registerSelector(new DemoSelector(new CodeSelector.CodeResolver() {
             @Override
-            public String resolveCode(Context context) {
+            public String resolveCode() {
                 return "demo";
             }
         }));
@@ -66,7 +66,7 @@ public class IntegrationTest {
         // 注册选择器
         flexPoint.registerSelector(new DemoSelector(new CodeSelector.CodeResolver() {
             @Override
-            public String resolveCode(Context context) {
+            public String resolveCode() {
                 return "special";
             }
         }));
@@ -77,4 +77,4 @@ public class IntegrationTest {
         // 查找扩展点（应命中special）
         flexPoint.findAbility(DemoAbilityDef.class);
     }
-} 
+}

@@ -1,6 +1,6 @@
 package com.flexpoint.example.java.ability.impl;
 
-import com.flexpoint.core.extension.ExtensionTags;
+import com.flexpoint.core.ext.ExtTags;
 import com.flexpoint.example.java.ability.OrderProcessAbility;
 
 /**
@@ -27,8 +27,8 @@ public class LogisticsOrderProcessAbility implements OrderProcessAbility {
     }
 
     @Override
-    public ExtensionTags getTags() {
-        return ExtensionTags.builder()
+    public ExtTags getTags() {
+        return ExtTags.builder()
             .set("version", "1.0.0")
             .build();
     }

@@ -2,12 +2,10 @@ package com.flexpoint.springboot.config;
 
 import com.flexpoint.core.FlexPoint;
 import com.flexpoint.core.FlexPointBuilder;
-import com.flexpoint.core.context.ContextProvider;
-import com.flexpoint.core.extension.ExtensionAbility;
+import com.flexpoint.core.ext.ExtAbility;
 import com.flexpoint.spring.banner.FlexPointBanner;
-import com.flexpoint.spring.processor.ExtensionAbilityProcessor;
-import com.flexpoint.spring.register.FlexPointContextProviderRegister;
-import com.flexpoint.spring.register.FlexPointSpringExtensionAbilityRegister;
+import com.flexpoint.spring.processor.ExtAbilityProcessor;
+import com.flexpoint.spring.register.FlexPointSpringExtAbilityRegister;
 import com.flexpoint.spring.register.FlexPointSpringSelectorRegister;
 import com.flexpoint.springboot.properties.FlexPointProperties;
 import lombok.extern.slf4j.Slf4j;
@@ -50,8 +48,8 @@ public class FlexPointAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = FlexPointProperties.PREFIX + ".registry", name = "enabled", havingValue = "true", matchIfMissing = true)
-    public FlexPointSpringExtensionAbilityRegister springExtensionAbilityRegister(FlexPoint flexPoint, List<ExtensionAbility> abilities) {
-        return new FlexPointSpringExtensionAbilityRegister(flexPoint.getExtensionAbilityRegistry(), abilities);
+    public FlexPointSpringExtAbilityRegister springExtAbilityRegister(FlexPoint flexPoint, List<ExtAbility> abilities) {
+        return new FlexPointSpringExtAbilityRegister(flexPoint.getExtAbilityRegistry(), abilities);
     }
 
     @Bean
@@ -77,16 +75,8 @@ public class FlexPointAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    public ExtensionAbilityProcessor extensionAbilityProcessor(FlexPoint flexPoint) {
-        return new ExtensionAbilityProcessor(flexPoint);
+    public ExtAbilityProcessor extAbilityProcessor(FlexPoint flexPoint) {
+        return new ExtAbilityProcessor(flexPoint);
     }
 
-    /**
-     * 自动注册上下文提供者到FlexPoint
-     */
-    @Bean
-    @ConditionalOnMissingBean
-    public FlexPointContextProviderRegister flexPointContextProviderInitializer(FlexPoint flexPoint, List<ContextProvider> providers) {
-        return new FlexPointContextProviderRegister(flexPoint, providers);
-    }
-} 
+}

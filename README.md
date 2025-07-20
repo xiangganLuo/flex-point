@@ -21,15 +21,12 @@
 
 ## 📚 简介
 
-Flex Point 是一款面向企业级应用的高可扩展性扩展点（Extension Point）框架，专为多业务场景下的"能力解耦、动态路由、灵活扩展"而设计。
-它支持在不同业务上下文、租户、版本、A/B测试等多种场景下，动态选择和切换业务实现，极大提升了系统的可维护性和业务创新能力。
+Flex Point 是一款面向企业级应用的性扩展点（Ext Point）框架，专为多业务场景下的"能力解耦、动态路由、灵活扩展"而设计。 他支持在不同场景下动态选择和切换业务实现，极大提升了系统的可维护性和业务创新能力。
 
 **核心特性：**
 - 🚀 **轻量级设计** - 专注于核心扩展点功能，核心模块无Spring依赖
-- 🎯 **智能选择器** - 支持自定义扩展点选择器，内置CodeVersionSelector等常用选择器
-- 🔧 **多环境支持** - Spring Boot自动配置、Spring集成、Java原生环境全覆盖
+- 🎯 **场景选择器** - 支持自定义扩展点选择器，内置CodeVersionSelector等常用选择器
 - 📊 **企业级监控** - 内置扩展点调用监控、性能统计、异步处理、告警机制
-- 🔄 **动态路由** - 支持基于上下文、租户、版本、A/B测试等多维度动态选择
 - 🏷️ **元数据管理** - 灵活的扩展点标签系统，支持任意场景的元数据存储
 - 🔌 **开箱即用** - Spring Boot环境下零配置启动，自动扫描注册
 
@@ -123,7 +120,7 @@ FlexPoint/
 
 ```java
 @FpSelector("codeVersionSelector")  // 指定使用的选择器名称
-public interface OrderProcessAbility extends ExtensionAbility {
+public interface OrderProcessAbility extends ExtAbility {
     String processOrder(String orderId, String orderData);
     String getOrderStatus(String orderId);
 }
@@ -162,7 +159,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class CodeVersionSelector implements Selector {
     @Override
-    public <T extends ExtensionAbility> T select(List<T> candidates, Context context) {
+    public <T extends ExtAbility> T select(List<T> candidates) {
         String code = SysAppContext.getAppCode();
         for (T ext : candidates) {
             if (code.equals(ext.getCode())) return ext;
@@ -239,7 +236,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class CustomSelector implements Selector {
     @Override
-    public <T extends ExtensionAbility> T select(List<T> candidates, Context context) {
+    public <T extends ExtAbility> T select(List<T> candidates) {
         String code = SysAppContext.getAppCode();
         for (T ext : candidates) {
             if (code.equals(ext.getCode())) return ext;
@@ -256,7 +253,7 @@ public class CustomSelector implements Selector {
 
 ```java
 @FpSelector("customSelector")  // 指定使用名为customSelector的选择器
-public interface OrderProcessAbility extends ExtensionAbility {
+public interface OrderProcessAbility extends ExtAbility {
     String processOrder(String orderId, String orderData);
     String version();
 }
@@ -266,7 +263,7 @@ public interface OrderProcessAbility extends ExtensionAbility {
 
 ```java
 // 获取扩展点调用统计
-ExtensionMonitor.ExtensionMetrics metrics = flexPoint.getExtensionMetrics("mall:1.0.0");
+ExtMonitor.ExtMetrics metrics = flexPoint.getExtMetrics("mall:1.0.0");
 System.out.println("调用次数: " + metrics.getTotalInvocations());
 System.out.println("平均耗时: " + metrics.getAverageDuration() + "ms");
 ```
@@ -347,7 +344,7 @@ public class FlexPointConfig {
 ```java
 // src/main/java/com/flexpoint/example/springboot/ext/OrderProcessAbility.java
 @FpSelector("codeVersionSelector")  // 指定使用codeVersionSelector选择器
-public interface OrderProcessAbility extends ExtensionAbility {
+public interface OrderProcessAbility extends ExtAbility {
     String processOrder(String orderId, String orderData);
     String getOrderStatus(String orderId);
 }
@@ -396,12 +393,12 @@ flexpoint:
     enabled: true
 ```
 
-可通过注入 `ExtensionMonitor` 获取扩展点调用统计：
+可通过注入 `ExtMonitor` 获取扩展点调用统计：
 ```java
 @Autowired
-private ExtensionMonitor extensionMonitor;
+private ExtMonitor extMonitor;
 
-ExtensionMonitor.ExtensionMetrics metrics = extensionMonitor.getExtensionMetrics(扩展点实例);
+ExtMonitor.ExtMetrics metrics = extMonitor.getExtMetrics(扩展点实例);
 ```
 
 ---

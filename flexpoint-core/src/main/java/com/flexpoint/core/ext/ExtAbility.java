@@ -1,4 +1,4 @@
-package com.flexpoint.core.extension;
+package com.flexpoint.core.ext;
 
 /**
  * 扩展点能力接口
@@ -7,7 +7,7 @@ package com.flexpoint.core.extension;
  * @author xiangganluo
  * @version 1.0.0
  */
-public interface ExtensionAbility {
+public interface ExtAbility {
 
     /**
      * 获取业务标识
@@ -23,8 +23,8 @@ public interface ExtensionAbility {
      * 
      * @return 扩展点标签，默认为空标签
      */
-    default ExtensionTags getTags() {
-        return ExtensionTags.empty();
+    default ExtTags getTags() {
+        return ExtTags.empty();
     }
 
 }

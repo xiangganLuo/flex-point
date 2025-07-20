@@ -7,7 +7,7 @@ package com.flexpoint.common.exception;
  * @author xiangganluo
  * @version 1.0.0
  */
-public class MultipleExtensionMatchedException extends RuntimeException {
+public class MultipleExtMatchedException extends RuntimeException {
     
     /**
      * 选择器名称
@@ -19,20 +19,20 @@ public class MultipleExtensionMatchedException extends RuntimeException {
      */
     private final int matchedCount;
     
-    public MultipleExtensionMatchedException(String selectorName, int matchedCount) {
+    public MultipleExtMatchedException(String selectorName, int matchedCount) {
         super(String.format("选择器[%s]匹配到多个扩展点实现，期望唯一结果。匹配数量: %d，请优化选择器逻辑确保结果唯一性。", 
             selectorName, matchedCount));
         this.selectorName = selectorName;
         this.matchedCount = matchedCount;
     }
     
-    public MultipleExtensionMatchedException(String selectorName, int matchedCount, String customMessage) {
+    public MultipleExtMatchedException(String selectorName, int matchedCount, String customMessage) {
         super(customMessage);
         this.selectorName = selectorName;
         this.matchedCount = matchedCount;
     }
     
-    public MultipleExtensionMatchedException(String selectorName, int matchedCount, Throwable cause) {
+    public MultipleExtMatchedException(String selectorName, int matchedCount, Throwable cause) {
         super(String.format("选择器[%s]匹配到多个扩展点实现，期望唯一结果。匹配数量: %d，请优化选择器逻辑确保结果唯一性。", 
             selectorName, matchedCount), cause);
         this.selectorName = selectorName;

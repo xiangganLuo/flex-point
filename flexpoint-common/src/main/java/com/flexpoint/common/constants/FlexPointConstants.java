@@ -8,5 +8,11 @@ package com.flexpoint.common.constants;
  */
 public interface FlexPointConstants {
 
+    String BANNER =
+            "  _   _   _   _   _   _   _   _   _ \n" +
+                    " / \\ / \\ / \\ / \\ / \\ / \\ / \\ / \\ / \\\n" +
+                    "( F | l | e | x | P | o | i | n | t )\n" +
+                    " \\_/ \\_/ \\_/ \\_/ \\_/ \\_/ \\_/ \\_/ \\\n";
+
 
 } 

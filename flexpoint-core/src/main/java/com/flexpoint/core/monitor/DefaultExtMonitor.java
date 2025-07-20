@@ -1,8 +1,8 @@
 package com.flexpoint.core.monitor;
 
 import com.flexpoint.core.config.FlexPointConfig;
-import com.flexpoint.core.extension.ExtensionAbility;
-import com.flexpoint.core.utils.ExtensionUtil;
+import com.flexpoint.core.ext.ExtAbility;
+import com.flexpoint.core.utils.ExtUtil;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
@@ -20,9 +20,9 @@ import java.util.concurrent.atomic.AtomicReference;
  * @version 1.0.0
  */
 @Slf4j
-public class DefaultExtensionMonitor implements ExtensionMonitor {
+public class DefaultExtMonitor implements ExtMonitor {
     
-    private final ConcurrentHashMap<String, ExtensionMetricsImpl> metricsMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, ExtMetricsImpl> metricsMap = new ConcurrentHashMap<>();
     private final ExecutorService asyncExecutor;
     
     private MonitorPipeline pipeline;
@@ -35,14 +35,14 @@ public class DefaultExtensionMonitor implements ExtensionMonitor {
     /**
      * 使用默认配置创建监控器
      */
-    public DefaultExtensionMonitor() {
+    public DefaultExtMonitor() {
         this(new FlexPointConfig.MonitorConfig());
     }
     
     /**
      * 使用指定配置创建监控器
      */
-    public DefaultExtensionMonitor(FlexPointConfig.MonitorConfig config) {
+    public DefaultExtMonitor(FlexPointConfig.MonitorConfig config) {
         this.config = config;
         this.asyncExecutor = config.isAsyncEnabled() ? 
             Executors.newSingleThreadExecutor(r -> {
@@ -59,95 +59,85 @@ public class DefaultExtensionMonitor implements ExtensionMonitor {
             log.info("监控器已禁用");
         }
     }
-    
+
     @Override
-    public void recordInvocation(ExtensionAbility extensionAbility, long duration, boolean success) {
-        recordInvocation(extensionAbility, duration, success, null);
-    }
-    
-    @Override
-    public void recordInvocation(ExtensionAbility extensionAbility, long duration, boolean success, Map<String, Object> context) {
+    public void recordInvocation(ExtAbility extAbility, long duration, boolean success) {
         if (!config.isEnabled()) {
             return;
         }
         
         if (config.isAsyncEnabled() && asyncExecutor != null) {
-            asyncExecutor.submit(() -> doRecordInvocation(extensionAbility, duration, success, context));
+            asyncExecutor.submit(() -> doRecordInvocation(extAbility, duration, success));
         } else {
-            doRecordInvocation(extensionAbility, duration, success, context);
+            doRecordInvocation(extAbility, duration, success);
         }
     }
     
-    private void doRecordInvocation(ExtensionAbility extensionAbility, long duration, boolean success, Map<String, Object> context) {
-        String extensionId = ExtensionUtil.getExtensionId(extensionAbility);
-        ExtensionMetricsImpl metrics = null;
+    private void doRecordInvocation(ExtAbility extAbility, long duration, boolean success) {
+        String ext = ExtUtil.getExtId(extAbility);
+        ExtMetricsImpl metrics = null;
         if (config.isPerformanceStatsEnabled()) {
-            metrics = metricsMap.computeIfAbsent(extensionId, k -> new ExtensionMetricsImpl());
+            metrics = metricsMap.computeIfAbsent(ext, k -> new ExtMetricsImpl());
             metrics.recordInvocation(duration, success);
         }
 
         if (config.isLogInvocation()) {
-            log.debug("扩展点调用记录: id={}, duration={}ms, success={}, context={}", 
-                    extensionId, duration, success, context);
+            log.debug("扩展点调用记录: id={}, duration={}ms, success={}",
+                    ext, duration, success);
         }
         
         // 埋点：统一交给MonitorPipeline
         if (pipeline != null) {
-            pipeline.afterInvoke(extensionAbility, duration, success, context, metrics);
+            pipeline.afterInvoke(extAbility, duration, success, metrics);
         }
     }
     
     @Override
-    public void recordException(ExtensionAbility extensionAbility, Throwable exception) {
-        recordException(extensionAbility, exception, null);
-    }
-    
-    @Override
-    public void recordException(ExtensionAbility extensionAbility, Throwable exception, Map<String, Object> context) {
+    public void recordException(ExtAbility extAbility, Throwable exception) {
         if (!config.isEnabled()) {
             return;
         }
-        
+
         if (config.isAsyncEnabled() && asyncExecutor != null) {
-            asyncExecutor.submit(() -> doRecordException(extensionAbility, exception, context));
+            asyncExecutor.submit(() -> doRecordException(extAbility, exception));
         } else {
-            doRecordException(extensionAbility, exception, context);
+            doRecordException(extAbility, exception);
         }
     }
     
-    private void doRecordException(ExtensionAbility extensionAbility, Throwable exception, Map<String, Object> context) {
-        String extensionId = ExtensionUtil.getExtensionId(extensionAbility);
-        ExtensionMetricsImpl metrics = null;
+    private void doRecordException(ExtAbility extAbility, Throwable exception) {
+        String ext = ExtUtil.getExtId(extAbility);
+        ExtMetricsImpl metrics = null;
         if (config.isPerformanceStatsEnabled()) {
-            metrics = metricsMap.computeIfAbsent(extensionId, k -> new ExtensionMetricsImpl());
+            metrics = metricsMap.computeIfAbsent(ext, k -> new ExtMetricsImpl());
             metrics.recordException();
         }
         
         if (config.isLogExceptionDetails()) {
-            log.warn("扩展点异常记录: id={}, exception={}, context={}", 
-                    extensionId, exception.getMessage(), context, exception);
+            log.warn("扩展点异常记录: id={}, exception={}",
+                    ext, exception.getMessage(), exception);
         } else {
-            log.warn("扩展点异常记录: id={}, exception={}, context={}", 
-                    extensionId, exception.getMessage(), context);
+            log.warn("扩展点异常记录: id={}, exception={}",
+                    ext, exception.getMessage());
         }
         
         // 埋点：统一交给MonitorPipeline
         if (pipeline != null) {
-            pipeline.onException(extensionAbility, exception, context, metrics);
+            pipeline.onException(extAbility, exception, metrics);
         }
     }
     
     @Override
-    public ExtensionMetrics getMetrics(ExtensionAbility extensionAbility) {
+    public ExtMetrics getMetrics(ExtAbility extAbility) {
         if (!config.isEnabled() || !config.isPerformanceStatsEnabled()) {
-            return new ExtensionMetricsImpl();
+            return new ExtMetricsImpl();
         }
-        String extensionId = ExtensionUtil.getExtensionId(extensionAbility);
-        return metricsMap.getOrDefault(extensionId, new ExtensionMetricsImpl());
+        String ext = ExtUtil.getExtId(extAbility);
+        return metricsMap.getOrDefault(ext, new ExtMetricsImpl());
     }
     
     @Override
-    public Map<String, ExtensionMetrics> getAllMetrics() {
+    public Map<String, ExtMetrics> getAllMetrics() {
         if (!config.isEnabled() || !config.isPerformanceStatsEnabled()) {
             return new ConcurrentHashMap<>();
         }
@@ -155,19 +145,19 @@ public class DefaultExtensionMonitor implements ExtensionMonitor {
     }
     
     @Override
-    public void resetMetrics(ExtensionAbility extensionAbility) {
+    public void resetMetrics(ExtAbility extAbility) {
         if (!config.isEnabled()) {
             return;
         }
         
-        String extensionId = ExtensionUtil.getExtensionId(extensionAbility);
-        metricsMap.remove(extensionId);
-        log.info("扩展点指标已重置: id={}", extensionId);
+        String ext = ExtUtil.getExtId(extAbility);
+        metricsMap.remove(ext);
+        log.info("扩展点指标已重置: id={}", ext);
         
         // 通知监听器
         // 埋点：统一交给MonitorPipeline
         if (pipeline != null) {
-            pipeline.onMetricsReset(extensionAbility, null);
+            pipeline.onMetricsReset(extAbility);
         }
     }
     
@@ -189,7 +179,7 @@ public class DefaultExtensionMonitor implements ExtensionMonitor {
     /**
      * 扩展点指标实现
      */
-    private static class ExtensionMetricsImpl implements ExtensionMetrics {
+    private static class ExtMetricsImpl implements ExtMetrics {
         private final AtomicLong totalInvocations = new AtomicLong(0);
         private final AtomicLong successInvocations = new AtomicLong(0);
         private final AtomicLong failureInvocations = new AtomicLong(0);

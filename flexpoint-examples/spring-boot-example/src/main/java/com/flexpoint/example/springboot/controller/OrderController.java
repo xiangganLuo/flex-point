@@ -39,7 +39,7 @@ public class OrderController {
         try {
             OrderProcessAbility ability = flexPoint.findAbility(OrderProcessAbility.class);
             if (ability == null) {
-                return CommonResult.error("EXTENSION_NOT_FOUND", "未找到对应的扩展点实现");
+                return CommonResult.error("EXT_NOT_FOUND", "未找到对应的扩展点实现");
             }
             
             String result = ability.processOrder(orderId, orderData);
@@ -65,7 +65,7 @@ public class OrderController {
         
         try {
             if (orderProcessAbility == null) {
-                return CommonResult.error("EXTENSION_NOT_FOUND", "未找到对应的扩展点实现");
+                return CommonResult.error("EXTNOT_FOUND", "未找到对应的扩展点实现");
             }
             
             String status = orderProcessAbility.getOrderStatus(orderId);

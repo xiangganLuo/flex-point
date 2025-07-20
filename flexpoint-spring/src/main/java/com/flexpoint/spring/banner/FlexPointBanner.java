@@ -1,5 +1,6 @@
 package com.flexpoint.spring.banner;
 
+import com.flexpoint.common.constants.FlexPointConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 
@@ -11,19 +12,13 @@ import org.springframework.beans.factory.InitializingBean;
  */
 @Slf4j
 public class FlexPointBanner implements InitializingBean {
-    
-    public static final String BANNER =
-            "  _   _   _   _   _   _   _   _   _ \n" +
-            " / \\ / \\ / \\ / \\ / \\ / \\ / \\ / \\ / \\\n" +
-            "( F | l | e | x | P | o | i | n | t )\n" +
-            " \\_/ \\_/ \\_/ \\_/ \\_/ \\_/ \\_/ \\_/ \\\n";
-    
+
     @Override
-    public void afterPropertiesSet() throws Exception {
+    public void afterPropertiesSet() {
         StringBuilder sb = new StringBuilder();
         sb.append("Flex Point:");
         sb.append("\n");
-        sb.append(BANNER);
+        sb.append(FlexPointConstants.BANNER);
         System.out.println(sb);
     }
 

@@ -1,4 +1,4 @@
-package com.flexpoint.core.extension;
+package com.flexpoint.core.ext;
 
 import java.util.*;
 
@@ -8,16 +8,16 @@ import java.util.*;
  * 不包含任何业务概念，支持任意场景的标签存储
  * @author xiangganluo
  */
-public class ExtensionTags {
+public class ExtTags {
     
     private final Map<String, Object> tags;
     
-    private ExtensionTags(Map<String, Object> tags) {
+    private ExtTags(Map<String, Object> tags) {
         this.tags = new HashMap<>(tags);
     }
     
-    public static ExtensionTags empty() {
-        return new ExtensionTags(Collections.emptyMap());
+    public static ExtTags empty() {
+        return new ExtTags(Collections.emptyMap());
     }
     
     public static Builder builder() {
@@ -139,8 +139,8 @@ public class ExtensionTags {
             return this;
         }
         
-        public ExtensionTags build() {
-            return new ExtensionTags(tags);
+        public ExtTags build() {
+            return new ExtTags(tags);
         }
     }
 } 

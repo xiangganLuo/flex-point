@@ -4,8 +4,8 @@ import com.flexpoint.common.annotations.FpSelector;
 import com.flexpoint.core.FlexPoint;
 import com.flexpoint.core.FlexPointBuilder;
 import com.flexpoint.core.config.FlexPointConfig;
-import com.flexpoint.core.context.Context;
-import com.flexpoint.core.extension.ExtensionAbility;
+import com.flexpoint.core.ext.ExtAbility;
+
 import com.flexpoint.core.selector.Selector;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,7 +22,7 @@ public class GrayRuleTest {
     private FlexPoint flexPoint;
 
     @FpSelector("GraySelector")
-    public interface GrayAbility extends ExtensionAbility {
+    public interface GrayAbility extends ExtAbility {
         String process(String input);
     }
     static class GrayImpl implements GrayAbility {
@@ -37,7 +37,7 @@ public class GrayRuleTest {
         private final Set<String> grayUsers;
         public GraySelector(Set<String> grayUsers) { this.grayUsers = grayUsers; }
         @Override
-        public <T extends ExtensionAbility> T select(java.util.List<T> candidates, Context context) {
+        public <T extends ExtAbility> T select(java.util.List<T> candidates) {
             String userId = UserContext.get();
             String code = grayUsers.contains(userId) ? "gray" : "normal";
             for (T ext : candidates) {

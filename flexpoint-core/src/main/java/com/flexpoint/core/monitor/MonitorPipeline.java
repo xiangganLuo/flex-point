@@ -1,16 +1,16 @@
 package com.flexpoint.core.monitor;
 
-import com.flexpoint.core.extension.ExtensionAbility;
+import com.flexpoint.core.ext.ExtAbility;
 import com.flexpoint.core.monitor.alert.AlertStrategy;
 import com.flexpoint.core.monitor.enums.AlertType;
 import com.flexpoint.core.monitor.enums.CollectorType;
 import com.flexpoint.core.monitor.enums.EventType;
 import com.flexpoint.core.monitor.event.MonitorEventListener;
 import com.flexpoint.core.monitor.metrics.MetricsCollector;
+import com.flexpoint.core.utils.ExtUtil;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
@@ -27,11 +27,11 @@ public class MonitorPipeline {
     /**
      * 调用前（可选）
      */
-    public void beforeInvoke(ExtensionAbility extensionAbility, Map<String, Object> context) {
-        String extensionId = generateExtensionId(extensionAbility);
+    public void beforeInvoke(ExtAbility extAbility) {
+        String ext = ExtUtil.getExtId(extAbility);
         for (MonitorEventListener l : eventListeners) {
             try {
-                l.onEvent(EventType.CUSTOM, extensionId, context);
+                l.onEvent(EventType.CUSTOM, ext);
             } catch (Exception e) {
                 log.warn("事件监听器beforeInvoke异常: {}", e.getMessage());
             }
@@ -41,18 +41,18 @@ public class MonitorPipeline {
     /**
      * 调用后
      */
-    public void afterInvoke(ExtensionAbility extensionAbility, long duration, boolean success, Map<String, Object> context, ExtensionMonitor.ExtensionMetrics metrics) {
-        String extensionId = generateExtensionId(extensionAbility);
+    public void afterInvoke(ExtAbility extAbility, long duration, boolean success, ExtMonitor.ExtMetrics metrics) {
+        String ext = ExtUtil.getExtId(extAbility);
         for (MetricsCollector c : collectors) {
             try {
-                c.collect(extensionId, metrics, context, CollectorType.REALTIME);
+                c.collect(ext, metrics, CollectorType.REALTIME);
             } catch (Exception e) {
                 log.warn("采集器afterInvoke异常: {}", e.getMessage());
             }
         }
         for (MonitorEventListener l : eventListeners) {
             try {
-                l.onEvent(success ? EventType.INVOKE_SUCCESS : EventType.INVOKE_FAIL, extensionId, context);
+                l.onEvent(success ? EventType.INVOKE_SUCCESS : EventType.INVOKE_FAIL, ext);
             } catch (Exception e) {
                 log.warn("事件监听器afterInvoke异常: {}", e.getMessage());
             }
@@ -60,8 +60,8 @@ public class MonitorPipeline {
         if (!success) {
             for (AlertStrategy a : alertStrategies) {
                 try {
-                    if (a.shouldAlert(extensionId, AlertType.EXCEPTION, context)) {
-                        a.alert(extensionId, AlertType.EXCEPTION, "扩展点调用失败", context);
+                    if (a.shouldAlert(ext, AlertType.EXCEPTION)) {
+                        a.alert(ext, AlertType.EXCEPTION, "扩展点调用失败");
                     }
                 } catch (Exception e) {
                     log.warn("告警策略afterInvoke异常: {}", e.getMessage());
@@ -73,26 +73,26 @@ public class MonitorPipeline {
     /**
      * 异常
      */
-    public void onException(ExtensionAbility extensionAbility, Throwable exception, Map<String, Object> context, ExtensionMonitor.ExtensionMetrics metrics) {
-        String extensionId = generateExtensionId(extensionAbility);
+    public void onException(ExtAbility extAbility, Throwable exception, ExtMonitor.ExtMetrics metrics) {
+        String ext = ExtUtil.getExtId(extAbility);
         for (MetricsCollector c : collectors) {
             try {
-                c.collect(extensionId, metrics, context, CollectorType.REALTIME);
+                c.collect(ext, metrics, CollectorType.REALTIME);
             } catch (Exception e) {
                 log.warn("采集器onException异常: {}", e.getMessage());
             }
         }
         for (MonitorEventListener l : eventListeners) {
             try {
-                l.onEvent(EventType.EXCEPTION, extensionId, context);
+                l.onEvent(EventType.EXCEPTION, ext);
             } catch (Exception e) {
                 log.warn("事件监听器onException异常: {}", e.getMessage());
             }
         }
         for (AlertStrategy a : alertStrategies) {
             try {
-                if (a.shouldAlert(extensionId, AlertType.EXCEPTION, context)) {
-                    a.alert(extensionId, AlertType.EXCEPTION, exception.getMessage(), context);
+                if (a.shouldAlert(ext, AlertType.EXCEPTION)) {
+                    a.alert(ext, AlertType.EXCEPTION, exception.getMessage());
                 }
             } catch (Exception e) {
                 log.warn("告警策略onException异常: {}", e.getMessage());
@@ -103,19 +103,19 @@ public class MonitorPipeline {
     /**
      * 阈值超限
      */
-    public void onThreshold(ExtensionAbility extensionAbility, String message, Map<String, Object> context) {
-        String extensionId = generateExtensionId(extensionAbility);
+    public void onThreshold(ExtAbility extAbility, String message) {
+        String ext = ExtUtil.getExtId(extAbility);
         for (MonitorEventListener l : eventListeners) {
             try {
-                l.onEvent(EventType.THRESHOLD_EXCEEDED, extensionId, context);
+                l.onEvent(EventType.THRESHOLD_EXCEEDED, ext);
             } catch (Exception e) {
                 log.warn("事件监听器onThreshold异常: {}", e.getMessage());
             }
         }
         for (AlertStrategy a : alertStrategies) {
             try {
-                if (a.shouldAlert(extensionId, AlertType.FAILURE_RATE, context)) {
-                    a.alert(extensionId, AlertType.FAILURE_RATE, message, context);
+                if (a.shouldAlert(ext, AlertType.FAILURE_RATE)) {
+                    a.alert(ext, AlertType.FAILURE_RATE, message);
                 }
             } catch (Exception e) {
                 log.warn("告警策略onThreshold异常: {}", e.getMessage());
@@ -126,28 +126,22 @@ public class MonitorPipeline {
     /**
      * 指标重置
      */
-    public void onMetricsReset(ExtensionAbility extensionAbility, Map<String, Object> context) {
-        String extensionId = extensionAbility != null ? generateExtensionId(extensionAbility) : "unknown";
+    public void onMetricsReset(ExtAbility extAbility) {
+        String ext = ExtUtil.getExtId(extAbility);
         for (MonitorEventListener l : eventListeners) {
             try {
-                l.onEvent(EventType.METRICS_RESET, extensionId, context);
+                l.onEvent(EventType.METRICS_RESET, ext);
             } catch (Exception e) {
                 log.warn("事件监听器onMetricsReset异常: {}", e.getMessage());
             }
         }
         for (MetricsCollector c : collectors) {
             try {
-                c.collect(extensionId, null, context, CollectorType.REALTIME);
+                c.collect(ext, null, CollectorType.REALTIME);
             } catch (Exception e) {
                 log.warn("采集器onMetricsReset异常: {}", e.getMessage());
             }
         }
     }
-    
-    /**
-     * 生成扩展点ID
-     */
-    private String generateExtensionId(ExtensionAbility extensionAbility) {
-        return extensionAbility.getClass().getSimpleName();
-    }
+
 } 
