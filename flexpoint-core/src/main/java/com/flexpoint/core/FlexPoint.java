@@ -11,9 +11,11 @@ import com.flexpoint.core.selector.SelectorRegistry;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * 扩展点管理器
@@ -87,12 +89,86 @@ public class FlexPoint {
             throw e;
         }
     }
+    
+    /**
+     * 根据扩展点类型和code查找匹配的扩展点列表
+     *
+     * @param extType 扩展点类型
+     * @param code 业务标识
+     * @param <T> 扩展点类型
+     * @return 匹配的扩展点列表
+     */
+    public <T extends ExtAbility> List<T> findAbilitiesByCode(Class<T> extType, String code) {
+        List<T> exts = extAbilityRegistry.getAllExtAbility(extType);
+        if (exts.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return exts.stream()
+                .filter(ext -> code.equals(ext.getCode()))
+                .collect(Collectors.toList());
+    }
+    
+    /**
+     * 根据扩展点类型和code查找匹配的第一个扩展点
+     *
+     * @param extType 扩展点类型
+     * @param code 业务标识
+     * @param <T> 扩展点类型
+     * @return 匹配的扩展点，如果没有找到则返回null
+     */
+    public <T extends ExtAbility> T findAbilityByCode(Class<T> extType, String code) {
+        List<T> abilities = findAbilitiesByCode(extType, code);
+        return abilities.isEmpty() ? null : abilities.get(0);
+    }
 
     /**
-     * 查找扩展点- Optional版本
+     * 根据扩展点类型、code和多个标签查找匹配的扩展点列表
+     * 所有标签都必须匹配才会返回
+     * 标签以键值对的形式传入，必须成对出现，如：tagKey1, tagValue1, tagKey2, tagValue2
+     *
+     * @param extType 扩展点类型
+     * @param code 业务标识
+     * @param tagsKeyValue 标签键值对，必须成对出现
+     * @param <T> 扩展点类型
+     * @return 匹配的扩展点列表
+     * @throws IllegalArgumentException 如果标签键值对不成对出现
      */
-    public <T extends ExtAbility> Optional<T> findAbilityOpt(Class<T> extType) {
-        return Optional.ofNullable(findAbility(extType));
+    public <T extends ExtAbility> List<T> findAbilitiesByCodeAndTags(Class<T> extType, String code, Object... tagsKeyValue) {
+        if (tagsKeyValue == null || tagsKeyValue.length == 0) {
+            return findAbilitiesByCode(extType, code);
+        }
+        
+        if (tagsKeyValue.length % 2 != 0) {
+            throw new IllegalArgumentException("标签键值对必须成对出现");
+        }
+        
+        Map<String, Object> tags = new HashMap<>();
+        for (int i = 0; i < tagsKeyValue.length; i += 2) {
+            if (!(tagsKeyValue[i] instanceof String)) {
+                throw new IllegalArgumentException("标签键必须是字符串类型");
+            }
+            tags.put((String) tagsKeyValue[i], tagsKeyValue[i + 1]);
+        }
+        
+        return findAbilitiesByCodeAndTags(extType, code, tags);
+    }
+    
+    /**
+     * 根据扩展点类型、code和多个标签查找匹配的第一个扩展点
+     * 所有标签都必须匹配才会返回
+     * 标签以键值对的形式传入，必须成对出现，如：tagKey1, tagValue1, tagKey2, tagValue2
+     *
+     * @param extType 扩展点类型
+     * @param code 业务标识
+     * @param tagsKeyValue 标签键值对，必须成对出现
+     * @param <T> 扩展点类型
+     * @return 匹配的扩展点，如果没有找到则返回null
+     * @throws IllegalArgumentException 如果标签键值对不成对出现
+     */
+    public <T extends ExtAbility> T findAbilityByCodeAndTags(Class<T> extType, String code, Object... tagsKeyValue) {
+        List<T> abilities = findAbilitiesByCodeAndTags(extType, code, tagsKeyValue);
+        return abilities.isEmpty() ? null : abilities.get(0);
     }
 
     public <T extends ExtAbility> List<T> getAllExt(Class<T> extType) {
