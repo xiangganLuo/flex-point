@@ -1,0 +1,103 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Git 规则
+
+## 重要原则
+- **重要**：不要自动提交 git 代码，除非有明确的提示
+- 提交前确保代码通过所有测试
+- 保持提交信息简洁明了，描述清楚变更内容
+- 避免大型提交，尽量将变更分解为小的、相关的提交
+
+## 提交规范
+git 提交模板 `<type>(<scope>): <subject>`，具体要求如下：
+1. 注意冒号 `:` 后有空格
+2. type 的枚举值有：
+- feat: 新增功能
+- fix: 修复 bug
+- docs: 文档注释
+- style: 代码格式(不影响代码运行的变动)
+- refactor: 重构、优化(既不增加新功能, 也不是修复bug)
+- perf: 性能优化
+- test: 增加测试
+- chore: 构建过程或辅助工具的变动
+- revert: 回退
+- build: 打包
+
+3. 若 subject 中描述超过两种要点，请使用要点列表描述详情，每个要点使用-符号开头，多个换行，参考如下样例：
+```
+feat(core): implement extension point monitoring system
+
+- Add ExtMonitor interface for monitoring extension point calls
+- Implement DefaultExtMonitor with performance metrics collection
+- Add async monitoring support with configurable thread pool
+- Integrate alert strategy for exception monitoring
+```
+
+## FlexPoint 项目特定提交规范
+
+### 扩展点相关提交
+```
+feat(ext): add new order processing ability
+
+- Add OrderProcessAbility interface with @FpSelector annotation
+- Implement MallOrderProcessAbility for mall business
+- Add CodeVersionSelector for dynamic extension point selection
+- Update documentation with usage examples
+```
+
+### 选择器相关提交
+```
+feat(selector): implement custom business selector
+
+- Add CustomBusinessSelector for complex routing logic
+- Support multi-dimensional selection criteria
+- Add unit tests for selector behavior
+- Update selector registry documentation
+```
+
+### 监控相关提交
+```
+feat(monitor): enhance extension point monitoring
+
+- Add performance metrics collection
+- Implement async monitoring pipeline
+- Add alert strategy for exception handling
+- Support configurable monitoring thresholds
+```
+
+### 配置相关提交
+```
+feat(config): improve FlexPoint configuration system
+
+- Add FlexPointConfigValidator for configuration validation
+- Support YAML and Properties configuration formats
+- Add default configuration values
+- Update configuration documentation
+```
+
+## 分支管理
+- main/master: 主分支，保持稳定可发布状态
+- develop: 开发分支，包含最新开发特性
+- feature/*: 功能分支，用于开发新功能
+- bugfix/*: 修复分支，用于修复bug
+- release/*: 发布分支，用于准备发布
+
+**常用分支命名约定**：
+
+| 分支类型   | 命名格式             | 示例                      |
+| ---------- | -------------------- | ------------------------- |
+| 功能分支   | feature/[描述]       | feature/extension-monitor |
+| 修复分支   | fix/[问题ID]-[描述]  | fix/issue-42-selector-crash |
+| 发布分支   | release/[版本]       | release/v1.0.0            |
+| 热修复分支 | hotfix/[版本]-[描述] | hotfix/v1.0.1-config-fix |
+
+## FlexPoint 项目特定分支命名
+- `feature/ext-[功能]`: 扩展点功能开发
+- `feature/selector-[功能]`: 选择器功能开发
+- `feature/monitor-[功能]`: 监控功能开发
+- `feature/config-[功能]`: 配置功能开发
+- `fix/ext-[问题]`: 扩展点相关修复
+- `fix/selector-[问题]`: 选择器相关修复

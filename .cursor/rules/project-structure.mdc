@@ -1,0 +1,29 @@
+---
+description: 该规则描述了项目的项目结构
+globs:
+alwaysApply: true
+---
+# 项目结构规范
+
+## 模块职责说明
+| 模块名                        | 说明                                   |
+|------------------------------|----------------------------------------|
+| flexpoint-dependencies-bom    | 依赖版本BOM管理，所有依赖版本统一配置   |
+| flexpoint-common              | 公共基础模块，接口、注解、常量、异常等   |
+| flexpoint-core                | 核心实现模块，扩展点注册/查找/监控      |
+| flexpoint-spring              | Spring集成，自动扫描注册扩展点           |
+| flexpoint-springboot          | Spring Boot自动配置，开箱即用           |
+| flexpoint-test                | 测试模块，测试用例和示例                |
+| flexpoint-examples            | 多场景接入示例模块（Spring Boot、Java原生） |
+
+## 包结构规范
+- **核心包**: `com.flexpoint.core.*` - 核心功能实现
+- **公共包**: `com.flexpoint.common.*` - 公共接口和工具
+- **Spring包**: `com.flexpoint.spring.*` - Spring集成
+- **SpringBoot包**: `com.flexpoint.springboot.*` - Spring Boot自动配置
+- **示例包**: `com.flexpoint.example.*` - 使用示例
+
+## 依赖管理原则
+- 所有依赖版本通过 `flexpoint-dependencies-bom` 统一管理
+- 子模块禁止直接指定依赖版本
+- 遵循依赖最小化原则，避免不必要的依赖引入
