@@ -23,6 +23,7 @@ public class ExtAbilityProcessor implements BeanPostProcessor {
 
     private final FlexPoint flexPoint;
 
+    @SuppressWarnings("unchecked")
     @Override
     public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
         Class<?> clazz = bean.getClass();
@@ -34,7 +35,7 @@ public class ExtAbilityProcessor implements BeanPostProcessor {
                     Object proxy = Proxy.newProxyInstance(
                             abilityClass.getClassLoader(),
                             new Class[]{abilityClass},
-                            new ExtAbilityInvocationHandler(flexPoint, abilityClass)
+                            new ExtAbilityInvocationHandler(flexPoint, (Class<ExtAbility>) abilityClass)
                     );
                     field.setAccessible(true);
                     try {

@@ -29,7 +29,7 @@ public class DefaultExtAbilityRegistry implements ExtAbilityRegistry {
     private final FlexPointConfig.RegistryConfig registryConfig;
 
     // 类型 -> 扩展点实例列表
-    private final Map<Class<? extends ExtAbility>, List<ExtAbility>> extMap = new ConcurrentHashMap<>();
+    private final Map<Class<? extends ExtAbility>, List<ExtAbility>> extAbilityMap = new ConcurrentHashMap<>();
 
     public DefaultExtAbilityRegistry(FlexPointConfig.RegistryConfig registryConfig) {
         this.registryConfig = registryConfig;
@@ -45,9 +45,9 @@ public class DefaultExtAbilityRegistry implements ExtAbilityRegistry {
         if (extType == null) {
             throw new IllegalArgumentException("扩展点实例必须实现ExtAbility接口: " + instance.getClass().getName());
         }
-        
+
         // 注册到类型映射 - 允许同一个code的多个实现
-        extMap.computeIfAbsent(extType, k -> new ArrayList<>()).add(instance);
+        extAbilityMap.computeIfAbsent(extType, k -> new ArrayList<>()).add(instance);
         
         // 发布注册事件
         publishEvent(EventType.EXT_REGISTERED, instance);
@@ -67,7 +67,7 @@ public class DefaultExtAbilityRegistry implements ExtAbilityRegistry {
             return;
         }
         
-        List<ExtAbility> list = extMap.get(extType);
+        List<ExtAbility> list = extAbilityMap.get(extType);
         if (list != null && list.remove(instance)) {
             // 发布注销事件
             publishEvent(EventType.EXT_UNREGISTERED, instance);
@@ -79,7 +79,7 @@ public class DefaultExtAbilityRegistry implements ExtAbilityRegistry {
 
     @Override
     public <T extends ExtAbility> List<T> getAllExtAbility(Class<T> extType) {
-        List<ExtAbility> list = extMap.get(extType);
+        List<ExtAbility> list = extAbilityMap.get(extType);
         if (list == null) {
             // 发布未找到事件
             publishEvent(EventType.EXT_NOT_FOUND, null, extType);
@@ -114,7 +114,7 @@ public class DefaultExtAbilityRegistry implements ExtAbilityRegistry {
      * 获取注册的扩展点总数
      */
     public int getRegisteredCount() {
-        return extMap.values().stream()
+        return extAbilityMap.values().stream()
             .mapToInt(List::size)
             .sum();
     }
@@ -123,7 +123,7 @@ public class DefaultExtAbilityRegistry implements ExtAbilityRegistry {
      * 获取指定类型的扩展点数量
      */
     public <T extends ExtAbility> int getCountByType(Class<T> extType) {
-        List<ExtAbility> list = extMap.get(extType);
+        List<ExtAbility> list = extAbilityMap.get(extType);
         return list != null ? list.size() : 0;
     }
 
@@ -132,11 +132,11 @@ public class DefaultExtAbilityRegistry implements ExtAbilityRegistry {
      */
     public synchronized void clear() {
         // 发布注销事件
-        extMap.values().stream()
+        extAbilityMap.values().stream()
             .flatMap(List::stream)
             .forEach(ext -> publishEvent(EventType.EXT_UNREGISTERED, ext));
 
-        extMap.clear();
+        extAbilityMap.clear();
         log.info("清空所有扩展点");
     }
 
