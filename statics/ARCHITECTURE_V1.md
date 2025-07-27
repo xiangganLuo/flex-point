@@ -131,7 +131,7 @@ OrderProcessAbility ability = flexPoint.findAbility(OrderProcessAbility.class);
 ```java
 String extId = ability.getCode();
 flexPoint.recordInvocation(extId, 100, true);
-ExtMonitor.ExtMetrics metrics = flexPoint.getExtMetrics(extId);
+ExtMetrics metrics = flexPoint.getExtMetrics(extId);
 ```
 
 ### 6. 注销扩展点

@@ -1,12 +1,15 @@
 package com.flexpoint.spring.register;
 
+import com.flexpoint.core.FlexPoint;
 import com.flexpoint.core.ext.ExtAbility;
-import com.flexpoint.core.ext.ExtAbilityRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 
-import java.util.List;
+import java.util.Map;
 
 /**
  * Spring扩展点注册器
@@ -17,19 +20,31 @@ import java.util.List;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class FlexPointSpringExtAbilityRegister implements InitializingBean {
+public class FlexPointSpringExtAbilityRegister implements InitializingBean, ApplicationContextAware {
 
-    private final ExtAbilityRegistry extAbilityRegistry;
-    private final List<ExtAbility> abilities;
+    private final FlexPoint flexPoint;
+
+    private ApplicationContext applicationContext;
 
     @Override
     public void afterPropertiesSet() {
-        if (abilities == null || abilities.isEmpty()) {
+        Map<String, ExtAbility> extAbilityBeans = applicationContext.getBeansOfType(ExtAbility.class);
+        if (extAbilityBeans.isEmpty()) {
             return;
         }
-        abilities.forEach(ability -> {
-            extAbilityRegistry.register(ability);
-            log.info("注册扩展点: code={}, tags={}, class={}", ability.getCode(), ability.getTags(), ability.getClass().getName());
-        });
+        // 注册所有扩展点Bean
+        for (Map.Entry<String, ExtAbility> entry : extAbilityBeans.entrySet()) {
+            String beanName = entry.getKey();
+            ExtAbility extAbility = entry.getValue();
+
+            flexPoint.register(extAbility);
+            log.info("注册扩展点: code={}, tags={}, class={}", extAbility.getCode(), extAbility.getTags(), extAbility.getClass().getName());
+        }
+        log.info("完成选择器自动注册，共注册{}个选择器", extAbilityBeans.size());
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
     }
 }

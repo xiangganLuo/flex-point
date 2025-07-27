@@ -15,4 +15,8 @@ public interface FlexPointConstants {
                     " \\_/ \\_/ \\_/ \\_/ \\_/ \\_/ \\_/ \\_/ \\\n";
 
 
+    String CODE_SELECTOR_NAME = "codeSelector";
+    String CODE_VERSION_SELECTOR_NAME = "codeVersionSelector";
+    String CODE_TAGS_SELECTOR_NAME = "codeTagsSelector";
+
 } 

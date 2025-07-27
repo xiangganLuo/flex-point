@@ -6,7 +6,7 @@ package com.flexpoint.core.monitor.enums;
  *
  * @author xiangganluo
  */
-public enum EventType {
+public enum MonitorEventType {
     /** 调用成功 */
     INVOKE_SUCCESS,
     /** 调用失败 */
@@ -15,8 +15,6 @@ public enum EventType {
     EXCEPTION,
     /** 阈值超限 */
     THRESHOLD_EXCEEDED,
-    /** 指标重置 */
-    METRICS_RESET,
     /** 自定义 */
     CUSTOM
 } 

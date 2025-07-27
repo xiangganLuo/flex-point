@@ -11,7 +11,7 @@ public interface SelectorRegistry {
      * 注册选择器
      * @param selector 选择器实例
      */
-    void registerSelector(Selector selector);
+    void register(Selector selector);
     
     /**
      * 根据名称获取选择器
@@ -24,12 +24,12 @@ public interface SelectorRegistry {
      * 移除指定名称的选择器
      * @param selectorName 选择器名称
      */
-    void unregisterSelector(String selectorName);
+    void unregister(String selectorName);
     
     /**
      * 检查指定名称的选择器是否已注册
      * @param selectorName 选择器名称
      * @return 是否已注册
      */
-    boolean hasSelector(String selectorName);
+    boolean has(String selectorName);
 } 

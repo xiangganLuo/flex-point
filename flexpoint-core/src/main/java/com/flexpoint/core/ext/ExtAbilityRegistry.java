@@ -7,7 +7,6 @@ import java.util.List;
  * 负责扩展点的注册、查找和管理
  *
  * @author xiangganluo
- * @version 1.0.0
  */
 public interface ExtAbilityRegistry {
     
@@ -17,6 +16,13 @@ public interface ExtAbilityRegistry {
      * @param instance 扩展点实例
      */
     void register(ExtAbility instance);
+    
+    /**
+     * 注销扩展点
+     *
+     * @param instance 扩展点实例
+     */
+    void unregister(ExtAbility instance);
     
     /**
      * 获取指定类型的所有扩展点

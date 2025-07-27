@@ -1,5 +1,6 @@
 package com.flexpoint.core.selector.resolves;
 
+import com.flexpoint.common.constants.FlexPointConstants;
 import com.flexpoint.core.ext.ExtAbility;
 
 import java.util.List;
@@ -45,7 +46,7 @@ public class CodeVersionSelector extends CodeSelector {
 
     @Override
     public String getName() {
-        return "codeVersionSelector";
+        return FlexPointConstants.CODE_VERSION_SELECTOR_NAME;
     }
 
     /**

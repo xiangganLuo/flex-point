@@ -263,7 +263,7 @@ public interface OrderProcessAbility extends ExtAbility {
 
 ```java
 // 获取扩展点调用统计
-ExtMonitor.ExtMetrics metrics = flexPoint.getExtMetrics("mall:1.0.0");
+ExtMetrics metrics = flexPoint.getExtMetrics("mall:1.0.0");
 System.out.println("调用次数: " + metrics.getTotalInvocations());
 System.out.println("平均耗时: " + metrics.getAverageDuration() + "ms");
 ```
@@ -398,7 +398,7 @@ flexpoint:
 @Autowired
 private ExtMonitor extMonitor;
 
-ExtMonitor.ExtMetrics metrics = extMonitor.getExtMetrics(扩展点实例);
+ExtMetrics metrics = extMonitor.getExtMetrics(扩展点实例);
 ```
 
 ---

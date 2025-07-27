@@ -1,6 +1,6 @@
 package com.flexpoint.core.monitor.metrics;
 
-import com.flexpoint.core.monitor.ExtMonitor;
+import com.flexpoint.core.monitor.ExtMetrics;
 import com.flexpoint.core.monitor.enums.CollectorType;
 
 /**
@@ -15,5 +15,5 @@ public interface MetricsCollector {
      * @param metrics 指标数据
      * @param collectorType 采集器类型
      */
-    void collect(String ext, ExtMonitor.ExtMetrics metrics, CollectorType collectorType);
+    void collect(String ext, ExtMetrics metrics, CollectorType collectorType);
 } 

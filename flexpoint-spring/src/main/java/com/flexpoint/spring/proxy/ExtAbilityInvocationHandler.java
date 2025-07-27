@@ -2,6 +2,7 @@ package com.flexpoint.spring.proxy;
 
 import com.flexpoint.common.exception.ExtNotFoundException;
 import com.flexpoint.core.FlexPoint;
+import com.flexpoint.core.event.EventPublisher;
 import com.flexpoint.core.ext.ExtAbility;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cglib.proxy.InvocationHandler;
@@ -30,16 +31,16 @@ public class ExtAbilityInvocationHandler implements InvocationHandler {
             throw ExtNotFoundException.forType(targetClass.getSimpleName());
         }
         
-        // 记录调用指标
         long startTime = System.currentTimeMillis();
         Object ret;
         try {
+            EventPublisher.publishInvokeBefore(ability, method.getName(), args);
             ret = method.invoke(ability, args);
             long duration = System.currentTimeMillis() - startTime;
-            flexPoint.recordInvocation(ability, duration, true);
+            EventPublisher.publishInvokeSuccess(ability, method.getName(), args, ret, duration);
         } catch (Throwable throwable) {
             long duration = System.currentTimeMillis() - startTime;
-            flexPoint.recordInvocation(ability, duration, false);
+            EventPublisher.publishInvokeException(ability, method.getName(), args, throwable, duration);
             throw throwable;
         }
         return ret;

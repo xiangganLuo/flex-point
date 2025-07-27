@@ -17,32 +17,21 @@ import java.util.concurrent.*;
 @Slf4j
 public class AsyncExtMonitor implements ExtMonitor {
     
-    private final ExtMonitor delegate;
     private final ExecutorService executor;
-    private final BlockingQueue<Runnable> workQueue;
-    private final int queueSize;
     
-    /**
-     * 使用默认配置创建异步监控器
-     */
-    public AsyncExtMonitor() {
-        this(new FlexPointConfig.MonitorConfig());
-    }
-    
+    private final ExtMonitor delegate;
+
     /**
      * 使用指定配置创建异步监控器
      */
-    public AsyncExtMonitor(FlexPointConfig.MonitorConfig config) {
-        this.queueSize = config.getAsyncQueueSize();
-        this.workQueue = new LinkedBlockingQueue<>(queueSize);
-
+    public AsyncExtMonitor(ExtMonitor delegate) {
         // 队列满时由调用线程执行
         this.executor = new ThreadPoolExecutor(
-            config.getAsyncCorePoolSize(),
-            config.getAsyncMaxPoolSize(), 
-            config.getAsyncKeepAliveTime(), 
-            TimeUnit.SECONDS, 
-            workQueue,
+            delegate.getConfig().getAsyncCorePoolSize(),
+            delegate.getConfig().getAsyncMaxPoolSize(), 
+            delegate.getConfig().getAsyncKeepAliveTime(), 
+            TimeUnit.SECONDS,
+            new LinkedBlockingQueue<>(delegate.getConfig().getAsyncQueueSize()),
             r -> {
                 Thread t = new Thread(r, "flexpoint-async-monitor-" + Thread.currentThread().getId());
                 t.setDaemon(true);
@@ -50,11 +39,7 @@ public class AsyncExtMonitor implements ExtMonitor {
             },
             new ThreadPoolExecutor.CallerRunsPolicy()
         );
-        this.delegate = new DefaultExtMonitor(config);
-        
-        log.info("创建异步监控器: corePoolSize={}, maxPoolSize={}, keepAliveTime={}s, queueSize={}", 
-                config.getAsyncCorePoolSize(), config.getAsyncMaxPoolSize(), 
-                config.getAsyncKeepAliveTime(), queueSize);
+        this.delegate = delegate;
     }
     
     @Override
@@ -68,25 +53,20 @@ public class AsyncExtMonitor implements ExtMonitor {
     }
     
     @Override
-    public ExtMetrics getMetrics(ExtAbility extAbility) {
-        return delegate.getMetrics(extAbility);
+    public ExtMetrics getExtMetrics(ExtAbility extAbility) {
+        return delegate.getExtMetrics(extAbility);
     }
-    
+
     @Override
-    public Map<String, ExtMetrics> getAllMetrics() {
-        return delegate.getAllMetrics();
+    public Map<String, ExtMetrics> getAllExtMetrics() {
+        return delegate.getAllExtMetrics();
     }
-    
+
     @Override
-    public void resetMetrics(ExtAbility extAbility) {
-        submitTask(() -> delegate.resetMetrics(extAbility));
+    public FlexPointConfig.MonitorConfig getConfig() {
+        return delegate.getConfig();
     }
-    
-    @Override
-    public MonitorStatus getStatus() {
-        return new AsyncMonitorStatus(delegate.getStatus());
-    }
-    
+
     /**
      * 提交异步任务
      */
@@ -121,160 +101,4 @@ public class AsyncExtMonitor implements ExtMonitor {
         }
     }
     
-    /**
-     * 获取队列状态
-     */
-    public QueueStatus getQueueStatus() {
-        return new QueueStatus(workQueue.size(), queueSize);
-    }
-    
-    /**
-     * 获取线程池状态
-     */
-    public ThreadPoolStatus getThreadPoolStatus() {
-        if (executor instanceof ThreadPoolExecutor) {
-            ThreadPoolExecutor tpe = (ThreadPoolExecutor) executor;
-            return new ThreadPoolStatus(
-                    tpe.getCorePoolSize(),
-                tpe.getMaximumPoolSize(),
-                tpe.getActiveCount(),
-                tpe.getPoolSize(),
-                tpe.getTaskCount(),
-                tpe.getCompletedTaskCount()
-            );
-        }
-        return null;
-    }
-    
-    /**
-     * 异步监控器状态
-     */
-    private static class AsyncMonitorStatus implements MonitorStatus {
-        private final MonitorStatus delegate;
-        
-        AsyncMonitorStatus(MonitorStatus delegate) {
-            this.delegate = delegate;
-        }
-        
-        @Override
-        public boolean isEnabled() {
-            return delegate.isEnabled();
-        }
-        
-        @Override
-        public boolean isAsyncSupported() {
-            return true;
-        }
-        
-        @Override
-        public boolean isPersistenceSupported() {
-            return delegate.isPersistenceSupported();
-        }
-        
-        @Override
-        public String getStorageType() {
-            return delegate.getStorageType();
-        }
-        
-        @Override
-        public int getListenerCount() {
-            return delegate.getListenerCount();
-        }
-    }
-    
-    /**
-     * 队列状态
-     */
-    public static class QueueStatus {
-        private final int currentSize;
-        private final int maxSize;
-        
-        public QueueStatus(int currentSize, int maxSize) {
-            this.currentSize = currentSize;
-            this.maxSize = maxSize;
-        }
-        
-        public int getCurrentSize() {
-            return currentSize;
-        }
-        
-        public int getMaxSize() {
-            return maxSize;
-        }
-        
-        public double getUtilization() {
-            return maxSize > 0 ? (double) currentSize / maxSize : 0.0;
-        }
-        
-        public boolean isFull() {
-            return currentSize >= maxSize;
-        }
-    }
-    
-    /**
-     * 线程池状态
-     */
-    public static class ThreadPoolStatus {
-        private final int corePoolSize;
-        private final int maxPoolSize;
-        private final int activeCount;
-        private final int poolSize;
-        private final long taskCount;
-        private final long completedTaskCount;
-
-        public ThreadPoolStatus(int corePoolSize, int maxPoolSize, int activeCount,
-                               int poolSize, long taskCount, long completedTaskCount) {
-            this.corePoolSize = corePoolSize;
-            this.maxPoolSize = maxPoolSize;
-            this.activeCount = activeCount;
-            this.poolSize = poolSize;
-            this.taskCount = taskCount;
-            this.completedTaskCount = completedTaskCount;
-        }
-
-        public int getCorePoolSize() {
-            return corePoolSize;
-        }
-
-        public int getMaxPoolSize() {
-            return maxPoolSize;
-        }
-
-        public int getActiveCount() {
-            return activeCount;
-        }
-
-        public int getPoolSize() {
-            return poolSize;
-        }
-
-        public long getTaskCount() {
-            return taskCount;
-        }
-
-        public long getCompletedTaskCount() {
-            return completedTaskCount;
-        }
-
-        /**
-         * 获取线程池利用率
-         */
-        public double getUtilization() {
-            return maxPoolSize > 0 ? (double) activeCount / maxPoolSize : 0.0;
-        }
-
-        /**
-         * 获取任务完成率
-         */
-        public double getCompletionRate() {
-            return taskCount > 0 ? (double) completedTaskCount / taskCount : 0.0;
-        }
-
-        /**
-         * 是否接近满负荷
-         */
-        public boolean isNearCapacity() {
-            return getUtilization() > 0.8; // 超过80%认为接近满负荷
-        }
-    }
 }

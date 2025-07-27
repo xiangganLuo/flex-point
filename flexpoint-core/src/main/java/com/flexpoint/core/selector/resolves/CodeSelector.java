@@ -1,5 +1,6 @@
 package com.flexpoint.core.selector.resolves;
 
+import com.flexpoint.common.constants.FlexPointConstants;
 import com.flexpoint.core.ext.ExtAbility;
 import com.flexpoint.core.selector.AbstractSelector;
 import lombok.RequiredArgsConstructor;
@@ -39,7 +40,7 @@ public class CodeSelector extends AbstractSelector {
 
     @Override
     public String getName() {
-        return "codeSelector";
+        return FlexPointConstants.CODE_SELECTOR_NAME;
     }
 
     /**

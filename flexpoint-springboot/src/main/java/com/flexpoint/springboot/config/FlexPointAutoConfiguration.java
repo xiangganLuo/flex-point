@@ -2,7 +2,10 @@ package com.flexpoint.springboot.config;
 
 import com.flexpoint.core.FlexPoint;
 import com.flexpoint.core.FlexPointBuilder;
-import com.flexpoint.core.ext.ExtAbility;
+import com.flexpoint.core.event.DefaultEventBus;
+import com.flexpoint.core.event.EventBus;
+import com.flexpoint.core.event.EventPublisher;
+import com.flexpoint.core.monitor.subscribers.MonitorEventSubscriber;
 import com.flexpoint.spring.banner.FlexPointBanner;
 import com.flexpoint.spring.processor.ExtAbilityProcessor;
 import com.flexpoint.spring.register.FlexPointSpringExtAbilityRegister;
@@ -14,8 +17,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.List;
 
 /**
  * 扩展点框架自动配置
@@ -48,8 +49,8 @@ public class FlexPointAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = FlexPointProperties.PREFIX + ".registry", name = "enabled", havingValue = "true", matchIfMissing = true)
-    public FlexPointSpringExtAbilityRegister springExtAbilityRegister(FlexPoint flexPoint, List<ExtAbility> abilities) {
-        return new FlexPointSpringExtAbilityRegister(flexPoint.getExtAbilityRegistry(), abilities);
+    public FlexPointSpringExtAbilityRegister springExtAbilityRegister(FlexPoint flexPoint) {
+        return new FlexPointSpringExtAbilityRegister(flexPoint);
     }
 
     @Bean
@@ -77,6 +78,16 @@ public class FlexPointAutoConfiguration {
     @ConditionalOnMissingBean
     public ExtAbilityProcessor extAbilityProcessor(FlexPoint flexPoint) {
         return new ExtAbilityProcessor(flexPoint);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public EventBus eventBus(FlexPoint flexPoint) {
+        DefaultEventBus defaultEventBus = new DefaultEventBus();
+        EventPublisher.setEventBus(defaultEventBus);
+        // 注册监听器subscriber
+        defaultEventBus.subscribe(new MonitorEventSubscriber(flexPoint.getExtMonitor()));
+        return defaultEventBus;
     }
 
 }
