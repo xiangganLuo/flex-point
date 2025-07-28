@@ -2,6 +2,7 @@ package com.flexpoint.core.monitor;
 
 import com.flexpoint.core.config.FlexPointConfig;
 import com.flexpoint.core.ext.ExtAbility;
+import com.flexpoint.core.monitor.handler.MonitorHandler;
 
 import java.util.Map;
 
@@ -45,6 +46,21 @@ public interface ExtMonitor {
      * @return 所有扩展点指标，key为扩展点标识符
      */
     Map<String, ExtMetrics> getAllExtMetrics();
+
+    /**
+     * 添加责任链节点
+     */
+    void addHandler(MonitorHandler handler);
+
+    /**
+     * 移除责任链节点
+     */
+    void removeHandler(MonitorHandler handler);
+
+    /**
+     * 清空责任链
+     */
+    void clearHandlers();
 
     /**
      * 获取监控配置

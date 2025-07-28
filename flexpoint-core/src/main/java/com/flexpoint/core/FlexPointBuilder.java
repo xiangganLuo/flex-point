@@ -125,7 +125,7 @@ public class FlexPointBuilder {
          * 根据配置创建监控器
          */
         public static ExtMonitor createMonitor(FlexPointConfig.MonitorConfig monitorConfig) {
-            return MonitorFactory.createAuto(monitorConfig);
+            return MonitorFactory.createDefaultMonitor(monitorConfig);
         }
 
         /**

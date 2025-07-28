@@ -1,37 +1,35 @@
 package com.flexpoint.core.monitor;
 
 import com.flexpoint.core.config.FlexPointConfig;
-import com.flexpoint.core.ext.ExtAbility;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Map;
 import java.util.concurrent.*;
 
 /**
  * 异步扩展点监控实现
- * 提供高性能的异步监控处理，减少对业务逻辑的影响
+ * 继承抽象链式监控基类，提供异步执行能力
  *
  * @author xiangganluo
- * @version 1.0.0
+ * @version 2.0.0
  */
 @Slf4j
-public class AsyncExtMonitor implements ExtMonitor {
+public class AsyncExtMonitor extends AbstractChainExtMonitor {
     
     private final ExecutorService executor;
-    
-    private final ExtMonitor delegate;
+    private final FlexPointConfig.MonitorConfig config;
 
     /**
      * 使用指定配置创建异步监控器
      */
-    public AsyncExtMonitor(ExtMonitor delegate) {
+    public AsyncExtMonitor(FlexPointConfig.MonitorConfig config) {
+        this.config = config;
         // 队列满时由调用线程执行
         this.executor = new ThreadPoolExecutor(
-            delegate.getConfig().getAsyncCorePoolSize(),
-            delegate.getConfig().getAsyncMaxPoolSize(), 
-            delegate.getConfig().getAsyncKeepAliveTime(), 
+            config.getAsyncCorePoolSize(),
+            config.getAsyncMaxPoolSize(), 
+            config.getAsyncKeepAliveTime(), 
             TimeUnit.SECONDS,
-            new LinkedBlockingQueue<>(delegate.getConfig().getAsyncQueueSize()),
+            new LinkedBlockingQueue<>(config.getAsyncQueueSize()),
             r -> {
                 Thread t = new Thread(r, "flexpoint-async-monitor-" + Thread.currentThread().getId());
                 t.setDaemon(true);
@@ -39,32 +37,16 @@ public class AsyncExtMonitor implements ExtMonitor {
             },
             new ThreadPoolExecutor.CallerRunsPolicy()
         );
-        this.delegate = delegate;
     }
     
     @Override
-    public void recordInvocation(ExtAbility extAbility, long duration, boolean success) {
-        submitTask(() -> delegate.recordInvocation(extAbility, duration, success));
+    protected FlexPointConfig.MonitorConfig getMonitorConfig() {
+        return config;
     }
 
     @Override
-    public void recordException(ExtAbility extAbility, Throwable exception) {
-        submitTask(() -> delegate.recordException(extAbility, exception));
-    }
-    
-    @Override
-    public ExtMetrics getExtMetrics(ExtAbility extAbility) {
-        return delegate.getExtMetrics(extAbility);
-    }
-
-    @Override
-    public Map<String, ExtMetrics> getAllExtMetrics() {
-        return delegate.getAllExtMetrics();
-    }
-
-    @Override
-    public FlexPointConfig.MonitorConfig getConfig() {
-        return delegate.getConfig();
+    protected void executeMonitorTask(Runnable task) {
+        submitTask(task);
     }
 
     /**
@@ -100,5 +82,4 @@ public class AsyncExtMonitor implements ExtMonitor {
             log.info("异步监控器已关闭");
         }
     }
-    
 }

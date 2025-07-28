@@ -1,84 +1,56 @@
 package com.flexpoint.core.monitor;
 
 import com.flexpoint.core.config.FlexPointConfig;
-import com.flexpoint.core.monitor.enums.MonitorType;
+import com.flexpoint.core.monitor.handler.MonitorHandler;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.List;
 
 /**
  * 监控工厂类
- * 提供不同类型的监控器创建方法
+ * 根据配置创建不同类型的监控器
  *
  * @author xiangganluo
  * @version 1.0.0
  */
 @Slf4j
 public class MonitorFactory {
-    
+
     /**
-     * 创建默认监控器
+     * 创建监控器
+     *
+     * @param config 监控配置
+     * @param handlers 处理器链
+     * @return 监控器实例
      */
-    public static ExtMonitor create() {
-        return create(new FlexPointConfig.MonitorConfig());
-    }
-    
-    /**
-     * 创建默认监控器
-     */
-    public static ExtMonitor create(FlexPointConfig.MonitorConfig config) {
-        return new DefaultExtMonitor(config);
-    }
-    
-    /**
-     * 创建异步监控器
-     */
-    public static ExtMonitor createAsync() {
-        return createAsync(new FlexPointConfig.MonitorConfig());
-    }
-    
-    /**
-     * 创建异步监控器
-     */
-    public static ExtMonitor createAsync(FlexPointConfig.MonitorConfig config) {
-        return new AsyncExtMonitor(new DefaultExtMonitor(config));
-    }
-    
-    /**
-     * 根据类型创建监控器
-     */
-    public static ExtMonitor create(MonitorType type) {
-        return create(type, new FlexPointConfig.MonitorConfig());
-    }
-    
-    /**
-     * 根据类型创建监控器
-     */
-    public static ExtMonitor create(MonitorType type, FlexPointConfig.MonitorConfig config) {
-        if (config.isEnabled()) {
-            log.info("创建监控器: logInvocation={}, isLogSelection={}, logExceptionDetails={}, performanceStatsEnabled={}, asyncEnabled={}",
-                    config.isLogInvocation(), config.isLogSelection(),
-                    config.isLogExceptionDetails(), config.isPerformanceStatsEnabled(),
-                    config.isAsyncEnabled()
-            );
+    public static ExtMonitor createMonitor(FlexPointConfig.MonitorConfig config, List<MonitorHandler> handlers) {
+        ExtMonitor monitor;
+        
+        if (config.isAsyncEnabled()) {
+            log.info("创建异步监控器");
+            monitor = new AsyncExtMonitor(config);
+        } else {
+            log.info("创建同步监控器");
+            monitor = new DefaultExtMonitor(config);
         }
-        switch (type) {
-            case DEFAULT:
-                return create(config);
-            case ASYNC:
-                return createAsync(config);
-            default:
-                log.warn("未知的监控器类型: {}, 使用默认监控器", type);
-                return create(config);
+        
+        // 添加处理器到监控器
+        if (handlers != null) {
+            for (MonitorHandler handler : handlers) {
+                monitor.addHandler(handler);
+            }
         }
+        
+        return monitor;
     }
 
     /**
-     * 根据配置自动选择合适的监控器类型
+     * 创建默认监控器
+     *
+     * @param config 监控配置
+     * @return 监控器实例
      */
-    public static ExtMonitor createAuto(FlexPointConfig.MonitorConfig config) {
-        if (config.isAsyncEnabled()) {
-            return createAsync(config);
-        } else {
-            return create(config);
-        }
+    public static ExtMonitor createDefaultMonitor(FlexPointConfig.MonitorConfig config) {
+        return createMonitor(config, null);
     }
 } 
