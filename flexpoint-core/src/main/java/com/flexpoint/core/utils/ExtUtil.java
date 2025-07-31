@@ -17,20 +17,6 @@ import java.util.stream.Collectors;
 public class ExtUtil {
 
     /**
-     * 生成扩展点ID
-     *
-     * @param extAbility 扩展点实例（规则：扩展点定义类名#子类实现全限定类名)
-     * @return 扩展点ID
-     */
-    public static String getExtId(ExtAbility extAbility) {
-        if (extAbility == null) {
-            return "unknown";
-        }
-        Class<? extends ExtAbility> extType = getExtType(extAbility);
-        return extType.getSimpleName() + "#" + extAbility.getClass().getName();
-    }
-
-    /**
      * 获取扩展点类型
      * 查找实例实现的第一个ExtAbility接口
      */

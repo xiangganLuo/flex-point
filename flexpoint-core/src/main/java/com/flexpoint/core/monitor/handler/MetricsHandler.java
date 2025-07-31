@@ -13,25 +13,28 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author luoxianggan
  */
 public class MetricsHandler implements MonitorHandler, MetricsProvider {
+
+    /**
+     * key: 扩展点ID value: 统计对象
+     */
     private final ConcurrentHashMap<String, ExtMetricsImpl> metricsMap = new ConcurrentHashMap<>();
 
     @Override
     public void handleInvocation(ExtAbility extAbility, long duration, boolean success, ExtMetrics m) {
-        String ext = extAbility.getClass().getName();
-        ExtMetricsImpl metrics = metricsMap.computeIfAbsent(ext, k -> new ExtMetricsImpl());
+        ExtMetricsImpl metrics = metricsMap.computeIfAbsent(extAbility.getExtId(), k -> new ExtMetricsImpl());
         metrics.recordInvocation(duration, success);
     }
 
     @Override
     public void handleException(ExtAbility extAbility, Throwable exception, ExtMetrics m) {
         String ext = extAbility.getClass().getName();
-        ExtMetricsImpl metrics = metricsMap.computeIfAbsent(ext, k -> new ExtMetricsImpl());
+        ExtMetricsImpl metrics = metricsMap.computeIfAbsent(extAbility.getExtId(), k -> new ExtMetricsImpl());
         metrics.recordException();
     }
 
     @Override
     public ExtMetrics getMetrics(ExtAbility extAbility) {
-        return metricsMap.getOrDefault(extAbility.getClass().getName(), new ExtMetricsImpl());
+        return metricsMap.getOrDefault(extAbility.getExtId(), new ExtMetricsImpl());
     }
 
     @Override

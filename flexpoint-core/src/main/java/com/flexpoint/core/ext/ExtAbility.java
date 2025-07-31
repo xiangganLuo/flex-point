@@ -1,5 +1,7 @@
 package com.flexpoint.core.ext;
 
+import com.flexpoint.core.utils.ExtUtil;
+
 /**
  * 扩展点能力接口
  * 所有扩展点实现类都应该实现此接口
@@ -25,6 +27,17 @@ public interface ExtAbility {
      */
     default ExtTags getTags() {
         return ExtTags.empty();
+    }
+
+    /**
+     * 获取扩展点唯一标识
+     * 默认实现：扩展点定义类名#子类实现全限定类名
+     * 
+     * @return 扩展点唯一标识
+     */
+    default String getExtId() {
+        Class<? extends ExtAbility> extType = ExtUtil.getExtType(this);
+        return extType.getSimpleName() + "#" + this.getClass().getName();
     }
 
 }

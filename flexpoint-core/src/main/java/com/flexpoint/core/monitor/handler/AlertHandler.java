@@ -28,16 +28,16 @@ public class AlertHandler implements MonitorHandler {
 
     @Override
     public void handleInvocation(ExtAbility extAbility, long duration, boolean success, ExtMetrics metrics) {
-        if (success) return;
-        String extId = extAbility != null ? extAbility.getClass().getName() : "null";
-        doAlert(extId, MSG_INVOCATION_FAILED);
+        if (success) {
+            return;
+        }
+        doAlert(extAbility.getExtId(), MSG_INVOCATION_FAILED);
     }
 
     @Override
     public void handleException(ExtAbility extAbility, Throwable exception, ExtMetrics metrics) {
-        String extId = extAbility != null ? extAbility.getClass().getName() : "null";
         String message = exception != null ? exception.getMessage() : MSG_EXCEPTION_OCCURRED;
-        doAlert(extId, message);
+        doAlert(extAbility.getExtId(), message);
     }
 
     private void doAlert(String extId, String message) {

@@ -1,7 +1,6 @@
 package com.flexpoint.core.event;
 
 import com.flexpoint.core.ext.ExtAbility;
-import com.flexpoint.core.utils.ExtUtil;
 import lombok.Builder;
 import lombok.Data;
 
@@ -164,6 +163,6 @@ public class EventContext {
      * 获取扩展点ID
      */
     public String getExtId() {
-        return ExtUtil.getExtId(extAbility);
+        return extAbility.getExtId();
     }
 } 

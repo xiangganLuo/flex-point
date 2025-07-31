@@ -28,10 +28,9 @@ public class CollectorHandler implements MonitorHandler {
             return;
         }
 
-        String extId = extAbility != null ? extAbility.getClass().getName() : "null";
         for (MetricsCollector collector : collectors) {
             try {
-                collector.collect(extId, metrics, CollectorType.REALTIME);
+                collector.collect(extAbility.getExtId(), metrics, CollectorType.REALTIME);
             } catch (Exception e) {
                 log.warn("采集器采集异常", e);
             }
