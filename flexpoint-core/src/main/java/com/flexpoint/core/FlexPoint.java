@@ -57,7 +57,7 @@ public class FlexPoint {
     
     /**
      * 查找扩展点
-     * TODO 需要对原始的ExtAbility进行代理并然后进行埋点
+     * 通过选择器查找并返回匹配的扩展点实例
      */
     public <T extends ExtAbility> T findAbility(Class<T> extType) {
         String typeName = extType.getSimpleName();
@@ -118,21 +118,27 @@ public class FlexPoint {
      * @param <T> 扩展点类型
      * @return 匹配的扩展点列表
      */
-    public <T extends ExtAbility> List<T> findAbilitiysByCode(Class<T> extType, String code) {
+    public <T extends ExtAbility> List<T> findAbilitysByCode(Class<T> extType, String code) {
         List<T> exts = extAbilityRegistry.getAllExtAbility(extType);
         if (exts.isEmpty()) {
             // 发布扩展点未找到事件
             EventPublisher.publishExtNotFound(extType);
-            return null;
+            return Collections.emptyList();
         }
+        
         List<T> matched = exts.stream()
-                .filter(ext -> code.equals(ext.getCode()))
                 .filter(ext -> code.equals(ext.getCode()))
                 .map(ext -> getProxy(extType, ext))
                 .collect(Collectors.toList());
         
-        // 发布扩展点选择失败事件
-        EventPublisher.publishExtSelectionFailed(extType, FlexPointConstants.CODE_SELECTOR_NAME, "未找到匹配的扩展点");
+        if (!matched.isEmpty()) {
+            // 发布扩展点选择事件
+            matched.forEach(ext -> EventPublisher.publishExtSelected(ext, FlexPointConstants.CODE_SELECTOR_NAME));
+        } else {
+            // 发布扩展点选择失败事件
+            EventPublisher.publishExtSelectionFailed(extType, FlexPointConstants.CODE_SELECTOR_NAME, "未找到匹配的扩展点");
+        }
+        
         return matched;
     }
 
@@ -145,7 +151,7 @@ public class FlexPoint {
      * @return 匹配的扩展点
      */
     public <T extends ExtAbility> T findAbilityByCode(Class<T> extType, String code) {
-        List<T> matched = findAbilitiysByCode(extType, code);
+        List<T> matched = findAbilitysByCode(extType, code);
         return matched.isEmpty() ? null : matched.get(0);
     }
 
@@ -286,10 +292,14 @@ public class FlexPoint {
         return extMonitor.getAllExtMetrics();
     }
 
+    /**
+     * 创建扩展点代理
+     * 集成监控和事件发布功能
+     */
     private <T extends ExtAbility> T getProxy(Class<T> extType, T ability) {
         @SuppressWarnings("unchecked")
         T proxyInstance = (T) Proxy.newProxyInstance(
-                extType.getClassLoader(),
+                ability.getClass().getClassLoader(),
                 new Class[]{extType},
                 new EventPublisherInvocationHandler(ability)
         );
