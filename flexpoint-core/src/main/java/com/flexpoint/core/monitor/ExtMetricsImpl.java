@@ -90,18 +90,6 @@ public class ExtMetricsImpl implements ExtMetrics {
     }
 
     @Override
-    public long getP95ResponseTime() {
-        // 简化实现，实际应该使用滑动窗口或采样
-        return (long) (getAverageResponseTime() * 1.5);
-    }
-
-    @Override
-    public long getP99ResponseTime() {
-        // 简化实现，实际应该使用滑动窗口或采样
-        return (long) (getAverageResponseTime() * 2.0);
-    }
-
-    @Override
     public double getQPS() {
         long total = totalInvocations.get();
         long elapsed = System.currentTimeMillis() - startTime.get();

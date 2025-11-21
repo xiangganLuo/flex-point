@@ -50,16 +50,6 @@ public interface ExtMetrics {
     long getLastInvocationTime();
 
     /**
-     * 获取P95响应时间（毫秒）
-     */
-    long getP95ResponseTime();
-
-    /**
-     * 获取P99响应时间（毫秒）
-     */
-    long getP99ResponseTime();
-
-    /**
      * 获取QPS（每秒查询数）
      */
     double getQPS();
