@@ -36,7 +36,7 @@ graph TB
 
     %% ===== 测试层 =====
     subgraph 测试层
-      	D2[complx]
+      	D2[complex]
       	D6[integration]
     end
 
@@ -191,6 +191,6 @@ OrderProcessAbility ability = flexPoint.findAbility(OrderProcessAbility.class);
 - **MonitorTest**：调用统计、异常统计、指标重置
 - **SelectorTest**：选择器注册、名称匹配、@FpSelector注解解析、选择器未找到异常
 - **IntegrationTest**：注册、查找、选择、监控、注销等全流程
-- **complx**：灰度、A/B、多字段动态匹配等复杂业务规则
+- **complex**：灰度、A/B、多字段动态匹配等复杂业务规则
 
 ---
