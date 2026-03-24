@@ -1,4 +1,4 @@
-package com.flexpoint.test.complx;
+package com.flexpoint.test.complex;
 
 import com.flexpoint.common.annotations.FpSelector;
 import com.flexpoint.core.FlexPoint;

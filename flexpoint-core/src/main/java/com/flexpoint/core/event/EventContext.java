@@ -163,6 +163,6 @@ public class EventContext {
      * 获取扩展点ID
      */
     public String getExtId() {
-        return extAbility.getExtId();
+        return extAbility != null ? extAbility.getExtId() : null;
     }
 } 
