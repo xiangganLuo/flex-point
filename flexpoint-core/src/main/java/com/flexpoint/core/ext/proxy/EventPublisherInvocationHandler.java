@@ -1,6 +1,6 @@
 package com.flexpoint.core.ext.proxy;
 
-import com.flexpoint.core.event.EventPublisher;
+import com.flexpoint.core.event.EventDispatcher;
 import com.flexpoint.core.ext.ExtAbility;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -20,19 +20,20 @@ public class EventPublisherInvocationHandler implements InvocationHandler {
      * 原始扩展点实例
      */
     private final ExtAbility ability;
+    private final EventDispatcher eventDispatcher;
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         long startTime = System.currentTimeMillis();
         Object ret;
         try {
-            EventPublisher.publishInvokeBefore(ability, method.getName(), args);
+            eventDispatcher.publishInvokeBefore(ability, method.getName(), args);
             ret = method.invoke(ability, args);
             long duration = System.currentTimeMillis() - startTime;
-            EventPublisher.publishInvokeSuccess(ability, method.getName(), args, ret, duration);
+            eventDispatcher.publishInvokeSuccess(ability, method.getName(), args, ret, duration);
         } catch (Throwable throwable) {
             long duration = System.currentTimeMillis() - startTime;
-            EventPublisher.publishInvokeException(ability, method.getName(), args, throwable, duration);
+            eventDispatcher.publishInvokeException(ability, method.getName(), args, throwable, duration);
             throw throwable;
         }
         return ret;

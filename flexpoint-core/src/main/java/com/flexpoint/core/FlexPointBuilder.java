@@ -2,6 +2,8 @@ package com.flexpoint.core;
 
 import com.flexpoint.core.config.FlexPointConfig;
 import com.flexpoint.core.config.FlexPointConfigValidator;
+import com.flexpoint.core.event.DefaultEventBus;
+import com.flexpoint.core.event.EventDispatcher;
 import com.flexpoint.core.ext.DefaultExtAbilityRegistry;
 import com.flexpoint.core.ext.ExtAbilityRegistry;
 import com.flexpoint.core.monitor.ExtMonitor;
@@ -23,6 +25,7 @@ public class FlexPointBuilder {
     private ExtAbilityRegistry registry;
     private ExtMonitor monitor;
     private SelectorRegistry selectorRegistry;
+    private EventDispatcher eventDispatcher;
     private FlexPointConfig config;
     
     /**
@@ -66,6 +69,14 @@ public class FlexPointBuilder {
     }
 
     /**
+     * 使用自定义事件分发器
+     */
+    public FlexPointBuilder withEventDispatcher(EventDispatcher eventDispatcher) {
+        this.eventDispatcher = eventDispatcher;
+        return this;
+    }
+
+    /**
      * 使用配置
      */
     public FlexPointBuilder withConfig(FlexPointConfig config) {
@@ -89,8 +100,12 @@ public class FlexPointBuilder {
         }
         
         // 使用默认组件（如果未指定）
+        if (eventDispatcher == null) {
+            eventDispatcher = FlexPointComponentCreator.createEventDispatcher();
+        }
+
         if (registry == null) {
-            registry = FlexPointComponentCreator.createRegistry(config.getRegistry());
+            registry = FlexPointComponentCreator.createRegistry(config.getRegistry(), eventDispatcher);
         }
 
         if (monitor == null) {
@@ -98,10 +113,10 @@ public class FlexPointBuilder {
         }
         
         if (selectorRegistry == null) {
-            selectorRegistry = FlexPointComponentCreator.createSelectorRegistry();
+            selectorRegistry = FlexPointComponentCreator.createSelectorRegistry(eventDispatcher);
         }
         
-        return new FlexPoint(registry, monitor, selectorRegistry, config);
+        return new FlexPoint(registry, monitor, selectorRegistry, eventDispatcher, config);
     }
 
     /**
@@ -117,8 +132,8 @@ public class FlexPointBuilder {
         /**
          * 根据配置创建注册中心
          */
-        public static ExtAbilityRegistry createRegistry(FlexPointConfig.RegistryConfig registryConfig) {
-            return new DefaultExtAbilityRegistry(registryConfig);
+        public static ExtAbilityRegistry createRegistry(FlexPointConfig.RegistryConfig registryConfig, EventDispatcher eventDispatcher) {
+            return new DefaultExtAbilityRegistry(registryConfig, eventDispatcher);
         }
 
         /**
@@ -131,8 +146,15 @@ public class FlexPointBuilder {
         /**
          * 创建选择器注册表
          */
-        public static SelectorRegistry createSelectorRegistry() {
-            return new DefaultSelectorRegistry();
+        public static SelectorRegistry createSelectorRegistry(EventDispatcher eventDispatcher) {
+            return new DefaultSelectorRegistry(eventDispatcher);
+        }
+
+        /**
+         * 创建默认事件总线
+         */
+        public static EventDispatcher createEventDispatcher() {
+            return new EventDispatcher(new DefaultEventBus());
         }
 
     }
