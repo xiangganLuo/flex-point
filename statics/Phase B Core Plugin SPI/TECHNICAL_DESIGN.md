@@ -190,9 +190,9 @@ FlexPointBuilder
 
 ---
 
-## 11. 验收标准
+## 11. 验收标准（进度对齐）
 
-- 任意新选择器能力可通过插件接入，无需修改 `FlexPoint` 主流程。
-- 插件依赖冲突可在启动期识别并给出可诊断错误。
-- 至少 1 个非关键插件失败时框架仍能启动并运行核心能力。
-- 提供完整测试覆盖（单测 + 集成 + 并发关键路径）。
+- [x] 任意新选择器能力可通过插件接入，无需修改 `FlexPoint` 主流程（示例：PluginSpiExampleTest）。
+- [x] 插件依赖/冲突在启动期识别并给出错误（DependencyResolver/ConflictDetector）。
+- [x] 非关键插件失败不阻断启动，仍可运行核心能力（PluginSpiExampleTest：FailingOptionalPlugin）。
+- [ ] 单元测试补齐（依赖解析/冲突/状态机/报告）与并发关键路径（计划中）。

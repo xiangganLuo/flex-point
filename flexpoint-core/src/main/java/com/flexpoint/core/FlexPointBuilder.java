@@ -10,6 +10,14 @@ import com.flexpoint.core.monitor.ExtMonitor;
 import com.flexpoint.core.monitor.MonitorFactory;
 import com.flexpoint.core.selector.DefaultSelectorRegistry;
 import com.flexpoint.core.selector.SelectorRegistry;
+import com.flexpoint.core.plugin.Plugin;
+import com.flexpoint.core.plugin.manage.DefaultPluginManager;
+import com.flexpoint.core.plugin.manage.PluginManager;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -27,6 +35,9 @@ public class FlexPointBuilder {
     private SelectorRegistry selectorRegistry;
     private EventDispatcher eventDispatcher;
     private FlexPointConfig config;
+
+    // 插件相关
+    private final List<Plugin> plugins = new CopyOnWriteArrayList<>();
     
     /**
      * 使用默认组件构建
@@ -83,6 +94,22 @@ public class FlexPointBuilder {
         this.config = FlexPointConfigValidator.validateAndProcess(config);
         return this;
     }
+
+    /**
+     * 增加单个插件
+     */
+    public FlexPointBuilder withPlugin(Plugin plugin) {
+        if (plugin != null) this.plugins.add(plugin);
+        return this;
+    }
+
+    /**
+     * 批量增加插件
+     */
+    public FlexPointBuilder withPlugins(Collection<Plugin> plugins) {
+        if (plugins != null) this.plugins.addAll(plugins);
+        return this;
+    }
     
     /**
      * 构建FlexPoint实例
@@ -130,6 +157,18 @@ public class FlexPointBuilder {
         } else {
             resolvedSelectorRegistry = FlexPointComponentCreator.createSelectorRegistry(resolvedEventDispatcher);
         }
+
+        // 如果未提供插件，保持历史行为
+        if (plugins.isEmpty()) {
+            return new FlexPoint(resolvedRegistry, resolvedMonitor, resolvedSelectorRegistry, resolvedEventDispatcher, resolvedConfig);
+        }
+
+        // 插件装配
+        PluginManager pm = new DefaultPluginManager(
+                resolvedRegistry, resolvedSelectorRegistry, resolvedEventDispatcher.getEventBus(), resolvedMonitor, resolvedConfig);
+        pm.registerAll(plugins);
+        pm.resolve();
+        pm.installAll();
 
         return new FlexPoint(resolvedRegistry, resolvedMonitor, resolvedSelectorRegistry, resolvedEventDispatcher, resolvedConfig);
     }

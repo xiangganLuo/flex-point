@@ -8,6 +8,7 @@ import com.flexpoint.core.ext.ExtAbility;
 
 import java.util.Map;
 import com.flexpoint.core.selector.Selector;
+import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,7 +38,7 @@ public class ABRuleTest {
         private final Map<String, String> userGroup;
         public ABTestSelector(Map<String, String> userGroup) { this.userGroup = userGroup; }
         @Override
-        public <T extends ExtAbility> T select(java.util.List<T> candidates) {
+        public <T extends ExtAbility> T select(List<T> candidates) {
             String userId = UserContext.get();
             String code = userGroup.getOrDefault(userId, "normal");
             for (T ext : candidates) {

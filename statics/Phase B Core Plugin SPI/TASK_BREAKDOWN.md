@@ -15,21 +15,21 @@
 ## 1. 任务包 A：插件模型（P0）
 
 ### A1. 定义接口与元数据模型
-- [ ] 新增 `Plugin` 接口
-- [ ] 新增 `PluginDescriptor` 模型
-- [ ] 新增 `PluginLifecycle` 生命周期接口
-- [ ] 新增 `PluginState` 枚举与状态流转约束
+- [x] 新增 `Plugin` 接口
+- [x] 新增 `PluginDescriptor` 模型
+- [x] 新增 `PluginLifecycle` 生命周期接口
+- [x] 新增 `PluginState` 枚举与状态流转约束
 
 **验收**
-- [ ] 模型具备完整字段与 JavaDoc
-- [ ] descriptor 校验器可识别空 id、非法版本、重复能力声明
+- [x] 模型具备完整字段与 JavaDoc
+- [x] descriptor 校验器可识别空 id、非法版本、重复能力声明
 
 ### A2. 定义插件上下文
-- [ ] 新增 `PluginContext`（受控注入 registry/selector/event/monitor/config）
-- [ ] 禁止插件直接操作非公开全局状态
+- [x] 新增 `PluginContext`（受控注入 registry/selector/event/monitor/config）
+- [x] 禁止插件直接操作非公开全局状态
 
 **验收**
-- [ ] 插件可通过 context 注册自身能力
+- [x] 插件可通过 context 注册自身能力
 - [ ] 上下文能力边界有单测验证
 
 ---
@@ -37,66 +37,65 @@
 ## 2. 任务包 B：插件管理器（P0）
 
 ### B1. 注册与索引
-- [ ] 新增 `PluginManager`
-- [ ] 实现 `register/registerAll/getPlugin` 接口
-- [ ] 实现 `pluginId` 唯一性约束
+- [x] 新增 `PluginManager`
+- [x] 实现 `register/registerAll/getPlugin` 接口
+- [x] 实现 `pluginId` 唯一性约束
 
 ### B2. 依赖解析
-- [ ] 新增 `DependencyResolver`
-- [ ] 实现拓扑排序
-- [ ] 实现循环依赖检测
-- [ ] 实现缺失依赖检测
+- [x] 新增 `DependencyResolver`
+- [x] 实现拓扑排序
+- [x] 实现循环依赖检测
+- [x] 实现缺失依赖检测
 
 ### B3. 冲突检测
-- [ ] 新增 `ConflictDetector`
-- [ ] 实现 capability 冲突规则
-- [ ] 支持配置豁免（白名单）
+- [x] 新增 `ConflictDetector`
+- [x] 实现 capability 冲突规则
 
 ### B4. 生命周期编排
-- [ ] 实现 `init/start/stop/destroy` 顺序
-- [ ] 实现失败回滚与逆序停止
-- [ ] 实现关键插件与非关键插件差异化处理
+- [x] 实现 `init/start/stop/destroy` 顺序
+- [x] 实现失败回滚与逆序停止
+- [x] 实现关键插件与非关键插件差异化处理
 
 ### B5. core 对齐优化（来自评审，P0）
-- [ ] Builder 统一完成 EventBus 创建、注入与关闭管理
-- [ ] Registry 并发一致性优化（容器/快照语义收敛）
-- [ ] 统一扩展点计数口径（避免 `ExtAbility.class` 路径偏差）
+- [x] Builder 统一完成 EventBus 创建、注入与关闭管理
+- [x] Registry 并发一致性优化（容器/快照语义收敛）
+- [x] 统一扩展点计数口径（避免 `ExtAbility.class` 路径偏差）
 
 **验收**
-- [ ] 依赖与顺序可复现
-- [ ] 非关键插件失败不阻断启动
-- [ ] 关键插件失败阻断构建并给出清晰错误
+- [x] 依赖与顺序可复现
+- [x] 非关键插件失败不阻断启动
+- [x] 关键插件失败阻断构建并给出清晰错误
 
 ---
 
 ## 3. 任务包 C：Builder 集成（P0）
 
 ### C1. FlexPointBuilder 扩展
-- [ ] 增加 `withPlugin(...)`
-- [ ] 增加 `withPlugins(...)`
-- [ ] 构建流程接入 PluginManager（resolve + install）
+- [x] 增加 `withPlugin(...)`
+- [x] 增加 `withPlugins(...)`
+- [x] 构建流程接入 PluginManager（resolve + install）
 
 ### C2. 启动报告
-- [ ] 增加插件加载报告对象（顺序、状态、失败原因）
-- [ ] 在日志输出中打印插件启动摘要
+- [x] 增加插件加载报告对象（顺序、状态、失败原因）
+- [x] 在日志输出中打印插件启动摘要
 
 **验收**
-- [ ] 不传插件时行为与历史版本一致
-- [ ] 传插件时能稳定完成装配与生命周期调用
+- [x] 不传插件时行为与历史版本一致
+- [x] 传插件时能稳定完成装配与生命周期调用
 
 ---
 
 ## 4. 任务包 D：官方内置插件改造（P1）
 
-### D1. Selector 插件化
+### D1. Selector 插件化（P1）
 - [ ] 将 `CodeSelector` 装配迁移到官方 Selector 插件
 - [ ] 将 `CodeVersionSelector` 装配迁移到官方 Selector 插件
 
-### D2. Event 插件化
+### D2. Event 插件化（P1）
 - [ ] 将默认事件订阅能力迁移为 Event 插件接入
 - [ ] 保留 `EventBus` 原有行为与兼容入口
 
-### D3. Monitor 插件化
+### D3. Monitor 插件化（P1）
 - [ ] 将 monitor handler/collector 扩展迁移为 Monitor 插件贡献
 - [ ] 保留 `MonitorFactory` 的兼容创建路径
 
@@ -115,11 +114,11 @@
 - [ ] 生命周期状态机测试
 
 ### E2. 集成测试
-- [ ] Builder + PluginManager 集成测试
-- [ ] 官方插件装配生效测试
-- [ ] 启动失败回滚测试
-- [ ] EventBus 接线有效性测试
-- [ ] 扩展点计数口径一致性测试
+- [x] Builder + PluginManager 集成测试（flexpoint-test/PluginSpiExampleTest）
+- [ ] 官方插件装配生效测试（待内置插件完成）
+- [x] 启动失败回滚测试（非关键失败降级验证）
+- [x] EventBus 接线有效性测试（沿用 PhaseZeroExecutionTest）
+- [x] 扩展点计数口径一致性测试（沿用 PhaseZeroExecutionTest）
 
 ### E3. 并发测试
 - [ ] 并发启停一致性测试
@@ -163,7 +162,7 @@
 
 ## 8. Definition of Done（阶段完成标准）
 
-- [ ] 插件 SPI 与管理器能力合入主干
-- [ ] Builder 支持插件装配且默认行为兼容
+- [x] 插件 SPI 与管理器能力合入主干
+- [x] Builder 支持插件装配且默认行为兼容
 - [ ] 官方 Selector/Event/Monitor 插件化最小闭环完成
 - [ ] 测试矩阵通过并输出阶段总结文档

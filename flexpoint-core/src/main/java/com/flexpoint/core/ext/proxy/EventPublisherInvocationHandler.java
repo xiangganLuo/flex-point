@@ -29,6 +29,7 @@ public class EventPublisherInvocationHandler implements InvocationHandler {
         Object ret;
         try {
             eventDispatcher.publishInvokeBefore(ability, method.getName(), args);
+            method.setAccessible(true);
             ret = method.invoke(ability, args);
             long duration = System.currentTimeMillis() - startTime;
             eventDispatcher.publishInvokeSuccess(ability, method.getName(), args, ret, duration);

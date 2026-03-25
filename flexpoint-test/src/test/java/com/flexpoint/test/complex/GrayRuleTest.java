@@ -7,6 +7,7 @@ import com.flexpoint.core.config.FlexPointConfig;
 import com.flexpoint.core.ext.ExtAbility;
 
 import com.flexpoint.core.selector.Selector;
+import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,7 +38,7 @@ public class GrayRuleTest {
         private final Set<String> grayUsers;
         public GraySelector(Set<String> grayUsers) { this.grayUsers = grayUsers; }
         @Override
-        public <T extends ExtAbility> T select(java.util.List<T> candidates) {
+        public <T extends ExtAbility> T select(List<T> candidates) {
             String userId = UserContext.get();
             String code = grayUsers.contains(userId) ? "gray" : "normal";
             for (T ext : candidates) {
