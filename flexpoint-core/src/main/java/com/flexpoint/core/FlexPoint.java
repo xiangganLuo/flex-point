@@ -4,7 +4,8 @@ import com.flexpoint.common.annotations.FpSelector;
 import com.flexpoint.common.constants.FlexPointConstants;
 import com.flexpoint.common.exception.SelectorNotFoundException;
 import com.flexpoint.core.config.FlexPointConfig;
-import com.flexpoint.core.event.EventPublisher;
+import com.flexpoint.core.event.EventBus;
+import com.flexpoint.core.event.EventDispatcher;
 import com.flexpoint.core.ext.ExtAbility;
 import com.flexpoint.core.ext.ExtAbilityRegistry;
 import com.flexpoint.core.ext.proxy.EventPublisherInvocationHandler;
@@ -36,6 +37,7 @@ public class FlexPoint {
     private final ExtMonitor extMonitor;
     @Getter
     private final SelectorRegistry selectorRegistry;
+    private final EventDispatcher eventDispatcher;
 
     @Getter
     private final FlexPointConfig flexPointConfig;
@@ -43,12 +45,18 @@ public class FlexPoint {
     public FlexPoint(ExtAbilityRegistry extAbilityRegistry,
                      ExtMonitor extMonitor,
                      SelectorRegistry selectorRegistry,
+                     EventDispatcher eventDispatcher,
                      FlexPointConfig flexPointConfig
     ) {
         this.extAbilityRegistry = extAbilityRegistry;
         this.extMonitor = extMonitor;
         this.selectorRegistry = selectorRegistry;
+        this.eventDispatcher = eventDispatcher;
         this.flexPointConfig = flexPointConfig;
+    }
+
+    public EventBus getEventBus() {
+        return eventDispatcher.getEventBus();
     }
 
     /**
@@ -72,13 +80,13 @@ public class FlexPoint {
         String selectorName = selectorAnno.value();
 
         // 发布选择器查找事件
-        EventPublisher.publishSelectorFound(selectorName);
+        eventDispatcher.publishSelectorFound(selectorName);
 
         Selector selector = selectorRegistry.getSelector(selectorName);
         if (selector == null) {
             log.warn("未找到名称为[{}]的选择器", selectorName);
             // 发布选择器未找到事件
-            EventPublisher.publishSelectorNotFound(selectorName);
+            eventDispatcher.publishSelectorNotFound(selectorName);
             throw new SelectorNotFoundException(selectorName, typeName);
         }
 
@@ -86,7 +94,7 @@ public class FlexPoint {
         if (exts.isEmpty()) {
             log.warn("未找到扩展点实现: type={}", typeName);
             // 发布扩展点未找到事件
-            EventPublisher.publishExtNotFound(extType);
+            eventDispatcher.publishExtNotFound(extType);
             return null;
         }
 
@@ -95,12 +103,12 @@ public class FlexPoint {
             String errorMsg = "选择器未找到匹配的扩展点";
             log.warn("选择器[{}]未找到匹配的扩展点: type={}", selectorName, typeName);
             // 发布扩展点选择失败事件
-            EventPublisher.publishExtSelectionFailed(extType, selectorName, errorMsg);
+            eventDispatcher.publishExtSelectionFailed(extType, selectorName, errorMsg);
             return null;
         }
 
         // 发布扩展点选择事件
-        EventPublisher.publishExtSelected(ability, selectorName);
+        eventDispatcher.publishExtSelected(ability, selectorName);
 
         if (log.isDebugEnabled()) {
             log.debug("成功获取扩展点: type={}, code={}, selector={}, class={}",
@@ -122,7 +130,7 @@ public class FlexPoint {
         List<T> exts = extAbilityRegistry.getAllExtAbility(extType);
         if (exts.isEmpty()) {
             // 发布扩展点未找到事件
-            EventPublisher.publishExtNotFound(extType);
+            eventDispatcher.publishExtNotFound(extType);
             return Collections.emptyList();
         }
         
@@ -133,10 +141,10 @@ public class FlexPoint {
         
         if (!matched.isEmpty()) {
             // 发布扩展点选择事件
-            matched.forEach(ext -> EventPublisher.publishExtSelected(ext, FlexPointConstants.CODE_SELECTOR_NAME));
+            matched.forEach(ext -> eventDispatcher.publishExtSelected(ext, FlexPointConstants.CODE_SELECTOR_NAME));
         } else {
             // 发布扩展点选择失败事件
-            EventPublisher.publishExtSelectionFailed(extType, FlexPointConstants.CODE_SELECTOR_NAME, "未找到匹配的扩展点");
+            eventDispatcher.publishExtSelectionFailed(extType, FlexPointConstants.CODE_SELECTOR_NAME, "未找到匹配的扩展点");
         }
         
         return matched;
@@ -168,7 +176,7 @@ public class FlexPoint {
         List<T> exts = extAbilityRegistry.getAllExtAbility(extType);
         if (exts.isEmpty()) {
             // 发布扩展点未找到事件
-            EventPublisher.publishExtNotFound(extType);
+            eventDispatcher.publishExtNotFound(extType);
             return Collections.emptyList();
         }
 
@@ -195,10 +203,10 @@ public class FlexPoint {
 
         if (!matched.isEmpty()) {
             // 发布扩展点选择事件
-            matched.forEach(ext -> EventPublisher.publishExtSelected(ext, FlexPointConstants.CODE_TAGS_SELECTOR_NAME));
+            matched.forEach(ext -> eventDispatcher.publishExtSelected(ext, FlexPointConstants.CODE_TAGS_SELECTOR_NAME));
         } else {
             // 发布扩展点选择失败事件
-            EventPublisher.publishExtSelectionFailed(extType, FlexPointConstants.CODE_TAGS_SELECTOR_NAME, "未找到匹配的扩展点");
+            eventDispatcher.publishExtSelectionFailed(extType, FlexPointConstants.CODE_TAGS_SELECTOR_NAME, "未找到匹配的扩展点");
         }
         return matched;
     }
@@ -232,7 +240,14 @@ public class FlexPoint {
      * 获取注册的扩展点总数
      */
     public int getExtCount() {
-        return extAbilityRegistry.getAllExtAbility(ExtAbility.class).size();
+        return extAbilityRegistry.getRegisteredCount();
+    }
+
+    /**
+     * 关闭 FlexPoint 相关资源
+     */
+    public void shutdown() {
+        eventDispatcher.shutdown();
     }
 
     /**
@@ -301,7 +316,7 @@ public class FlexPoint {
         T proxyInstance = (T) Proxy.newProxyInstance(
                 ability.getClass().getClassLoader(),
                 new Class[]{extType},
-                new EventPublisherInvocationHandler(ability)
+                new EventPublisherInvocationHandler(ability, eventDispatcher)
         );
         return proxyInstance;
     }

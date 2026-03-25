@@ -57,13 +57,13 @@ public class DefaultEventBus implements EventBus {
     
     @Override
     public void publish(EventContext eventContext) {
-        if (shutdown.get()) {
-            log.warn("事件总线已关闭，忽略事件: {}", eventContext.getEventType());
+        if (eventContext == null || eventContext.getEventType() == null) {
+            log.warn("事件上下文或事件类型为空，忽略事件");
             return;
         }
 
-        if (eventContext == null || eventContext.getEventType() == null) {
-            log.warn("事件上下文或事件类型为空，忽略事件");
+        if (shutdown.get()) {
+            log.warn("事件总线已关闭，忽略事件: {}", eventContext.getEventType());
             return;
         }
 
