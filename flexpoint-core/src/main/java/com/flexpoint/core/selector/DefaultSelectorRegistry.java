@@ -33,7 +33,12 @@ public class DefaultSelectorRegistry implements SelectorRegistry {
             log.warn("选择器名称为空，无法注册");
             return;
         }
-        
+
+        // 资源级唯一：同名选择器不可被覆盖
+        if (selectorMap.containsKey(selectorName)) {
+            throw new IllegalStateException("选择器名称已存在，禁止覆盖: " + selectorName);
+        }
+
         selectorMap.put(selectorName, selector);
         // 发布选择器注册事件
         eventDispatcher.publishSelectorRegistered(selector.getName());

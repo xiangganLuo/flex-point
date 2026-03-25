@@ -4,18 +4,15 @@ import com.flexpoint.core.config.FlexPointConfig;
 import com.flexpoint.core.event.EventBus;
 import com.flexpoint.core.ext.ExtAbilityRegistry;
 import com.flexpoint.core.monitor.ExtMonitor;
-import com.flexpoint.core.plugin.*;
+import com.flexpoint.core.plugin.Plugin;
+import com.flexpoint.core.plugin.PluginContext;
+import com.flexpoint.core.plugin.PluginLoadReport;
+import com.flexpoint.core.plugin.PluginState;
 import com.flexpoint.core.plugin.exception.PluginException;
 import com.flexpoint.core.selector.SelectorRegistry;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -65,9 +62,6 @@ public class DefaultPluginManager implements PluginManager {
     @Override
     public void resolve() {
         Collection<Plugin> values = plugins.values();
-        // 冲突检测（默认 SELECTOR、EVENT、MONITOR 为单例能力）
-        EnumSet<PluginCapability> singletons = EnumSet.of(PluginCapability.SELECTOR, PluginCapability.EVENT, PluginCapability.MONITOR);
-        ConflictDetector.detect(values, singletons);
         // 依赖解析
         resolvedOrder = DependencyResolver.resolveOrder(values);
         for (Plugin p : resolvedOrder) {

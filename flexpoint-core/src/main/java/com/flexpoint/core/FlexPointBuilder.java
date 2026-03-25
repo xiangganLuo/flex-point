@@ -8,17 +8,15 @@ import com.flexpoint.core.ext.DefaultExtAbilityRegistry;
 import com.flexpoint.core.ext.ExtAbilityRegistry;
 import com.flexpoint.core.monitor.ExtMonitor;
 import com.flexpoint.core.monitor.MonitorFactory;
-import com.flexpoint.core.selector.DefaultSelectorRegistry;
-import com.flexpoint.core.selector.SelectorRegistry;
 import com.flexpoint.core.plugin.Plugin;
 import com.flexpoint.core.plugin.manage.DefaultPluginManager;
-import com.flexpoint.core.plugin.manage.PluginManager;
-import java.util.ArrayList;
+import com.flexpoint.core.selector.DefaultSelectorRegistry;
+import com.flexpoint.core.selector.SelectorRegistry;
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * 扩展点管理器建造者
@@ -38,7 +36,7 @@ public class FlexPointBuilder {
 
     // 插件相关
     private final List<Plugin> plugins = new CopyOnWriteArrayList<>();
-    
+
     /**
      * 使用默认组件构建
      */
@@ -110,7 +108,7 @@ public class FlexPointBuilder {
         if (plugins != null) this.plugins.addAll(plugins);
         return this;
     }
-    
+
     /**
      * 构建FlexPoint实例
      */
@@ -164,8 +162,7 @@ public class FlexPointBuilder {
         }
 
         // 插件装配
-        PluginManager pm = new DefaultPluginManager(
-                resolvedRegistry, resolvedSelectorRegistry, resolvedEventDispatcher.getEventBus(), resolvedMonitor, resolvedConfig);
+        DefaultPluginManager pm = new DefaultPluginManager(resolvedRegistry, resolvedSelectorRegistry, resolvedEventDispatcher.getEventBus(), resolvedMonitor, resolvedConfig);
         pm.registerAll(plugins);
         pm.resolve();
         pm.installAll();

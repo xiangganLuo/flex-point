@@ -98,11 +98,12 @@ FlexPointBuilder
 - `stopAll()`：逆序 `stop/destroy`。
 - `enable/disable(pluginId)`：运行时启停（可选，第一阶段建议实现最小可用）。
 
-## 5.2 依赖与冲突策略
-- 拓扑排序解决依赖装配顺序。
-- 检测循环依赖并启动失败。
-- `pluginId` 冲突直接失败。
-- capability 冲突默认“单能力单主插件”，允许通过配置白名单放宽。
+## 5.2 注册与冲突策略（更新）
+- 依赖顺序：拓扑排序解决装配先后；循环依赖启动失败。
+- ID 唯一：`pluginId` 重复直接失败。
+- 能力并存：允许多个插件声明同一 capability（SELECTOR/EVENT/MONITOR 等），内核以隔离与编排保障安全。
+- 资源级唯一：选择器名/事件路由器名/监控处理链名等“资源名”在各自注册点禁止同名覆盖（注册时直接失败）。
+- 冲突检测变更：移除 capability 维度的“单主/冲突”判定；仅保留资源级唯一校验。
 
 ## 5.3 异常与降级策略
 - `critical=true` 插件启动失败：阻断 `FlexPoint` 构建。
@@ -117,6 +118,7 @@ FlexPointBuilder
 新增能力：
 - `withPlugin(Plugin plugin)`
 - `withPlugins(List<Plugin> plugins)`
+- `withConflictWhitelist(ConflictWhitelist whitelist)`（预留：未来用于资源级特殊放行；短期默认不启用）
 - `withPluginConfig(...)`（可选）
 
 构建流程建议：
@@ -143,6 +145,7 @@ FlexPointBuilder
 - 插件状态转移日志
 - 依赖解析结果
 - 失败原因（依赖缺失/冲突/异常栈）
+ - 白名单放行详情（`PluginLoadReport.whitelistApplied`）
 
 建议提供：
 - `PluginManager#getPluginStates()`
