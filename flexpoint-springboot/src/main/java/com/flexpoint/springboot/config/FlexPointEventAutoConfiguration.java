@@ -1,15 +1,11 @@
 package com.flexpoint.springboot.config;
 
 import com.flexpoint.core.FlexPoint;
-import com.flexpoint.core.event.DefaultEventBus;
 import com.flexpoint.core.event.EventBus;
-import com.flexpoint.core.event.EventPublisher;
 import com.flexpoint.core.monitor.subscribers.MonitorEventSubscriber;
-import com.flexpoint.springboot.properties.FlexPointProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -33,12 +29,11 @@ public class FlexPointEventAutoConfiguration {
     @ConditionalOnMissingBean
     public EventBus eventBus(FlexPoint flexPoint) {
         log.info("创建事件总线");
-        DefaultEventBus defaultEventBus = new DefaultEventBus();
-        EventPublisher.setEventBus(defaultEventBus);
+        EventBus eventBus = flexPoint.getEventBus();
         
         // 注册监控事件订阅者
-        defaultEventBus.subscribe(new MonitorEventSubscriber(flexPoint.getExtMonitor()));
+        eventBus.subscribe(new MonitorEventSubscriber(flexPoint.getExtMonitor()));
         
-        return defaultEventBus;
+        return eventBus;
     }
-} 
+}

@@ -2,6 +2,8 @@ package com.flexpoint.core;
 
 import com.flexpoint.core.config.FlexPointConfig;
 import com.flexpoint.core.config.FlexPointConfigValidator;
+import com.flexpoint.core.event.DefaultEventBus;
+import com.flexpoint.core.event.EventDispatcher;
 import com.flexpoint.core.ext.DefaultExtAbilityRegistry;
 import com.flexpoint.core.ext.ExtAbilityRegistry;
 import com.flexpoint.core.monitor.ExtMonitor;
@@ -23,6 +25,7 @@ public class FlexPointBuilder {
     private ExtAbilityRegistry registry;
     private ExtMonitor monitor;
     private SelectorRegistry selectorRegistry;
+    private EventDispatcher eventDispatcher;
     private FlexPointConfig config;
     
     /**
@@ -66,6 +69,14 @@ public class FlexPointBuilder {
     }
 
     /**
+     * 使用自定义事件分发器
+     */
+    public FlexPointBuilder withEventDispatcher(EventDispatcher eventDispatcher) {
+        this.eventDispatcher = eventDispatcher;
+        return this;
+    }
+
+    /**
      * 使用配置
      */
     public FlexPointBuilder withConfig(FlexPointConfig config) {
@@ -78,30 +89,49 @@ public class FlexPointBuilder {
      */
     public FlexPoint build() {
         // 如果没有配置，使用默认配置
-        if (config == null) {
-            config = FlexPointConfig.defaultConfig();
+        FlexPointConfig resolvedConfig = config;
+        if (resolvedConfig == null) {
+            resolvedConfig = FlexPointConfig.defaultConfig();
             log.debug("使用默认配置");
         }
         
         // 如果框架被禁用，抛出异常
-        if (!config.isEnabled()) {
+        if (!resolvedConfig.isEnabled()) {
             throw new IllegalStateException("Flex Point框架已禁用，无法构建实例");
         }
-        
+
         // 使用默认组件（如果未指定）
-        if (registry == null) {
-            registry = FlexPointComponentCreator.createRegistry(config.getRegistry());
+        // 注意：默认 dispatcher 每次 build 都新建，确保多实例隔离；
+        // 仅当显式 withEventDispatcher(...) 时才复用
+        EventDispatcher resolvedEventDispatcher;
+        if (this.eventDispatcher != null) {
+            resolvedEventDispatcher = this.eventDispatcher;
+        } else {
+            resolvedEventDispatcher = FlexPointComponentCreator.createEventDispatcher();
         }
 
-        if (monitor == null) {
-            monitor = FlexPointComponentCreator.createMonitor(config.getMonitor());
+        ExtAbilityRegistry resolvedRegistry;
+        if (this.registry != null) {
+            resolvedRegistry = this.registry;
+        } else {
+            resolvedRegistry = FlexPointComponentCreator.createRegistry(resolvedConfig.getRegistry(), resolvedEventDispatcher);
         }
-        
-        if (selectorRegistry == null) {
-            selectorRegistry = FlexPointComponentCreator.createSelectorRegistry();
+
+        ExtMonitor resolvedMonitor;
+        if (this.monitor != null) {
+            resolvedMonitor = this.monitor;
+        } else {
+            resolvedMonitor = FlexPointComponentCreator.createMonitor(resolvedConfig.getMonitor());
         }
-        
-        return new FlexPoint(registry, monitor, selectorRegistry, config);
+
+        SelectorRegistry resolvedSelectorRegistry;
+        if (this.selectorRegistry != null) {
+            resolvedSelectorRegistry = this.selectorRegistry;
+        } else {
+            resolvedSelectorRegistry = FlexPointComponentCreator.createSelectorRegistry(resolvedEventDispatcher);
+        }
+
+        return new FlexPoint(resolvedRegistry, resolvedMonitor, resolvedSelectorRegistry, resolvedEventDispatcher, resolvedConfig);
     }
 
     /**
@@ -117,8 +147,8 @@ public class FlexPointBuilder {
         /**
          * 根据配置创建注册中心
          */
-        public static ExtAbilityRegistry createRegistry(FlexPointConfig.RegistryConfig registryConfig) {
-            return new DefaultExtAbilityRegistry(registryConfig);
+        public static ExtAbilityRegistry createRegistry(FlexPointConfig.RegistryConfig registryConfig, EventDispatcher eventDispatcher) {
+            return new DefaultExtAbilityRegistry(registryConfig, eventDispatcher);
         }
 
         /**
@@ -131,8 +161,15 @@ public class FlexPointBuilder {
         /**
          * 创建选择器注册表
          */
-        public static SelectorRegistry createSelectorRegistry() {
-            return new DefaultSelectorRegistry();
+        public static SelectorRegistry createSelectorRegistry(EventDispatcher eventDispatcher) {
+            return new DefaultSelectorRegistry(eventDispatcher);
+        }
+
+        /**
+         * 创建默认事件总线
+         */
+        public static EventDispatcher createEventDispatcher() {
+            return new EventDispatcher(new DefaultEventBus());
         }
 
     }
