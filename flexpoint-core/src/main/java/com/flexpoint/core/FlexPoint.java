@@ -4,6 +4,7 @@ import com.flexpoint.common.annotations.FpSelector;
 import com.flexpoint.common.constants.FlexPointConstants;
 import com.flexpoint.common.exception.SelectorNotFoundException;
 import com.flexpoint.core.config.FlexPointConfig;
+import com.flexpoint.core.event.EventBus;
 import com.flexpoint.core.event.EventPublisher;
 import com.flexpoint.core.ext.ExtAbility;
 import com.flexpoint.core.ext.ExtAbilityRegistry;
@@ -232,7 +233,17 @@ public class FlexPoint {
      * 获取注册的扩展点总数
      */
     public int getExtCount() {
-        return extAbilityRegistry.getAllExtAbility(ExtAbility.class).size();
+        return extAbilityRegistry.getRegisteredCount();
+    }
+
+    /**
+     * 关闭 FlexPoint 相关资源
+     */
+    public void shutdown() {
+        EventBus eventBus = EventPublisher.getEventBus();
+        if (eventBus != null) {
+            eventBus.shutdown();
+        }
     }
 
     /**

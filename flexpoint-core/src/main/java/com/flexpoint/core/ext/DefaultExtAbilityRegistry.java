@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 import static com.flexpoint.core.utils.ExtUtil.getExtType;
@@ -36,7 +37,7 @@ public class DefaultExtAbilityRegistry implements ExtAbilityRegistry {
     }
 
     @Override
-    public synchronized void register(ExtAbility instance) {
+    public void register(ExtAbility instance) {
         if (instance == null) {
             throw new IllegalArgumentException("扩展点实例不能为空");
         }
@@ -47,7 +48,7 @@ public class DefaultExtAbilityRegistry implements ExtAbilityRegistry {
         }
 
         // 注册到类型映射 - 允许同一个code的多个实现
-        extAbilityMap.computeIfAbsent(extType, k -> new ArrayList<>()).add(instance);
+        extAbilityMap.computeIfAbsent(extType, k -> new CopyOnWriteArrayList<>()).add(instance);
         
         // 发布注册事件
         publishEvent(EventType.EXT_REGISTERED, instance);
@@ -57,7 +58,7 @@ public class DefaultExtAbilityRegistry implements ExtAbilityRegistry {
     }
     
     @Override
-    public synchronized void unregister(ExtAbility instance) {
+    public void unregister(ExtAbility instance) {
         if (instance == null) {
             return;
         }
@@ -89,7 +90,7 @@ public class DefaultExtAbilityRegistry implements ExtAbilityRegistry {
         // 发布找到事件
         publishEvent(EventType.EXT_FOUND, null, extType);
         
-        return list.stream().map(extType::cast).collect(Collectors.toList());
+        return new ArrayList<>(list).stream().map(extType::cast).collect(Collectors.toList());
     }
     
     /**
@@ -113,6 +114,7 @@ public class DefaultExtAbilityRegistry implements ExtAbilityRegistry {
     /**
      * 获取注册的扩展点总数
      */
+    @Override
     public int getRegisteredCount() {
         return extAbilityMap.values().stream()
             .mapToInt(List::size)

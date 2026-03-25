@@ -2,6 +2,9 @@ package com.flexpoint.core;
 
 import com.flexpoint.core.config.FlexPointConfig;
 import com.flexpoint.core.config.FlexPointConfigValidator;
+import com.flexpoint.core.event.DefaultEventBus;
+import com.flexpoint.core.event.EventBus;
+import com.flexpoint.core.event.EventPublisher;
 import com.flexpoint.core.ext.DefaultExtAbilityRegistry;
 import com.flexpoint.core.ext.ExtAbilityRegistry;
 import com.flexpoint.core.monitor.ExtMonitor;
@@ -23,6 +26,7 @@ public class FlexPointBuilder {
     private ExtAbilityRegistry registry;
     private ExtMonitor monitor;
     private SelectorRegistry selectorRegistry;
+    private EventBus eventBus;
     private FlexPointConfig config;
     
     /**
@@ -66,6 +70,14 @@ public class FlexPointBuilder {
     }
 
     /**
+     * 使用自定义事件总线
+     */
+    public FlexPointBuilder withEventBus(EventBus eventBus) {
+        this.eventBus = eventBus;
+        return this;
+    }
+
+    /**
      * 使用配置
      */
     public FlexPointBuilder withConfig(FlexPointConfig config) {
@@ -100,6 +112,11 @@ public class FlexPointBuilder {
         if (selectorRegistry == null) {
             selectorRegistry = FlexPointComponentCreator.createSelectorRegistry();
         }
+
+        if (eventBus == null) {
+            eventBus = FlexPointComponentCreator.createEventBus();
+        }
+        EventPublisher.setEventBus(eventBus);
         
         return new FlexPoint(registry, monitor, selectorRegistry, config);
     }
@@ -133,6 +150,13 @@ public class FlexPointBuilder {
          */
         public static SelectorRegistry createSelectorRegistry() {
             return new DefaultSelectorRegistry();
+        }
+
+        /**
+         * 创建默认事件总线
+         */
+        public static EventBus createEventBus() {
+            return new DefaultEventBus();
         }
 
     }

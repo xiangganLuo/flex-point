@@ -33,4 +33,11 @@ public interface ExtAbilityRegistry {
      */
     <T extends ExtAbility> List<T> getAllExtAbility(Class<T> extType);
 
+    /**
+     * 获取已注册扩展点总数
+     *
+     * @return 扩展点总数
+     */
+    int getRegisteredCount();
+
 }
