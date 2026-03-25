@@ -1,6 +1,6 @@
 package com.flexpoint.core.selector;
 
-import com.flexpoint.core.event.EventPublisher;
+import com.flexpoint.core.event.EventDispatcher;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
@@ -15,6 +15,11 @@ import java.util.concurrent.ConcurrentHashMap;
 public class DefaultSelectorRegistry implements SelectorRegistry {
     
     private final Map<String, Selector> selectorMap = new ConcurrentHashMap<>();
+    private final EventDispatcher eventDispatcher;
+
+    public DefaultSelectorRegistry(EventDispatcher eventDispatcher) {
+        this.eventDispatcher = eventDispatcher;
+    }
     
     @Override
     public void register(Selector selector) {
@@ -31,7 +36,7 @@ public class DefaultSelectorRegistry implements SelectorRegistry {
         
         selectorMap.put(selectorName, selector);
         // 发布选择器注册事件
-        EventPublisher.publishSelectorRegistered(selector.getName());
+        eventDispatcher.publishSelectorRegistered(selector.getName());
         log.info("注册选择器[{}]", selectorName);
     }
     
@@ -49,7 +54,7 @@ public class DefaultSelectorRegistry implements SelectorRegistry {
         
         Selector removed = selectorMap.remove(selectorName);
         // 发布选择器注销事件
-        EventPublisher.publishSelectorUnregistered(selectorName);
+        eventDispatcher.publishSelectorUnregistered(selectorName);
         if (removed != null) {
             log.info("移除选择器[{}]", selectorName);
         } else {
