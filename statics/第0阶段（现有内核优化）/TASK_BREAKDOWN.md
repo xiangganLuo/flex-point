@@ -9,6 +9,7 @@
 - [x] E1. publish 空值防御（关闭场景下空事件防御）
 - [x] 补充阶段性测试用例（`PhaseZeroExecutionTest`）
 - [x] 多实例总线争用与误关问题修复（引用计数释放机制）
+- [x] D1. 调用异常语义初步收敛（区分 INVOKE_FAIL 与 INVOKE_EXCEPTION）
 - [ ] B 组并发压测与更完整语义验证（后续继续）
 - [ ] D/E 组剩余语义与配置化任务（后续继续）
 

@@ -4,6 +4,7 @@ import com.flexpoint.core.ext.ExtAbility;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -67,6 +68,20 @@ public class EventDispatcher {
     public void publishInvokeException(ExtAbility extAbility, String methodName, Object[] args, Throwable exception, Long duration) {
         EventContext eventContext = EventContext.createInvokeEvent(
                 EventType.INVOKE_EXCEPTION, extAbility, methodName, args, null, exception, duration);
+        publishEvent(eventContext);
+    }
+
+    /**
+     * 发布调用失败事件（业务异常）
+     */
+    public void publishInvokeFail(ExtAbility extAbility, String methodName, Object[] args, Throwable exception, Long duration) {
+        Throwable real = exception;
+        if (exception instanceof InvocationTargetException
+                && ((InvocationTargetException) exception).getTargetException() != null) {
+            real = ((InvocationTargetException) exception).getTargetException();
+        }
+        EventContext eventContext = EventContext.createInvokeEvent(
+                EventType.INVOKE_FAIL, extAbility, methodName, args, null, real, duration);
         publishEvent(eventContext);
     }
 

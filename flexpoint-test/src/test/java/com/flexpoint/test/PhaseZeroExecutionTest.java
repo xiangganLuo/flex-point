@@ -4,12 +4,15 @@ import com.flexpoint.common.annotations.FpSelector;
 import com.flexpoint.core.FlexPoint;
 import com.flexpoint.core.FlexPointBuilder;
 import com.flexpoint.core.event.DefaultEventBus;
+import com.flexpoint.core.event.EventSubscriber;
+import com.flexpoint.core.event.EventType;
 import com.flexpoint.core.event.EventDispatcher;
 import com.flexpoint.core.ext.ExtAbility;
 import com.flexpoint.core.selector.Selector;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -19,6 +22,7 @@ public class PhaseZeroExecutionTest {
 
     @FpSelector("phase0Selector")
     interface PhaseAbility extends ExtAbility {
+        String execute();
     }
 
     static class PhaseAbilityA implements PhaseAbility {
@@ -26,12 +30,22 @@ public class PhaseZeroExecutionTest {
         public String getCode() {
             return "A";
         }
+
+        @Override
+        public String execute() {
+            return "ok";
+        }
     }
 
     static class PhaseAbilityB implements PhaseAbility {
         @Override
         public String getCode() {
             return "B";
+        }
+
+        @Override
+        public String execute() {
+            throw new IllegalStateException("biz-fail");
         }
     }
 
@@ -113,5 +127,24 @@ public class PhaseZeroExecutionTest {
                 flexPoint2.getEventBus(),
                 "显式提供 dispatcher 时应按调用方意图复用"
         );
+    }
+
+    @Test
+    void shouldPublishInvokeFailForBusinessException() {
+        FlexPoint flexPoint = FlexPointBuilder.create().build();
+        flexPoint.registerSelector(new PhaseSelector());
+        flexPoint.register(new PhaseAbilityB());
+
+        final List<EventType> events = new ArrayList<>();
+        EventSubscriber subscriber = eventContext -> events.add(eventContext.getEventType());
+        flexPoint.getEventBus().subscribe(subscriber);
+
+        PhaseAbility ability = flexPoint.findAbility(PhaseAbility.class);
+        Assertions.assertNotNull(ability);
+        Assertions.assertThrows(IllegalStateException.class, ability::execute);
+
+        Assertions.assertTrue(events.contains(EventType.INVOKE_BEFORE));
+        Assertions.assertTrue(events.contains(EventType.INVOKE_FAIL));
+        Assertions.assertFalse(events.contains(EventType.INVOKE_EXCEPTION));
     }
 }

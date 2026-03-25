@@ -5,6 +5,7 @@ import com.flexpoint.core.ext.ExtAbility;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 
@@ -31,6 +32,11 @@ public class EventPublisherInvocationHandler implements InvocationHandler {
             ret = method.invoke(ability, args);
             long duration = System.currentTimeMillis() - startTime;
             eventDispatcher.publishInvokeSuccess(ability, method.getName(), args, ret, duration);
+        } catch (InvocationTargetException invocationException) {
+            long duration = System.currentTimeMillis() - startTime;
+            eventDispatcher.publishInvokeFail(ability, method.getName(), args, invocationException, duration);
+            Throwable target = invocationException.getTargetException();
+            throw target != null ? target : invocationException;
         } catch (Throwable throwable) {
             long duration = System.currentTimeMillis() - startTime;
             eventDispatcher.publishInvokeException(ability, method.getName(), args, throwable, duration);
