@@ -1,4 +1,4 @@
-package com.flexpoint.core.selector.resolves;
+package com.flexpoint.core.plugin.official.selector.resolves;
 
 import com.flexpoint.common.constants.FlexPointConstants;
 import com.flexpoint.core.ext.ExtAbility;
@@ -10,9 +10,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * code 选择器，强制业务方实现 CodeResolver。
- * 选择匹配指定code的第一个扩展点
- * @author xiangganluo
+ * 官方插件域：Code 选择器实现。
+ * 与旧版路径不同（不再位于 core.selector.resolves）。
  */
 @RequiredArgsConstructor
 public class CodeSelector extends AbstractSelector {
@@ -25,11 +24,11 @@ public class CodeSelector extends AbstractSelector {
     }
 
     /**
-     * 按code过滤候选者，子类可以覆盖此方法进行进一步过滤
+     * 按 code 过滤候选者，子类可覆盖。
      */
     protected <T extends ExtAbility> List<T> filterByCode(List<T> candidates) {
         if (resolver == null) {
-            throw new IllegalStateException(getName() + "Selector中的 Resolver 不能为null，请注册业务自定义实现！");
+            throw new IllegalStateException(getName() + " Selector 的 Resolver 不能为空，请注册业务实现！");
         }
         String code = resolver.resolveCode();
         if (code == null) {
@@ -43,12 +42,7 @@ public class CodeSelector extends AbstractSelector {
         return FlexPointConstants.CODE_SELECTOR_NAME;
     }
 
-    /**
-     * 业务方必须实现此接口自定义 code 获取逻辑
-     */
-    public interface CodeResolver {
-
-        String resolveCode();
-
-    }
+    /** 业务方实现用于解析 code 的接口 */
+    public interface CodeResolver { String resolveCode(); }
 }
+

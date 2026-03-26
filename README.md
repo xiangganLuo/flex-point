@@ -210,7 +210,7 @@ OrderProcessAbility ability = flexPoint.findAbility(OrderProcessAbility.class);
 #### 推荐：默认选择器注册（Spring Boot最佳实践）
 
 ```java
-import com.flexpoint.core.selector.resolves.CodeVersionSelector;
+import com.flexpoint.core.plugin.official.selector.resolves.CodeVersionSelector;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 

@@ -1,4 +1,4 @@
-package com.flexpoint.core.monitor.enums;
+package com.flexpoint.core.plugin.official.observability.enums;
 
 /**
  * 采集器类型枚举

@@ -43,16 +43,19 @@ public class DefaultEventBus implements EventBus {
     private EventRouter eventRouter = new FilterEventRouter();
     
     public DefaultEventBus() {
-        // TODO 后续需要支持FlexPointConfig进行配置
-        this(Executors.newFixedThreadPool(4, r -> {
-            Thread t = new Thread(r, "flexpoint-async-event-" + Thread.currentThread().getId());
-            t.setDaemon(true);
-            return t;
-        }));
+        this(defaultExecutor());
     }
     
     public DefaultEventBus(ExecutorService asyncExecutor) {
         this.asyncExecutor = asyncExecutor;
+    }
+
+    private static ExecutorService defaultExecutor() {
+        return Executors.newFixedThreadPool(4, r -> {
+            Thread t = new Thread(r, "flexpoint-async-event-" + Thread.currentThread().getId());
+            t.setDaemon(true);
+            return t;
+        });
     }
     
     @Override

@@ -26,6 +26,16 @@ public class FlexPointConfig {
      * 注册配置
      */
     private RegistryConfig registry = new RegistryConfig();
+
+    /**
+     * 事件总线配置
+     */
+    private EventConfig event = new EventConfig();
+
+    /**
+     * 插件配置
+     */
+    private PluginConfig plugin = new PluginConfig();
     
     /**
      * 监控配置
@@ -83,7 +93,7 @@ public class FlexPointConfig {
         private long asyncKeepAliveTime = 60L;
         
     }
-    
+
     /**
      * 注册配置
      */
@@ -95,6 +105,32 @@ public class FlexPointConfig {
          */
         private boolean enabled = true;
 
+    }
+
+    /**
+     * 事件总线配置
+     */
+    @Data
+    public static class EventConfig {
+        /** 异步线程核心数 */
+        private int asyncCorePoolSize = 4;
+        /** 异步线程最大数 */
+        private int asyncMaxPoolSize = 4;
+        /** 线程保活时间（秒） */
+        private long asyncKeepAliveTime = 60L;
+        /** 队列容量 */
+        private int asyncQueueSize = 1024;
+        /** 线程名前缀 */
+        private String threadNamePrefix = "flexpoint-async-event-";
+        /** 拒绝策略：ABORT/DISCARD/DISCARD_OLDEST/CALLER_RUNS */
+        private String rejectionPolicy = "CALLER_RUNS";
+    }
+
+    /**
+     * 插件配置
+     */
+    @Data
+    public static class PluginConfig {
     }
 
     /**

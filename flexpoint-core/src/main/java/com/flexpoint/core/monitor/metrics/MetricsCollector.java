@@ -1,7 +1,7 @@
 package com.flexpoint.core.monitor.metrics;
 
 import com.flexpoint.core.monitor.ExtMetrics;
-import com.flexpoint.core.monitor.enums.CollectorType;
+import com.flexpoint.core.plugin.official.observability.enums.CollectorType;
 
 /**
  * 监控数据采集器扩展接口

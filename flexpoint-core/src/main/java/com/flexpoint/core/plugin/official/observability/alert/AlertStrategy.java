@@ -1,6 +1,6 @@
-package com.flexpoint.core.monitor.alert;
+package com.flexpoint.core.plugin.official.observability.alert;
 
-import com.flexpoint.core.monitor.enums.AlertType;
+import com.flexpoint.core.plugin.official.observability.enums.AlertType;
 
 /**
  * 告警策略扩展接口

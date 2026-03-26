@@ -8,7 +8,7 @@ import com.flexpoint.core.config.FlexPointConfig;
 import com.flexpoint.core.ext.ExtAbility;
 import com.flexpoint.core.event.EventContext;
 import com.flexpoint.core.event.EventType;
-import com.flexpoint.core.selector.resolves.CodeSelector;
+import com.flexpoint.core.plugin.official.selector.resolves.CodeSelector;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

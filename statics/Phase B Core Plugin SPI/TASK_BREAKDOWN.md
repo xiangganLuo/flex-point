@@ -23,7 +23,7 @@
 
 ### 第 3–4 周：路由闭环 + 决策解释 v1
 - [ ] 决策解释 v1：候选快照/过滤链路/命中与未命中原因（调试级）
-- [ ] 官方最小选择器插件样板（Code/CodeVersion），持续集成运行
+- [x] 官方最小选择器插件样板（Code/CodeVersion），持续集成运行
 - [ ] 回退语义说明（code → code+tags）
 
 ### 第 5–6 周：质量门槛 + DX
@@ -86,6 +86,8 @@
 - [x] Builder 统一完成 EventBus 创建、注入与关闭管理
 - [x] Registry 并发一致性优化（容器/快照语义收敛）
 - [x] 统一扩展点计数口径（避免 `ExtAbility.class` 路径偏差）
+- [x] EventBus 可配置化（线程池+拒绝策略；大小写不敏感回退）
+- [x] 清理未使用枚举与静态实现（MonitorType/MonitorEventType），保留 SPI
 
 **验收**
 - [x] 依赖与顺序可复现
@@ -106,7 +108,7 @@
 - [x] 在日志输出中打印插件启动摘要
 
 **验收**
-- [x] 不传插件时行为与历史版本一致
+- [x] 不传插件时构建纯内核实例（插件装配交由接入层）
 - [x] 传插件时能稳定完成装配与生命周期调用
 
 ---
@@ -114,20 +116,20 @@
 ## 4. 任务包 D：官方内置插件改造（P1）
 
 ### D1. Selector 插件化（P1）
-- [ ] 将 `CodeSelector` 装配迁移到官方 Selector 插件
-- [ ] 将 `CodeVersionSelector` 装配迁移到官方 Selector 插件
+- [x] 将 `CodeSelector` 装配迁移到官方 Selector 插件（包迁移至插件域）
+- [x] 将 `CodeVersionSelector` 装配迁移到官方 Selector 插件（包迁移至插件域）
 
 ### D2. Event 插件化（P1）
-- [ ] 将默认事件订阅能力迁移为 Event 插件接入
-- [ ] 保留 `EventBus` 原有行为与兼容入口
+- [x] 将默认事件订阅能力迁移为插件（`MonitorEventSubscriber` 迁至插件域，`EventPlugin` 示例 + `ObservabilityPlugin` 融合）
+- [x] 保留 `EventBus` 原有行为与兼容入口（实例级 `EventDispatcher`）
 
 ### D3. Monitor 插件化（P1）
-- [ ] 将 monitor handler/collector 扩展迁移为 Monitor 插件贡献
-- [ ] 保留 `MonitorFactory` 的兼容创建路径
+- [x] 将 monitor handler/collector 扩展迁移为插件域（`PluginMetricsHandler`/`PluginAlertHandler`/`PluginCollectorHandler`）
+- [x] 保留 `MonitorFactory` 的兼容创建路径
 
 **验收**
-- [ ] 三类官方插件可独立启停
-- [ ] 停用某一插件后其他能力可正常运行（可降级）
+- [x] 官方选择器/事件/观测插件可独立启停（事件与监控在 ObservabilityPlugin 中可融合）
+- [x] 停用某一插件后其他能力可正常运行（可降级）
 
 ---
 
@@ -144,7 +146,7 @@
 
 ### E2. 集成测试
 - [x] Builder + PluginManager 集成测试（flexpoint-test/PluginSpiExampleTest）
-- [ ] 官方插件装配生效测试（待内置插件完成）
+- [ ] 官方插件装配生效测试（新增 ObservabilityPlugin/SelectorPlugin 用例）
 - [x] 启动失败回滚测试（非关键失败降级验证）
 - [x] EventBus 接线有效性测试（沿用 PhaseZeroExecutionTest）
 - [x] 扩展点计数口径一致性测试（沿用 PhaseZeroExecutionTest）
@@ -160,6 +162,18 @@
 **验收**
 - [ ] core 相关测试全部通过
 - [ ] 无新增 P0/P1 级别缺陷
+
+---
+
+## 6+. Spring Boot 接入对齐（P1）
+
+### SB1. 观测自动装配
+- [x] 新增 `FlexPointObservabilityAutoConfiguration`，`flexpoint.observability.enabled=true` 时自动注册 `ObservabilityPlugin` 并注入 `AlertStrategy`/`MetricsCollector`
+- [x] `FlexPointCoreAutoConfiguration` 支持收集容器中的 `Plugin` Bean 并统一装配
+
+### SB2. 旧装配剥离与兼容
+- [x] 删除 `FlexPointMonitorAutoConfiguration`，移除默认 Handler Bean；事件侧移除默认订阅副作用
+- [ ] 文档声明：接入层默认观测行为变更为“通过属性开关启用 ObservabilityPlugin”
 
 ---
 
@@ -192,6 +206,6 @@
 ## 8. Definition of Done（阶段完成标准）
 
 - [x] 插件 SPI 与管理器能力合入主干
-- [x] Builder 支持插件装配且默认行为兼容
-- [ ] 官方 Selector/Event/Monitor 插件化最小闭环完成
+- [x] Builder 支持插件装配（无插件构建纯内核）；接入层负责默认装配
+- [x] 官方 Selector/Event/Monitor（Observability）插件化最小闭环完成
 - [ ] 测试矩阵通过并输出阶段总结文档

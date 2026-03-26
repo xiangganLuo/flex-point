@@ -1,4 +1,4 @@
-package com.flexpoint.core.monitor.subscribers;
+package com.flexpoint.core.plugin.official.monitor.subscriber;
 
 import com.flexpoint.core.event.EventContext;
 import com.flexpoint.core.event.EventSubscriber;
@@ -9,10 +9,8 @@ import com.flexpoint.core.monitor.ExtMonitor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * 监控事件订阅者（事件转发到ExtMonitor）
- * 只负责将事件内容转发给ExtMonitor统一记录
- *
- * @author xiangganluo
+ * 插件域：监控事件订阅者
+ * 将事件转发给 {@link ExtMonitor} 做统一记录。
  */
 @Slf4j
 public class MonitorEventSubscriber implements EventSubscriber {
@@ -24,29 +22,27 @@ public class MonitorEventSubscriber implements EventSubscriber {
 
     @Override
     public void onEvent(EventContext eventContext) {
-        if (extMonitor == null || eventContext == null) {
-            return;
-        }
+        if (extMonitor == null || eventContext == null) return;
         EventType eventType = eventContext.getEventType();
         switch (eventType) {
             case INVOKE_SUCCESS:
                 extMonitor.recordInvocation(
-                    eventContext.getExtAbility(),
-                    eventContext.getDuration() != null ? eventContext.getDuration() : 0L,
-                    true
+                        eventContext.getExtAbility(),
+                        eventContext.getDuration() != null ? eventContext.getDuration() : 0L,
+                        true
                 );
                 break;
             case INVOKE_FAIL:
                 extMonitor.recordInvocation(
-                    eventContext.getExtAbility(),
-                    eventContext.getDuration() != null ? eventContext.getDuration() : 0L,
-                    false
+                        eventContext.getExtAbility(),
+                        eventContext.getDuration() != null ? eventContext.getDuration() : 0L,
+                        false
                 );
                 break;
             case INVOKE_EXCEPTION:
                 extMonitor.recordException(
-                    eventContext.getExtAbility(),
-                    eventContext.getException()
+                        eventContext.getExtAbility(),
+                        eventContext.getException()
                 );
                 break;
             default:
@@ -54,22 +50,18 @@ public class MonitorEventSubscriber implements EventSubscriber {
     }
 
     @Override
-    public String getName() {
-        return "MonitorEventSubscriber";
-    }
+    public String getName() { return "MonitorEventSubscriber"; }
 
     @Override
-    public int getPriority() {
-        return 200;
-    }
-
+    public int getPriority() { return 200; }
 
     @Override
     public EventFilter getEventFilter() {
         return CompositeEventFilter.or(
-            EventFilter.byEventType(EventType.INVOKE_SUCCESS),
-            EventFilter.byEventType(EventType.INVOKE_FAIL),
-            EventFilter.byEventType(EventType.INVOKE_EXCEPTION)
+                EventFilter.byEventType(EventType.INVOKE_SUCCESS),
+                EventFilter.byEventType(EventType.INVOKE_FAIL),
+                EventFilter.byEventType(EventType.INVOKE_EXCEPTION)
         );
     }
-} 
+}
+

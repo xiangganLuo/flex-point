@@ -1,9 +1,11 @@
 package com.flexpoint.core;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.flexpoint.core.config.FlexPointConfig;
 import com.flexpoint.core.config.FlexPointConfigValidator;
 import com.flexpoint.core.event.DefaultEventBus;
 import com.flexpoint.core.event.EventDispatcher;
+import com.flexpoint.core.event.EventRejectionPolicy;
 import com.flexpoint.core.ext.DefaultExtAbilityRegistry;
 import com.flexpoint.core.ext.ExtAbilityRegistry;
 import com.flexpoint.core.monitor.ExtMonitor;
@@ -16,7 +18,8 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 扩展点管理器建造者
@@ -132,7 +135,7 @@ public class FlexPointBuilder {
         if (this.eventDispatcher != null) {
             resolvedEventDispatcher = this.eventDispatcher;
         } else {
-            resolvedEventDispatcher = FlexPointComponentCreator.createEventDispatcher();
+            resolvedEventDispatcher = FlexPointComponentCreator.createEventDispatcher(resolvedConfig.getEvent());
         }
 
         ExtAbilityRegistry resolvedRegistry;
@@ -156,13 +159,15 @@ public class FlexPointBuilder {
             resolvedSelectorRegistry = FlexPointComponentCreator.createSelectorRegistry(resolvedEventDispatcher);
         }
 
-        // 如果未提供插件，保持历史行为
-        if (plugins.isEmpty()) {
+        // 无插件时保持纯内核实例；插件装配交由接入层（如 Spring Boot）负责
+        if (CollectionUtil.isEmpty(plugins)) {
             return new FlexPoint(resolvedRegistry, resolvedMonitor, resolvedSelectorRegistry, resolvedEventDispatcher, resolvedConfig);
         }
 
-        // 插件装配
-        DefaultPluginManager pm = new DefaultPluginManager(resolvedRegistry, resolvedSelectorRegistry, resolvedEventDispatcher.getEventBus(), resolvedMonitor, resolvedConfig);
+        // 插件装配（仅当显式提供插件时）
+        DefaultPluginManager pm = new DefaultPluginManager(
+                resolvedRegistry, resolvedSelectorRegistry, resolvedEventDispatcher.getEventBus(), resolvedMonitor, resolvedConfig
+        );
         pm.registerAll(plugins);
         pm.resolve();
         pm.installAll();
@@ -204,8 +209,37 @@ public class FlexPointBuilder {
         /**
          * 创建默认事件总线
          */
-        public static EventDispatcher createEventDispatcher() {
-            return new EventDispatcher(new DefaultEventBus());
+        public static EventDispatcher createEventDispatcher(FlexPointConfig.EventConfig cfg) {
+            ThreadFactory tf = new ThreadFactory() {
+                private final AtomicInteger idx = new AtomicInteger(1);
+                @Override public Thread newThread(Runnable r) {
+                    Thread t = new Thread(r, cfg.getThreadNamePrefix() + idx.getAndIncrement());
+                    t.setDaemon(true);
+                    return t;
+                }
+            };
+            BlockingQueue<Runnable> queue = new LinkedBlockingQueue<>(cfg.getAsyncQueueSize());
+            ThreadPoolExecutor ex = new ThreadPoolExecutor(
+                    cfg.getAsyncCorePoolSize(),
+                    cfg.getAsyncMaxPoolSize(),
+                    cfg.getAsyncKeepAliveTime(),
+                    java.util.concurrent.TimeUnit.SECONDS,
+                    queue,
+                    tf,
+                    // 解析拒绝策略：大小写不敏感，非法值回退到 CALLER_RUNS
+                    parseRejection(cfg.getRejectionPolicy())
+            );
+            return new EventDispatcher(new DefaultEventBus(ex));
+        }
+
+        private static RejectedExecutionHandler parseRejection(String policy) {
+            RejectedExecutionHandler def = EventRejectionPolicy.CALLER_RUNS.toHandler();
+            if (policy == null) return def;
+            try {
+                return EventRejectionPolicy.valueOf(policy.toUpperCase(java.util.Locale.ROOT)).toHandler();
+            } catch (IllegalArgumentException ex2) {
+                return def;
+            }
         }
 
     }

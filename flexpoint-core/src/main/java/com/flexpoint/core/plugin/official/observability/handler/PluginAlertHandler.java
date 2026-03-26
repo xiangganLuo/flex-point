@@ -1,36 +1,36 @@
-package com.flexpoint.core.monitor.handler;
+package com.flexpoint.core.plugin.official.observability.handler;
 
 import com.flexpoint.core.ext.ExtAbility;
 import com.flexpoint.core.monitor.ExtMetrics;
-import com.flexpoint.core.monitor.alert.AlertStrategy;
-import com.flexpoint.core.monitor.enums.AlertType;
+import com.flexpoint.core.plugin.official.observability.alert.AlertStrategy;
+import com.flexpoint.core.plugin.official.observability.enums.AlertType;
+import com.flexpoint.core.monitor.handler.MonitorHandler;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collections;
 import java.util.List;
 
 /**
- * 告警分发节点
- * 负责调用所有 AlertStrategy 进行告警
- * @author luoxianggan
+ * 插件域：告警处理器（等价于旧 AlertHandler 逻辑）。
+ * - 通过注入的 AlertStrategy 列表分发告警；
+ * - 兼容 shouldAlert 判定。
  */
 @Slf4j
-public class AlertHandler implements MonitorHandler {
-
+public class PluginAlertHandler implements MonitorHandler {
     private static final String MSG_INVOCATION_FAILED = "扩展点调用失败";
     private static final String MSG_EXCEPTION_OCCURRED = "扩展点调用异常";
 
     private final List<AlertStrategy> alertStrategies;
 
-    public AlertHandler(List<AlertStrategy> alertStrategies) {
+    public PluginAlertHandler(List<AlertStrategy> alertStrategies) {
         this.alertStrategies = alertStrategies == null ? Collections.emptyList() : alertStrategies;
     }
 
+    public PluginAlertHandler() { this(Collections.emptyList()); }
+
     @Override
     public void handleInvocation(ExtAbility extAbility, long duration, boolean success, ExtMetrics metrics) {
-        if (success) {
-            return;
-        }
+        if (success) return;
         doAlert(extAbility.getExtId(), MSG_INVOCATION_FAILED);
     }
 

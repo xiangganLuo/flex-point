@@ -132,10 +132,6 @@ FlexPointBuilder
 - 事件订阅器（如 monitor subscriber）迁移为 Event 插件装配。
 - Monitor handler 链通过 Monitor 插件贡献。
 
-## 6.3 兼容策略
-- 保留现有直接注册 API（`registerSelector` 等），但标记为“兼容入口”。
-- 新能力优先通过插件入口接入。
-
 ---
 
 ## 7. 可观测与诊断

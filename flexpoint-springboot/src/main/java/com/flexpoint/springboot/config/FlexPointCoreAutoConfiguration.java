@@ -2,6 +2,7 @@ package com.flexpoint.springboot.config;
 
 import com.flexpoint.core.FlexPoint;
 import com.flexpoint.core.FlexPointBuilder;
+import com.flexpoint.core.plugin.Plugin;
 import com.flexpoint.springboot.properties.FlexPointProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -9,6 +10,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.List;
 
 /**
  * FlexPoint 核心自动配置
@@ -29,8 +32,10 @@ public class FlexPointCoreAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    public FlexPoint flexPoint(FlexPointProperties properties) {
-        log.info("创建FlexPoint核心实例，使用配置: enabled={}", properties.isEnabled());
-        return FlexPointBuilder.create(properties).build();
+    public FlexPoint flexPoint(FlexPointProperties properties, List<Plugin> plugins) {
+        log.info("创建FlexPoint核心实例，使用配置: enabled={}，plugins={}", properties.isEnabled(), plugins != null ? plugins.size() : 0);
+        FlexPointBuilder builder = FlexPointBuilder.create(properties);
+        builder.withPlugins(plugins);
+        return builder.build();
     }
-} 
+}

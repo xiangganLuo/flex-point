@@ -2,7 +2,7 @@ package com.flexpoint.example.java.manager;
 
 import com.flexpoint.core.FlexPoint;
 import com.flexpoint.core.FlexPointBuilder;
-import com.flexpoint.core.selector.resolves.CodeVersionSelector;
+import com.flexpoint.core.plugin.official.selector.resolves.CodeVersionSelector;
 import com.flexpoint.example.java.ability.impl.LogisticsOrderProcessAbility;
 import com.flexpoint.example.java.ability.impl.MallOrderProcessAbility;
 import com.flexpoint.example.java.context.AppContext;

@@ -134,6 +134,291 @@
 - pluginId 唯一：重复 ID 直接失败。
 - 能力并存：多个插件可声明相同 capability（SELECTOR/EVENT/MONITOR 等），框架以隔离与编排保证安全。
 - 资源级唯一：选择器名/事件路由器名/监控处理链名等资源在注册点禁止同名覆盖（直接失败）。
-- 白名单（保留为后续能力）：
-  - 仅作为未来“资源级特殊放行”机制的占位；短期内默认不启用、不参与能力域决策。
-  - 模型/注入方式保留：ConflictWhitelist + Builder.withConflictWhitelist(...)；加载报告字段 whitelistApplied 预留。
+---
+
+# Flex Point V1 Execution Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** 以现有蓝图为基线，按阶段落地：第0阶段（内核优化）→ 第一阶段（core 插件 SPI 化）→ 官方内置插件与“决策解释 v1”，并以 Phare 目录作为每阶段 Gate 管理与证据收敛入口。
+
+**Architecture:** 保持现有多模块结构（common/core/spring/springboot/test/examples）。在 `FlexPointBuilder` 中集中装配事件总线与插件管理；以 `PluginManager + PluginContext` 统一插件生命周期，所有选择/事件/监控扩展均通过插件接入；测试矩阵覆盖单测、集成与并发冒烟。
+
+**Tech Stack:** Java 8+/11+、Maven、JUnit 5、Spring Boot（示例）、AssertJ、Mockito（可选）。
+
+---
+
+## Phase A（第0阶段）：现有内核优化（对应 statics/Phase A Core Optimize）
+
+- Phare 入口：`statics/Phare/Phase A Core Optimize/PHARE.md`
+- 设计/背景：`statics/Phase A Core Optimize/*.md`
+
+### Task A1: Builder 接线闭环（EventBus 装配/注入/关闭）
+
+**Files:**
+- Modify: `flexpoint-core/src/main/java/com/flexpoint/core/FlexPointBuilder.java`
+- Modify: `flexpoint-core/src/main/java/com/flexpoint/core/event/DefaultEventBus.java`
+- Modify: `flexpoint-core/src/main/java/com/flexpoint/core/event/EventDispatcher.java`
+- Test: `flexpoint-test/src/test/java/com/flexpoint/test/PhaseZeroExecutionTest.java`
+
+- [ ] Step 1: 为 Builder 增加实例级 `EventBus + EventDispatcher` 装配点（无全局静态）。
+- [ ] Step 2: 在 `shutdown()` 中关闭当前实例总线，验证不影响其他实例。
+- [ ] Step 3: 运行测试
+
+Run: `mvn -q -Dtest=PhaseZeroExecutionTest#eventBusWiringWorks test`
+Expected: PASS
+
+- [ ] Step 4: 补充文档
+
+Edit: `statics/Phase A Core Optimize/TECHNICAL_DESIGN.md`
+
+- [ ] Step 5: Commit
+
+```bash
+git add flexpoint-core/src/main/java/com/flexpoint/core/event/* \
+        flexpoint-core/src/main/java/com/flexpoint/core/FlexPointBuilder.java \
+        statics/Phase\ A\ Core\ Optimize/TECHNICAL_DESIGN.md
+git commit -m "core: instance-scoped EventBus wiring + graceful shutdown"
+```
+
+### Task B1: 注册中心并发一致性（容器语义/快照读取）
+
+**Files:**
+- Modify: `flexpoint-core/src/main/java/com/flexpoint/core/ext/DefaultExtAbilityRegistry.java`
+- Test: `flexpoint-test/src/test/java/com/flexpoint/test/IntegrationTest.java`
+- Test: `flexpoint-test/src/test/java/com/flexpoint/test/complex/ABRuleTest.java`
+
+- [ ] Step 1: 将并发容器替换为并发友好结构或返回不可变快照。
+- [ ] Step 2: 明确 `getAllExtAbility` 的快照一致性语义并实现。
+- [ ] Step 3: 新增并发读写冒烟用例
+
+Create: `flexpoint-test/src/test/java/com/flexpoint/test/registry/ConcurrentRegistryTest.java`
+
+```java
+@Test
+void concurrent_register_and_iterate_are_consistent() { /* 竞态断言 */ }
+```
+
+- [ ] Step 4: 运行测试
+
+Run: `mvn -q -Dtest=ConcurrentRegistryTest test`
+Expected: PASS
+
+- [ ] Step 5: Commit
+
+```bash
+git add flexpoint-core/src/main/java/com/flexpoint/core/ext/DefaultExtAbilityRegistry.java \
+        flexpoint-test/src/test/java/com/flexpoint/test/registry/ConcurrentRegistryTest.java
+git commit -m "core: registry snapshot consistency + concurrency smoke tests"
+```
+
+### Task C1: 扩展点计数口径统一
+
+**Files:**
+- Modify: `flexpoint-core/src/main/java/com/flexpoint/core/FlexPoint.java`
+- Modify: `flexpoint-core/src/main/java/com/flexpoint/core/ext/ExtAbilityRegistry.java`
+- Test: `flexpoint-test/src/test/java/com/flexpoint/test/PhaseZeroExecutionTest.java`
+
+- [ ] Step 1: 统一通过 Registry 提供的 `getRegisteredCount()` 计算总数。
+- [ ] Step 2: 运行回归测试
+
+Run: `mvn -q -Dtest=PhaseZeroExecutionTest#metricsCountConsistent test`
+Expected: PASS
+
+- [ ] Step 3: Commit
+
+```bash
+git add flexpoint-core/src/main/java/com/flexpoint/core/FlexPoint.java
+git commit -m "core: unify registered count via registry"
+```
+
+### Task D1: 调用异常语义与事件语义收敛
+
+**Files:**
+- Modify: `flexpoint-core/src/main/java/com/flexpoint/core/ext/proxy/EventPublisherInvocationHandler.java`
+- Test: `flexpoint-test/src/test/java/com/flexpoint/test/IntegrationTest.java`
+
+- [ ] Step 1: 统一反射异常透传/解包策略；区分 INVOKE_FAIL 与 INVOKE_EXCEPTION。
+- [ ] Step 2: 契约测试补齐
+
+Create: `flexpoint-test/src/test/java/com/flexpoint/test/contracts/InvocationContractTest.java`
+
+```java
+@Test
+void unwrapsInvocationTargetException_and_emits_exception_event() { /* 断言 */ }
+```
+
+- [ ] Step 3: 运行测试
+
+Run: `mvn -q -Dtest=InvocationContractTest test`
+Expected: PASS
+
+- [ ] Step 4: Commit
+
+```bash
+git add flexpoint-core/src/main/java/com/flexpoint/core/ext/proxy/EventPublisherInvocationHandler.java \
+        flexpoint-test/src/test/java/com/flexpoint/test/contracts/InvocationContractTest.java
+git commit -m "core: unify exception semantics + contract tests"
+```
+
+### Task E1: 事件总线鲁棒性与配置化
+
+**Files:**
+- Modify: `flexpoint-core/src/main/java/com/flexpoint/core/config/FlexPointConfig.java`
+- Modify: `flexpoint-core/src/main/java/com/flexpoint/core/event/DefaultEventBus.java`
+- Test: `flexpoint-test/src/test/java/com/flexpoint/test/IntegrationTest.java`
+
+- [ ] Step 1: 将线程池参数与开关接入 `FlexPointConfig`，提供默认与覆盖策略。
+- [ ] Step 2: 边界输入/关闭态测试覆盖。
+- [ ] Step 3: 运行测试
+
+Run: `mvn -q -Dtest=IntegrationTest#eventBusBoundaryRobustness test`
+Expected: PASS
+
+- [ ] Step 4: Commit
+
+```bash
+git add flexpoint-core/src/main/java/com/flexpoint/core/config/FlexPointConfig.java \
+        flexpoint-core/src/main/java/com/flexpoint/core/event/DefaultEventBus.java
+git commit -m "core: event bus robustness + config wiring"
+```
+
+---
+
+## Phase B（第一阶段）：core 插件 SPI 化（对应 statics/Phase B Core Plugin SPI）
+
+- Phare 入口：`statics/Phare/Phase B Core Plugin SPI/PHARE.md`
+- 设计/任务：`statics/Phase B Core Plugin SPI/*.md`
+
+### Task P1: SPI 模型补齐与校验增强
+
+**Files:**
+- Modify: `flexpoint-core/src/main/java/com/flexpoint/core/plugin/PluginDescriptor.java`
+- Modify: `flexpoint-core/src/main/java/com/flexpoint/core/plugin/PluginState.java`
+- Test: `flexpoint-test/src/test/java/com/flexpoint/test/PluginSpiExampleTest.java`
+
+- [ ] Step 1: Descriptor 字段校验补强（空/非法 id、semver、capabilities 非空）。
+- [ ] Step 2: 单测覆盖异常文案与边界。
+- [ ] Step 3: 运行测试
+
+Run: `mvn -q -Dtest=PluginSpiExampleTest test`
+Expected: PASS
+
+- [ ] Step 4: Commit
+
+```bash
+git add flexpoint-core/src/main/java/com/flexpoint/core/plugin/PluginDescriptor.java
+git commit -m "plugin: descriptor validations tightened"
+```
+
+### Task P2: 依赖解析/顺序/冲突（资源级唯一）单测补齐
+
+**Files:**
+- Modify: `flexpoint-core/src/main/java/com/flexpoint/core/plugin/manage/DependencyResolver.java`
+- Modify: `flexpoint-core/src/main/java/com/flexpoint/core/plugin/manage/DefaultPluginManager.java`
+- Test: `flexpoint-test/src/test/java/com/flexpoint/test/PluginSpiExampleTest.java`
+- Test: Create `flexpoint-test/src/test/java/com/flexpoint/test/plugin/DependencyAndConflictTest.java`
+
+- [ ] Step 1: 为选择器/事件/监控注册点添加“资源名同名禁止覆盖”的断言用例。
+- [ ] Step 2: 循环依赖/缺依赖/顺序稳定性用例补齐。
+- [ ] Step 3: 运行测试
+
+Run: `mvn -q -Dtest=DependencyAndConflictTest test`
+Expected: PASS
+
+- [ ] Step 4: Commit
+
+```bash
+git add flexpoint-test/src/test/java/com/flexpoint/test/plugin/DependencyAndConflictTest.java
+git commit -m "plugin: dependency graph + resource-unique tests"
+```
+
+### Task P3: 官方最小插件（Selector/Event/Monitor）样板
+
+**Files:**
+- Create: `flexpoint-core/src/main/java/com/flexpoint/core/plugin/official/selector/CodeSelectorPlugin.java`
+- Create: `flexpoint-core/src/main/java/com/flexpoint/core/plugin/official/selector/CodeVersionSelectorPlugin.java`
+- Create: `flexpoint-core/src/main/java/com/flexpoint/core/plugin/official/event/EventPlugin.java`
+- Create: `flexpoint-core/src/main/java/com/flexpoint/core/plugin/official/monitor/MonitorPlugin.java`
+- Test: `flexpoint-test/src/test/java/com/flexpoint/test/PluginSpiExampleTest.java`
+
+- [ ] Step 1: 在 `PluginContext` 中以受控方式注册选择器/订阅器/监控处理链。
+- [ ] Step 2: Builder 装配生效回归（无插件与有插件两条路径）。
+- [ ] Step 3: 运行测试
+
+Run: `mvn -q -Dtest=PluginSpiExampleTest test`
+Expected: PASS
+
+- [ ] Step 4: Commit
+
+```bash
+git add flexpoint-core/src/main/java/com/flexpoint/core/plugin/official/**
+git commit -m "plugin: official minimal selector/event/monitor plugins"
+```
+
+### Task P4: 决策解释 v1（调试级）
+
+**Files:**
+- Create: `flexpoint-core/src/main/java/com/flexpoint/core/selector/DecisionExplanation.java`
+- Modify: `flexpoint-core/src/main/java/com/flexpoint/core/selector/Selector.java`
+- Modify: `flexpoint-core/src/main/java/com/flexpoint/core/selector/DefaultSelectorRegistry.java`
+- Test: Create `flexpoint-test/src/test/java/com/flexpoint/test/selector/DecisionExplanationTest.java`
+
+- [ ] Step 1: 产出候选快照/过滤链路/命中与未命中原因（对象+日志），默认 Debug 级输出。
+- [ ] Step 2: 新增测试覆盖解释对象结构与日志样例。
+- [ ] Step 3: 运行测试
+
+Run: `mvn -q -Dtest=DecisionExplanationTest test`
+Expected: PASS
+
+- [ ] Step 4: Commit
+
+```bash
+git add flexpoint-core/src/main/java/com/flexpoint/core/selector/* \
+        flexpoint-test/src/test/java/com/flexpoint/test/selector/DecisionExplanationTest.java
+git commit -m "selector: decision explanation v1 (debug)"
+```
+
+---
+
+## 文档与 DX（持续任务）
+
+### Task DX1: 一页纸标准与最小插件模板
+
+**Files:**
+- Create: `statics/Phase B Core Plugin SPI/PLUGIN_TEMPLATE.md`
+- Create: `statics/Phase B Core Plugin SPI/ONE_PAGER.md`
+
+- [ ] Step 1: 输出插件 SPI 一页纸与模板。
+- [ ] Step 2: 链接示例与测试。
+
+Run: `rg "PluginDescriptor|PluginLifecycle" -n`
+Expected: References found
+
+- [ ] Step 3: Commit
+
+```bash
+git add statics/Phase\ B\ Core\ Plugin\ SPI/PLUGIN_TEMPLATE.md \
+        statics/Phase\ B\ Core\ Plugin\ SPI/ONE_PAGER.md
+git commit -m "docs: SPI one-pager + minimal plugin template"
+```
+
+---
+
+## 验收与 Gate 管理
+
+- 按阶段在 `statics/Phare/<Phase>/PHARE.md` 维护 Entry/Exit Gate 与证据链接。
+- 每完成一个任务包，在对应 Phase 的 PHARE 列表中勾选“证据”（测试报告、文档、提交记录）。
+- 每周在根计划 `statics/FLEXPOINT_PLAN.md` 更新“进度小结”。
+
+---
+
+## 执行与验证命令速记
+
+- 运行全部测试：`mvn -q -DskipITs=false test`
+- 只跑某个用例：`mvn -q -Dtest=ClassName#methodName test`
+- 检索关键接口：`rg "interface Plugin|class FlexPointBuilder|@FpSelector" -n`
+
+---
+
+更新时间：2026-03-26

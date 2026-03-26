@@ -20,6 +20,10 @@
             <groupId>com.flexpoint</groupId>
             <artifactId>flexpoint-spring</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.flexpoint</groupId>
+            <artifactId>flexpoint-core</artifactId>
+        </dependency>
 
         <!-- Spring Boot依赖 接入方自行引入Spring Boot 版本 -->
         <dependency>

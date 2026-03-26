@@ -21,8 +21,6 @@ import org.springframework.context.annotation.Import;
 @Import({
     FlexPointCoreAutoConfiguration.class,
     FlexPointRegistryAutoConfiguration.class,
-    FlexPointEventAutoConfiguration.class,
-    FlexPointMonitorAutoConfiguration.class,
     FlexPointProcessorAutoConfiguration.class,
     FlexPointBannerAutoConfiguration.class
 })

@@ -1,22 +1,18 @@
-package com.flexpoint.core.monitor.handler;
+package com.flexpoint.core.plugin.official.observability.handler;
 
 import com.flexpoint.core.ext.ExtAbility;
 import com.flexpoint.core.monitor.ExtMetrics;
 import com.flexpoint.core.monitor.ExtMetricsImpl;
+import com.flexpoint.core.monitor.handler.MetricsProvider;
+import com.flexpoint.core.monitor.handler.MonitorHandler;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * 本地内存统计节点
- * 负责本地统计扩展点调用和异常，并提供指标查询能力
- * @author luoxianggan
+ * 插件域：最小指标统计处理器（本地内存）。
  */
-public class MetricsHandler implements MonitorHandler, MetricsProvider {
-
-    /**
-     * key: 扩展点ID value: 统计对象
-     */
+public class PluginMetricsHandler implements MonitorHandler, MetricsProvider {
     private final ConcurrentHashMap<String, ExtMetricsImpl> metricsMap = new ConcurrentHashMap<>();
 
     @Override
@@ -27,7 +23,6 @@ public class MetricsHandler implements MonitorHandler, MetricsProvider {
 
     @Override
     public void handleException(ExtAbility extAbility, Throwable exception, ExtMetrics m) {
-        String ext = extAbility.getClass().getName();
         ExtMetricsImpl metrics = metricsMap.computeIfAbsent(extAbility.getExtId(), k -> new ExtMetricsImpl());
         metrics.recordException();
     }
@@ -41,4 +36,5 @@ public class MetricsHandler implements MonitorHandler, MetricsProvider {
     public Map<String, ExtMetrics> getAllMetrics() {
         return new ConcurrentHashMap<>(metricsMap);
     }
-} 
+}
+
