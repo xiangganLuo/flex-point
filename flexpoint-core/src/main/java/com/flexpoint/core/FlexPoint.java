@@ -306,6 +306,24 @@ public class FlexPoint {
     }
 
     /**
+     * 运行期启用指定插件（未装配插件时为空操作）。
+     */
+    public void enablePlugin(String pluginId) {
+        if (pluginManager != null) {
+            pluginManager.enable(pluginId);
+        }
+    }
+
+    /**
+     * 运行期停用指定插件（未装配插件时为空操作）。
+     */
+    public void disablePlugin(String pluginId) {
+        if (pluginManager != null) {
+            pluginManager.disable(pluginId);
+        }
+    }
+
+    /**
      * 注册扩展点
      */
     public void register(ExtAbility ext) {

@@ -30,6 +30,9 @@ public class DefaultPluginManager implements PluginManager {
     private final ExtMonitor monitor;
     private final FlexPointConfig config;
 
+    /** 受控上下文（运行期启停复用同一实例） */
+    private final PluginContext context;
+
     private List<Plugin> resolvedOrder = new ArrayList<>();
 
     public DefaultPluginManager(ExtAbilityRegistry extRegistry,
@@ -42,6 +45,7 @@ public class DefaultPluginManager implements PluginManager {
         this.eventBus = eventBus;
         this.monitor = monitor;
         this.config = config;
+        this.context = new DefaultPluginContext(extRegistry, selectorRegistry, eventBus, monitor, config);
     }
 
     @Override
@@ -71,11 +75,10 @@ public class DefaultPluginManager implements PluginManager {
 
     @Override
     public void installAll() {
-        PluginContext ctx = new DefaultPluginContext(extRegistry, selectorRegistry, eventBus, monitor, config);
         for (Plugin p : resolvedOrder) {
             String id = p.getDescriptor().getPluginId();
             try {
-                p.init(ctx); states.put(id, PluginState.INITIALIZED); report.setState(id, PluginState.INITIALIZED);
+                p.init(context); states.put(id, PluginState.INITIALIZED); report.setState(id, PluginState.INITIALIZED);
                 p.start();   states.put(id, PluginState.STARTED);     report.setState(id, PluginState.STARTED);
                 log.info("Plugin started: {}", id);
             } catch (Exception e) {
@@ -115,8 +118,67 @@ public class DefaultPluginManager implements PluginManager {
         }
     }
 
-    @Override public void enable(String pluginId) { /* P1: 运行期启停 */ }
-    @Override public void disable(String pluginId) { /* P1: 运行期启停 */ }
+    /**
+     * 运行期启用插件（最小可用）。
+     * <p>幂等：已 STARTED 直接返回；从 CREATED/FAILED/DESTROYED 进入时会先 init 再 start；
+     * 从 STOPPED（曾被 disable）进入时仅 start（资源未销毁，无需重复 init）。
+     * 启用失败降级为 FAILED 并记入报告，不抛出以避免影响调用方。</p>
+     */
+    @Override
+    public synchronized void enable(String pluginId) {
+        Plugin p = plugins.get(pluginId);
+        if (p == null) {
+            log.warn("enable: 未知插件 {}", pluginId);
+            return;
+        }
+        PluginState state = states.get(pluginId);
+        if (state == PluginState.STARTED) {
+            return;
+        }
+        try {
+            if (state == PluginState.CREATED || state == PluginState.FAILED || state == PluginState.DESTROYED) {
+                p.init(context);
+                states.put(pluginId, PluginState.INITIALIZED);
+                report.setState(pluginId, PluginState.INITIALIZED);
+            }
+            p.start();
+            states.put(pluginId, PluginState.STARTED);
+            report.setState(pluginId, PluginState.STARTED);
+            log.info("Plugin enabled: {}", pluginId);
+        } catch (Exception e) {
+            states.put(pluginId, PluginState.FAILED);
+            report.setState(pluginId, PluginState.FAILED);
+            report.addError(pluginId, e.getMessage());
+            log.error("Plugin enable failed: {}", pluginId, e);
+        }
+    }
+
+    /**
+     * 运行期停用插件（最小可用）。
+     * <p>仅对 STARTED 生效：调用 stop() 反注册能力后置为 STOPPED（不 destroy，便于后续 enable 重启）。
+     * 其他状态忽略。stop 异常记录日志但仍置为 STOPPED。</p>
+     */
+    @Override
+    public synchronized void disable(String pluginId) {
+        Plugin p = plugins.get(pluginId);
+        if (p == null) {
+            log.warn("disable: 未知插件 {}", pluginId);
+            return;
+        }
+        PluginState state = states.get(pluginId);
+        if (state != PluginState.STARTED) {
+            log.debug("disable: 插件 {} 非运行态({})，忽略", pluginId, state);
+            return;
+        }
+        try {
+            p.stop();
+        } catch (Exception e) {
+            log.warn("disable: 插件 {} stop 异常", pluginId, e);
+        }
+        states.put(pluginId, PluginState.STOPPED);
+        report.setState(pluginId, PluginState.STOPPED);
+        log.info("Plugin disabled: {}", pluginId);
+    }
 
     @Override public PluginLoadReport getLoadReport() { return report; }
     @Override public Map<String, PluginState> getPluginStates() { return Collections.unmodifiableMap(states); }
