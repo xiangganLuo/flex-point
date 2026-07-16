@@ -327,6 +327,9 @@ flexpoint:
     metrics:   { enabled: true, interval-seconds: 60 } # 指标汇总
     retry:     { enabled: true, max-attempts: 3, backoff-ms: 100 }  # 重试
     resilience:{ enabled: true, timeout-ms: 500, failure-rate-threshold: 0.5 }  # 超时+熔断
+    observability: { enabled: true }                  # 可观测性（事件订阅 + 监控处理链）
+    code:          { enabled: true }                  # Code 选择器（另需 CodeResolver Bean）
+    code-version:  { enabled: true }                  # Code+版本 选择器（另需 CodeVersionResolver Bean）
 ```
 
 | 类别 | 模块 | 能力 |
@@ -336,7 +339,10 @@ flexpoint:
 | 行为增强 | retry / resilience | 重试 / 超时+熔断（基于调用拦截器 SPI） |
 
 > 选择器类插件从标准上下文 `FlexPointContext`（`tenantId/appCode/version/uid/labels`）读取路由信息；
-> 缓存选择器（selector-cache）需包装 delegate，以编程方式使用。详见 `docs/` 官网文档。
+> 共 **13 个官方插件支持属性装配**。其中 `code` / `code-version` 除开关外，还需业务方提供
+> `CodeResolver` / `CodeVersionResolver` Bean（`@ConditionalOnBean`，否则不装配）。
+> 缓存选择器（selector-cache）不纳入配置即装配：它是装饰器且默认沿用 delegate 同名注册，
+> 请以显式 `@Bean` 方式使用（自定 delegate 与名称）。详见 `docs/` 官网文档。
 
 ---
 
