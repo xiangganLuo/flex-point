@@ -176,9 +176,16 @@
                 <artifactId>maven-deploy-plugin</artifactId>
                 <version>${maven-deploy-plugin.version}</version>
                 <configuration>
-                    <!-- 发布统一走 central-publishing 插件；禁用标准 deploy，避免被环境的部署重定向推到其它仓库 -->
                     <skip>true</skip>
                 </configuration>
+                <executions>
+                    <!-- 解绑标准 deploy 目标（phase=none）：发布统一走 central-publishing，
+                         彻底避免被环境 profile 的 altReleaseDeploymentRepository 重定向到其它仓库 -->
+                    <execution>
+                        <id>default-deploy</id>
+                        <phase>none</phase>
+                    </execution>
+                </executions>
             </plugin>
             <!-- GPG 签名（中央仓库强制要求）：绑定 verify 阶段。本地非发布构建可用 -Dgpg.skip=true 跳过 -->
             <plugin>
