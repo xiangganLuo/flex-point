@@ -6,6 +6,7 @@ import com.flexpoint.core.monitor.handler.MetricsProvider;
 import com.flexpoint.core.monitor.handler.MonitorHandler;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -80,7 +81,8 @@ public abstract class AbstractChainExtMonitor implements ExtMonitor {
                 return ((MetricsProvider) handler).getAllMetrics();
             }
         }
-        return null;
+        // 无 MetricsProvider 时返回空集合而非 null，避免调用方 NPE
+        return Collections.emptyMap();
     }
 
     @Override

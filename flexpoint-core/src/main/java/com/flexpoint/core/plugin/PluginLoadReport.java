@@ -12,7 +12,7 @@ import java.util.*;
  *   report.addOrdered("a");
  *   report.setState("a", PluginState.STARTED);
  *   report.addError("b", "Missing dependency x");
- *   report.addConflict("SELECTOR occupied by p1 & p2");
+ *   report.addMissingDep("x");
  * </pre>
  * </p>
  *

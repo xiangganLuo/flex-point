@@ -38,7 +38,10 @@ public class FlexPointConfigValidator {
             
             // 验证注册配置
             validateRegistryConfiguration(config.getRegistry());
-            
+
+            // 验证事件总线配置
+            validateEventConfiguration(config.getEvent());
+
             // 验证配置一致性
             validateConfigurationConsistency(config);
             
@@ -133,6 +136,40 @@ public class FlexPointConfigValidator {
         }
     }
     
+    /**
+     * 验证事件总线配置。
+     * <p>线程池参数在此提前校验，避免非法值到 ThreadPoolExecutor 构造期才暴露。</p>
+     */
+    private static void validateEventConfiguration(FlexPointConfig.EventConfig event) {
+        if (event == null) {
+            log.warn("事件总线配置为空，使用默认配置");
+            return;
+        }
+        if (event.getAsyncCorePoolSize() < 0) {
+            throw FlexPointConfigException.invalidValue("event", "asyncCorePoolSize",
+                    String.valueOf(event.getAsyncCorePoolSize()), "非负整数");
+        }
+        if (event.getAsyncMaxPoolSize() <= 0) {
+            throw FlexPointConfigException.invalidValue("event", "asyncMaxPoolSize",
+                    String.valueOf(event.getAsyncMaxPoolSize()), "正整数");
+        }
+        if (event.getAsyncMaxPoolSize() < event.getAsyncCorePoolSize()) {
+            throw FlexPointConfigException.forValue("event", "asyncMaxPoolSize",
+                    String.valueOf(event.getAsyncMaxPoolSize()), "不能小于 asyncCorePoolSize");
+        }
+        if (event.getAsyncQueueSize() <= 0) {
+            throw FlexPointConfigException.invalidValue("event", "asyncQueueSize",
+                    String.valueOf(event.getAsyncQueueSize()), "正整数");
+        }
+        if (event.getAsyncKeepAliveTime() < 0) {
+            throw FlexPointConfigException.invalidValue("event", "asyncKeepAliveTime",
+                    String.valueOf(event.getAsyncKeepAliveTime()), "非负");
+        }
+        log.debug("事件总线配置验证通过: core={}, max={}, queue={}, keepAlive={}, rejection={}",
+                event.getAsyncCorePoolSize(), event.getAsyncMaxPoolSize(),
+                event.getAsyncQueueSize(), event.getAsyncKeepAliveTime(), event.getRejectionPolicy());
+    }
+
     /**
      * 验证配置一致性
      */
