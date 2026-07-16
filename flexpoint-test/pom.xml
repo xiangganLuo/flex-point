@@ -46,6 +46,17 @@
             <groupId>com.flexpoint</groupId>
             <artifactId>flexpoint-plugin-observability</artifactId>
         </dependency>
+        <!-- 「配置即装配」自动配置集成测试用（代表性插件） -->
+        <dependency>
+            <groupId>com.flexpoint</groupId>
+            <artifactId>flexpoint-plugin-selector-tag</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.flexpoint</groupId>
+            <artifactId>flexpoint-plugin-retry</artifactId>
+            <scope>test</scope>
+        </dependency>
 
         <!-- 测试依赖 -->
         <dependency>
