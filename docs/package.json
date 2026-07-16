@@ -1,0 +1,17 @@
+{
+  "name": "flexpoint-docs",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Flex Point 官网首页与文档（VitePress）",
+  "scripts": {
+    "docs:dev": "vitepress dev",
+    "docs:build": "vitepress build",
+    "docs:preview": "vitepress preview"
+  },
+  "devDependencies": {
+    "mermaid": "^11.6.0",
+    "vitepress": "^1.6.3",
+    "vitepress-plugin-mermaid": "^2.0.17"
+  }
+}
