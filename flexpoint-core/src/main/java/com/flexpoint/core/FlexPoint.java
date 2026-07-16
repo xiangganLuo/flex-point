@@ -99,24 +99,25 @@ public class FlexPoint {
 
         String selectorName = selectorAnno.value();
 
-        // 发布选择器查找事件
-        eventDispatcher.publishSelectorFound(selectorName);
-
         Selector selector = selectorRegistry.getSelector(selectorName);
         if (selector == null) {
             log.warn("未找到名称为[{}]的选择器", selectorName);
-            // 发布选择器未找到事件
+            // 选择器不存在：仅发布"未找到"事件
             eventDispatcher.publishSelectorNotFound(selectorName);
             throw new SelectorNotFoundException(selectorName, typeName);
         }
+        // 选择器确实存在后再发布"找到"事件，避免与"未找到"矛盾
+        eventDispatcher.publishSelectorFound(selectorName);
 
         List<T> exts = extAbilityRegistry.getAllExtAbility(extType);
         if (exts.isEmpty()) {
             log.warn("未找到扩展点实现: type={}", typeName);
-            // 发布扩展点未找到事件
+            // 无候选：发布"未找到"事件（单一来源）
             eventDispatcher.publishExtNotFound(extType);
             return null;
         }
+        // 存在候选：发布"找到"事件（单一来源）
+        eventDispatcher.publishExtFound(extType);
 
         // 决策解释 v1：默认 Debug 级输出候选/过滤/命中原因，便于排查路由问题
         if (log.isDebugEnabled()) {
@@ -158,7 +159,9 @@ public class FlexPoint {
             eventDispatcher.publishExtNotFound(extType);
             return Collections.emptyList();
         }
-        
+        // 存在候选：发布"找到"事件（单一来源）
+        eventDispatcher.publishExtFound(extType);
+
         List<T> matched = exts.stream()
                 .filter(ext -> code.equals(ext.getCode()))
                 .map(ext -> getProxy(extType, ext))
@@ -204,6 +207,8 @@ public class FlexPoint {
             eventDispatcher.publishExtNotFound(extType);
             return Collections.emptyList();
         }
+        // 存在候选：发布"找到"事件（单一来源）
+        eventDispatcher.publishExtFound(extType);
 
         // 构建标签映射
         Map<String, Object> tagMap = new HashMap<>();
@@ -248,6 +253,29 @@ public class FlexPoint {
     public <T extends ExtAbility> T findAbilityByCodeAndTags(Class<T> extType, String code, Object... tagsKeyValue) {
         List<T> matched = findAbilitysByCodeAndTags(extType, code, tagsKeyValue);
         return matched.isEmpty() ? null : matched.get(0);
+    }
+
+    /**
+     * 按 code + tags 精确匹配，未命中时回退到 code-only 匹配（路由回退语义：specific → general）。
+     *
+     * <p>优先返回同时满足 code 与全部 tags 的实现；若不存在此类实现，则回退为仅按 code 匹配的实现；
+     * 两级均未命中返回 null。适用于"标签精细化路由，缺省回落到基础 code 路由"的场景。</p>
+     *
+     * @param extType 扩展点类型
+     * @param code 业务标识
+     * @param tagsKeyValue 标签键值对
+     * @param <T> 扩展点类型
+     * @return 命中的扩展点；两级均未命中返回 null
+     */
+    public <T extends ExtAbility> T findAbilityByCodeAndTagsOrFallback(Class<T> extType, String code, Object... tagsKeyValue) {
+        T byTags = findAbilityByCodeAndTags(extType, code, tagsKeyValue);
+        if (byTags != null) {
+            return byTags;
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("code+tags 未命中，回退到 code-only 匹配: type={}, code={}", extType.getSimpleName(), code);
+        }
+        return findAbilityByCode(extType, code);
     }
 
     /**

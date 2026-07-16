@@ -84,32 +84,18 @@ public class DefaultExtAbilityRegistry implements ExtAbilityRegistry {
     public <T extends ExtAbility> List<T> getAllExtAbility(Class<T> extType) {
         List<ExtAbility> list = extAbilityMap.get(extType);
         if (list == null) {
-            // 发布未找到事件
-            publishEvent(EventType.EXT_NOT_FOUND, null, extType);
             return Collections.emptyList();
         }
-        
-        // 发布找到事件
-        publishEvent(EventType.EXT_FOUND, null, extType);
-        
+        // 纯读取：不在此发布 EXT_FOUND/EXT_NOT_FOUND 事件。
+        // 查找语义（找到/未找到）由上层 FlexPoint 在正确节点单一发布，避免重复与矛盾事件。
         return new ArrayList<>(list).stream().map(extType::cast).collect(Collectors.toList());
     }
     
     /**
-     * 发布事件
+     * 发布扩展点生命周期事件（注册/注销）
      */
     private void publishEvent(EventType eventType, ExtAbility extAbility) {
-        publishEvent(eventType, extAbility, null);
-    }
-    
-    /**
-     * 发布事件
-     */
-    private void publishEvent(EventType eventType, ExtAbility extAbility, Class<? extends ExtAbility> extType) {
-            EventContext eventContext = EventContext.createExtEvent(eventType, extAbility);
-            if (extType != null) {
-                eventContext.setExtType(extType);
-            }
+        EventContext eventContext = EventContext.createExtEvent(eventType, extAbility);
         eventDispatcher.publishEventAsync(eventContext);
     }
 
