@@ -50,7 +50,7 @@ Spring Boot 下 `FlexPoint` 由自动配置构建，会收集容器中**所有**
 
 ```xml
 <dependency>
-    <groupId>com.flexpoint</groupId>
+    <groupId>io.github.xiangganluo</groupId>
     <artifactId>flexpoint-plugin-selector-code</artifactId>
     <version>2.0.0</version>
 </dependency>
@@ -88,7 +88,7 @@ public CodeSelector.CodeResolver codeResolver() {
 
 ```xml
 <dependency>
-    <groupId>com.flexpoint</groupId>
+    <groupId>io.github.xiangganluo</groupId>
     <artifactId>flexpoint-plugin-selector-code-version</artifactId>
     <version>2.0.0</version>
 </dependency>
@@ -126,7 +126,7 @@ public CodeVersionSelector.CodeVersionResolver codeVersionResolver() {
 
 ```xml
 <dependency>
-    <groupId>com.flexpoint</groupId>
+    <groupId>io.github.xiangganluo</groupId>
     <artifactId>flexpoint-plugin-selector-tag</artifactId>
     <version>2.0.0</version>
 </dependency>
@@ -227,7 +227,7 @@ flexpoint:
 
 ```xml
 <dependency>
-    <groupId>com.flexpoint</groupId>
+    <groupId>io.github.xiangganluo</groupId>
     <artifactId>flexpoint-plugin-selector-cache</artifactId>
     <version>2.0.0</version>
 </dependency>
@@ -256,7 +256,7 @@ public CachingSelectorPlugin cachingSelectorPlugin(TenantSelector delegate) {
 
 ```xml
 <dependency>
-    <groupId>com.flexpoint</groupId>
+    <groupId>io.github.xiangganluo</groupId>
     <artifactId>flexpoint-plugin-observability</artifactId>
     <version>2.0.0</version>
 </dependency>

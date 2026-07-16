@@ -8,7 +8,7 @@
 
 ```xml
 <dependency>
-    <groupId>com.flexpoint</groupId>
+    <groupId>io.github.xiangganluo</groupId>
     <artifactId>flexpoint-springboot</artifactId>
     <version>2.0.0</version>
 </dependency>
@@ -21,7 +21,7 @@
 <dependencyManagement>
   <dependencies>
     <dependency>
-      <groupId>com.flexpoint</groupId>
+      <groupId>io.github.xiangganluo</groupId>
       <artifactId>flexpoint-dependencies-bom</artifactId>
       <version>2.0.0</version>
       <type>pom</type>
@@ -36,7 +36,7 @@
 
 ```xml
 <dependency>
-    <groupId>com.flexpoint</groupId>
+    <groupId>io.github.xiangganluo</groupId>
     <artifactId>flexpoint-plugin-selector-code-version</artifactId>
     <version>2.0.0</version>
 </dependency>

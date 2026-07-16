@@ -6,7 +6,7 @@
 
 ```xml
 <dependency>
-    <groupId>com.flexpoint</groupId>
+    <groupId>io.github.xiangganluo</groupId>
     <artifactId>flexpoint-springboot</artifactId>
     <version>2.0.0</version>
 </dependency>

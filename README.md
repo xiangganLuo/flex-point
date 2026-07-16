@@ -6,8 +6,8 @@
   <strong>多场景适配、轻量级、极致灵活的扩展点框架</strong>
 </p>
 <p align="center">
-    <a target="_blank" href="https://search.maven.org/artifact/com.flexpoint/flexpoint-springboot">
-        <img src="https://img.shields.io/maven-central/v/com.flexpoint/flexpoint-springboot.svg?label=Maven%20Central" />
+    <a target="_blank" href="https://search.maven.org/artifact/io.github.xiangganluo/flexpoint-springboot">
+        <img src="https://img.shields.io/maven-central/v/io.github.xiangganluo/flexpoint-springboot.svg?label=Maven%20Central" />
     </a>
     <a target="_blank" href='https://www.apache.org/licenses/LICENSE-2.0.html'>
         <img src='https://img.shields.io/badge/license-Apache%202.0-blue.svg'/>
@@ -81,7 +81,7 @@ FlexPoint/
 
 ```xml
 <dependency>
-    <groupId>com.flexpoint</groupId>
+    <groupId>io.github.xiangganluo</groupId>
     <artifactId>flexpoint-springboot</artifactId>
     <version>${revision}</version>
 </dependency>
@@ -92,7 +92,7 @@ FlexPoint/
 > ```xml
 > <dependencyManagement>
 >   <dependency>
->     <groupId>com.flexpoint</groupId>
+>     <groupId>io.github.xiangganluo</groupId>
 >     <artifactId>flexpoint-dependencies-bom</artifactId>
 >     <version>${revision}</version>
 >     <type>pom</type>
@@ -120,7 +120,7 @@ FlexPoint/
 在 Spring Boot 项目 `pom.xml` 中添加：
 ```xml
 <dependency>
-    <groupId>com.flexpoint</groupId>
+    <groupId>io.github.xiangganluo</groupId>
     <artifactId>flexpoint-springboot</artifactId>
 </dependency>
 ```
@@ -221,7 +221,7 @@ OrderProcessAbility ability = flexPoint.findAbility(OrderProcessAbility.class);
 > 官方选择器已独立为插件模块，使用前请引入对应依赖：
 > ```xml
 > <dependency>
->     <groupId>com.flexpoint</groupId>
+>     <groupId>io.github.xiangganluo</groupId>
 >     <artifactId>flexpoint-plugin-selector-code-version</artifactId>
 > </dependency>
 > ```
@@ -305,11 +305,11 @@ System.out.println("平均耗时: " + metrics.getAverageResponseTime() + "ms");
 ```xml
 <!-- 例：引入灰度选择器 + 重试插件 -->
 <dependency>
-    <groupId>com.flexpoint</groupId>
+    <groupId>io.github.xiangganluo</groupId>
     <artifactId>flexpoint-plugin-selector-gray</artifactId>
 </dependency>
 <dependency>
-    <groupId>com.flexpoint</groupId>
+    <groupId>io.github.xiangganluo</groupId>
     <artifactId>flexpoint-plugin-retry</artifactId>
 </dependency>
 ```
