@@ -4,26 +4,31 @@
 
 ## 两种接入方式
 
-1. **属性装配（推荐，10 个插件）** —— 引入插件模块依赖 + 在 `application.yml` 设置 `flexpoint.plugins.<name>.enabled=true`，Spring Boot 自动创建并装配该插件 Bean，无需手写代码。适用于：`tag`、`gray`、`ab`、`weight`、`tenant`、`audit`、`slowcall`、`metrics`、`retry`、`resilience`。默认均为 `enabled=false`，需显式开启。
-2. **编程式 / `@Bean` 装配（4 个插件）** —— `code`、`code-version`（需业务提供 `Resolver`）、`cache`（需 `delegate` 选择器）、`observability`（无属性开关）无法纯属性装配，需自行声明 `@Bean`（或在非 Spring 环境用 `FlexPointBuilder.withPlugin(...)`）。任何你声明的 `Plugin` Bean 都会被自动收集装配。
+1. **属性装配（推荐，13 个插件）** —— 引入插件模块依赖 + 在 `application.yml` 设置 `flexpoint.plugins.<name>.enabled=true`，Spring Boot 自动创建并装配该插件 Bean，无需手写代码。适用于：`tag`、`gray`、`ab`、`weight`、`tenant`、`audit`、`slowcall`、`metrics`、`retry`、`resilience`、`observability`、`code`、`code-version`。默认均为 `enabled=false`，需显式开启。
+
+   其中三个插件在 `enabled=true` 之外仍有**前置条件**，不满足则跳过装配（不会因为开了开关就一定生效）：
+   - `code` —— 还需容器中提供一个 `CodeSelector.CodeResolver` Bean（`@ConditionalOnBean`）；
+   - `code-version` —— 还需 `CodeVersionSelector.CodeVersionResolver` Bean；注意属性前缀是 kebab 的 `flexpoint.plugins.code-version`；
+   - `observability` —— 会经 `ObjectProvider` 收集容器中的 `AlertStrategy` / `MetricsCollector`（都可无，无自定义时仅默认指标处理链）。
+2. **显式 `@Bean` 装配（仅 `cache`）** —— 缓存选择器 `cache` 是**装饰器**，需要一个被包装的 `delegate` 选择器，**不纳入属性装配**，请自行声明 `@Bean`（或在非 Spring 环境用 `FlexPointBuilder.withPlugin(...)`）。任何你声明的 `Plugin` Bean 都会被自动收集装配。
 
 ::: tip 装配机制
-Spring Boot 下 `FlexPoint` 由自动配置构建，会收集容器中**所有** `Plugin` 类型 Bean 并按收集顺序装配（见 [Spring Boot 接入](/guide/springboot#插件装配)）。属性装配的 10 个插件由 `flexpoint.plugins.<name>.enabled=true` + classpath 上存在对应类（`@ConditionalOnClass`）触发；你自己声明的同类型 `@Bean` 会覆盖默认（`@ConditionalOnMissingBean`）。
+Spring Boot 下 `FlexPoint` 由自动配置构建，会收集容器中**所有** `Plugin` 类型 Bean 并按收集顺序装配（见 [Spring Boot 接入](/guide/springboot#插件装配)）。属性装配的 13 个插件由 `flexpoint.plugins.<name>.enabled=true` + classpath 上存在对应类（`@ConditionalOnClass`）触发；你自己声明的同类型 `@Bean` 会覆盖默认（`@ConditionalOnMissingBean`）。
 :::
 
 ## 插件全景
 
 | 分类 | 模块 | pluginId | 选择器名 / 关键类 | 装配方式 |
 |------|------|----------|-------------------|----------|
-| 选择器 | `flexpoint-plugin-selector-code` | `core.selector.code` | `codeSelector` | `@Bean`（需 `CodeResolver`） |
-| 选择器 | `flexpoint-plugin-selector-code-version` | `core.selector.code-version` | `codeVersionSelector` | `@Bean`（需 `CodeVersionResolver`） |
+| 选择器 | `flexpoint-plugin-selector-code` | `core.selector.code` | `codeSelector` | `flexpoint.plugins.code`（需 `CodeResolver` Bean） |
+| 选择器 | `flexpoint-plugin-selector-code-version` | `core.selector.code-version` | `codeVersionSelector` | `flexpoint.plugins.code-version`（需 `CodeVersionResolver` Bean） |
 | 选择器 | `flexpoint-plugin-selector-tag` | `selector.tag` | `tagSelector` | `flexpoint.plugins.tag` |
 | 选择器 | `flexpoint-plugin-selector-gray` | `selector.gray` | `graySelector` | `flexpoint.plugins.gray` |
 | 选择器 | `flexpoint-plugin-selector-ab` | `selector.ab` | `abSelector` | `flexpoint.plugins.ab` |
 | 选择器 | `flexpoint-plugin-selector-weight` | `selector.weight` | `weightSelector` | `flexpoint.plugins.weight` |
 | 选择器 | `flexpoint-plugin-selector-tenant` | `selector.tenant` | `tenantSelector` | `flexpoint.plugins.tenant` |
 | 选择器 | `flexpoint-plugin-selector-cache` | `selector.cache` | `CachingSelector`（装饰器） | `@Bean`（需 `delegate`） |
-| 观测/治理 | `flexpoint-plugin-observability` | `core.observability` | `ObservabilityPlugin` | `@Bean` |
+| 观测/治理 | `flexpoint-plugin-observability` | `core.observability` | `ObservabilityPlugin` | `flexpoint.plugins.observability` |
 | 观测/治理 | `flexpoint-plugin-audit` | `observe.audit` | `AuditLogSubscriber` | `flexpoint.plugins.audit` |
 | 观测/治理 | `flexpoint-plugin-slowcall` | `observe.slowcall` | `SlowCallSubscriber` | `flexpoint.plugins.slowcall` |
 | 观测/治理 | `flexpoint-plugin-metrics` | `observe.metrics` | `MetricsSummaryPlugin` | `flexpoint.plugins.metrics` |
@@ -41,6 +46,7 @@ Spring Boot 下 `FlexPoint` 由自动配置构建，会收集容器中**所有**
 - 模块 `flexpoint-plugin-selector-code`，pluginId `core.selector.code`，选择器名 `codeSelector`。
 - 关键类：`CodeSelectorPlugin`、`CodeSelector`（继承 `AbstractSelector`）、`CodeSelector.CodeResolver { String resolveCode(); }`。
 - 构造：`CodeSelectorPlugin(CodeResolver resolver)`（resolver 必填）。按 `resolveCode()` 解析出的 code 过滤候选（`ext.getCode()` 相等者通过）。
+- **装配**：`flexpoint.plugins.code.enabled=true` 开启，但**还需**容器中提供一个 `CodeSelector.CodeResolver` Bean（`@ConditionalOnBean`）——没有 resolver 则跳过装配。
 
 ```xml
 <dependency>
@@ -50,13 +56,26 @@ Spring Boot 下 `FlexPoint` 由自动配置构建，会收集容器中**所有**
 </dependency>
 ```
 
+```yaml
+flexpoint:
+  plugins:
+    code:
+      enabled: true
+```
+
 ```java
+// 提供 code 解析来源（从标准上下文解析，也可来自自定义来源）
 @Bean
-public CodeSelectorPlugin codeSelectorPlugin() {
-    // 从标准上下文解析 code（也可来自自定义来源）
-    return new CodeSelectorPlugin(() -> FlexPointContext.current().getAppCode());
+public CodeSelector.CodeResolver codeResolver() {
+    return () -> FlexPointContext.current().getAppCode();
 }
 ```
+
+| 配置项 | 类型 | 默认 | 说明 |
+|--------|------|------|------|
+| `flexpoint.plugins.code.enabled` | boolean | `false` | 开启后装配 `codeSelector`（仍需容器提供 `CodeResolver` Bean） |
+
+> 也可跳过属性开关，直接声明 `@Bean CodeSelectorPlugin`（构造时自带 resolver）——同类型 Bean 会覆盖属性装配。
 
 扩展点接口用 `@FpSelector("codeSelector")` 绑定。
 
@@ -65,6 +84,7 @@ public CodeSelectorPlugin codeSelectorPlugin() {
 - 模块 `flexpoint-plugin-selector-code-version`，pluginId `core.selector.code-version`，选择器名 `codeVersionSelector`。**依赖 `flexpoint-plugin-selector-code`**（`CodeVersionSelector extends CodeSelector`），引入本模块无需再单独引入 code 模块。
 - 关键类：`CodeVersionSelectorPlugin`、`CodeVersionSelector`、`CodeVersionSelector.CodeVersionResolver`（继承 `CodeResolver`，新增 `default String resolveVersion()`，默认 `"1.0.0"`）。
 - 构造：`CodeVersionSelectorPlugin(CodeVersionResolver resolver)`。先按 code 过滤，再按 `version` 标签（`ext.getTags().getString("version", "1.0.0")`）过滤。
+- **装配**：`flexpoint.plugins.code-version.enabled=true` 开启（属性前缀是 kebab 的 `code-version`），**还需**容器中提供一个 `CodeVersionSelector.CodeVersionResolver` Bean（`@ConditionalOnBean`）——没有则跳过装配。
 
 ```xml
 <dependency>
@@ -74,15 +94,29 @@ public CodeSelectorPlugin codeSelectorPlugin() {
 </dependency>
 ```
 
+```yaml
+flexpoint:
+  plugins:
+    code-version:
+      enabled: true
+```
+
 ```java
+// 提供 code + version 解析来源
 @Bean
-public CodeVersionSelectorPlugin codeVersionSelectorPlugin() {
-    return new CodeVersionSelectorPlugin(new CodeVersionSelector.CodeVersionResolver() {
+public CodeVersionSelector.CodeVersionResolver codeVersionResolver() {
+    return new CodeVersionSelector.CodeVersionResolver() {
         @Override public String resolveCode() { return FlexPointContext.current().getAppCode(); }
         @Override public String resolveVersion() { return FlexPointContext.current().getVersion(); }
-    });
+    };
 }
 ```
+
+| 配置项 | 类型 | 默认 | 说明 |
+|--------|------|------|------|
+| `flexpoint.plugins.code-version.enabled` | boolean | `false` | 开启后装配 `codeVersionSelector`（仍需容器提供 `CodeVersionResolver` Bean） |
+
+> 也可直接声明 `@Bean CodeVersionSelectorPlugin`（构造时自带 resolver）覆盖属性装配。
 
 ### 标签选择器 tag
 
@@ -189,7 +223,7 @@ flexpoint:
 
 - 模块 `flexpoint-plugin-selector-cache`，pluginId `selector.cache`。
 - 关键类：`CachingSelectorPlugin`、`CachingSelector`（**装饰器**，包裹另一个 `Selector delegate`）。缓存键由上下文（`tenantId | appCode | version | uid | 排序后的 labels`）+ 排序后的候选 extId 组成；缓存 delegate 的 `SelectionResult`；`ttlMillis <= 0` 表示永不过期。提供 `invalidate()` / `cacheSize()`。
-- **必须编程式装配**（需要 delegate，`enabled=true` 对它无效）。
+- **必须显式 `@Bean` 装配，不纳入「配置即装配」**。原因：缓存选择器是装饰器，默认沿用 delegate 的同名注册；而 `FlexPointSpringSelectorRegister` 会把容器中所有 `Selector` Bean 自动注册进 `SelectorRegistry`——若走属性装配，装饰器与被包装的 delegate 同名，必然触发「选择器名重复」冲突（[资源级唯一](/guide/selector)）；且内置选择器均由插件内部创建、并非 `Selector` Bean，无法直接充当 delegate。因此请用显式 `@Bean` 自行控制 delegate 与名称，**建议用 3 参构造指定独立 `name`**，声明后会被上述注册器自动纳入。
 
 ```xml
 <dependency>
@@ -202,12 +236,12 @@ flexpoint:
 ```java
 @Bean
 public CachingSelectorPlugin cachingSelectorPlugin(TenantSelector delegate) {
-    // 为某个选择器套一层缓存，TTL 5s
-    return new CachingSelectorPlugin(delegate, 5000L);
+    // 为某个选择器套一层缓存，TTL 5s；用独立 name 避免与被包装 delegate 同名冲突
+    return new CachingSelectorPlugin(delegate, 5000L, "cachedTenantSelector");
 }
 ```
 
-构造：`CachingSelectorPlugin(Selector delegate)` / `(Selector delegate, long ttlMillis)` / `(Selector delegate, long ttlMillis, String name)`（不传 name 则用 `delegate.getName()`）。
+构造：`CachingSelectorPlugin(Selector delegate)` / `(Selector delegate, long ttlMillis)` / `(Selector delegate, long ttlMillis, String name)`（不传 name 则用 `delegate.getName()`——此时须避免 delegate 也作为 `Selector` Bean 暴露，否则同名冲突）。使用独立 `name` 时，扩展点接口用 `@FpSelector("cachedTenantSelector")` 绑定该缓存选择器。
 
 ---
 
@@ -218,7 +252,7 @@ public CachingSelectorPlugin cachingSelectorPlugin(TenantSelector delegate) {
 - 模块 `flexpoint-plugin-observability`，pluginId `core.observability`。启用调用监控的推荐方式。
 - 行为：`start()` 向 `ExtMonitor` 注入处理链（`PluginMetricsHandler` → 可选 `PluginCollectorHandler` → `PluginAlertHandler`），并订阅 `MonitorEventSubscriber`（优先级 200），把 `INVOKE_SUCCESS`/`INVOKE_FAIL` 转为 `recordInvocation`、`INVOKE_EXCEPTION` 转为 `recordException`。
 - 扩展点：实现 `AlertStrategy`（告警）/ `MetricsCollector`（采集）注入自定义策略。
-- **需 `@Bean` 装配**（无 `flexpoint.plugins.observability.*` 开关）。
+- **装配**：`flexpoint.plugins.observability.enabled=true` 开启。自动配置经 `ObjectProvider` 收集容器中的 `AlertStrategy` / `MetricsCollector`（**都可无**；二者皆无时用无参构造，仅默认指标处理链；有则注入自定义），无需手写插件 `@Bean`。
 
 ```xml
 <dependency>
@@ -228,20 +262,25 @@ public CachingSelectorPlugin cachingSelectorPlugin(TenantSelector delegate) {
 </dependency>
 ```
 
-```java
-// 仅启用默认指标处理链
-@Bean
-public ObservabilityPlugin observabilityPlugin() {
-    return new ObservabilityPlugin();
-}
-
-// 或注入自定义告警策略与指标采集器
-@Bean
-public ObservabilityPlugin observabilityPlugin(List<AlertStrategy> alerts,
-                                               List<MetricsCollector> collectors) {
-    return new ObservabilityPlugin(alerts, collectors);
-}
+```yaml
+flexpoint:
+  plugins:
+    observability:
+      enabled: true
 ```
+
+```java
+// 可选：声明自定义告警策略 / 指标采集器，启用后会被自动收集注入
+@Bean
+public AlertStrategy myAlertStrategy() { return /* ... */; }
+
+@Bean
+public MetricsCollector myMetricsCollector() { return /* ... */; }
+```
+
+| 配置项 | 类型 | 默认 | 说明 |
+|--------|------|------|------|
+| `flexpoint.plugins.observability.enabled` | boolean | `false` | 开启后装配 `ObservabilityPlugin`（自动收集容器内 `AlertStrategy` / `MetricsCollector`） |
 
 指标读取与 `flexpoint.monitor.*` 配置见 [可观测](/guide/observability)。
 

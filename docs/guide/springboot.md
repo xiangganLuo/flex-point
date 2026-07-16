@@ -27,7 +27,7 @@ flowchart TD
 ```
 
 - **核心实例**：`FlexPointCoreAutoConfiguration` 用 `FlexPointBuilder` 基于 `FlexPointProperties` 构建 `FlexPoint`，并收集容器中所有 `Plugin` Bean（`List<Plugin>`）一并装配（装配顺序 = Bean 收集顺序）。
-- **官方插件装配**：`FlexPointPluginsAutoConfiguration` 依据 `flexpoint.plugins.<name>.enabled=true` 为 10 个官方插件生成 `Plugin` Bean（见下文）。
+- **官方插件装配**：`FlexPointPluginsAutoConfiguration` 依据 `flexpoint.plugins.<name>.enabled=true` 为 13 个官方插件生成 `Plugin` Bean（见下文；`cache` 除外，需显式 `@Bean`）。
 - **自动注册**：`FlexPointSpringExtAbilityRegister` / `FlexPointSpringSelectorRegister` 在启动时扫描所有 `ExtAbility` 与 `Selector` Bean 并注册到 `FlexPoint`（受 `flexpoint.registry.enabled` 控制）。
 - **注解注入**：`ExtAbilityProcessor`（`BeanPostProcessor`）为标注 `@FpExt` 的字段注入扩展点代理（受 `flexpoint.processor.enabled` 控制）。
 
@@ -58,7 +58,7 @@ public class OrderController {
 
 `FlexPoint` 由自动配置构建时会收集容器中**所有** `Plugin` 类型 Bean（`List<Plugin>`）并按收集顺序装配。让插件生效有三种途径：
 
-**途径一（推荐，适用 10 个官方插件）：属性开关** —— 引入插件模块依赖后，只需设置 `flexpoint.plugins.<name>.enabled=true`，`FlexPointPluginsAutoConfiguration` 便自动创建并装配对应插件 Bean，无需写代码。适用：`tag`、`gray`、`ab`、`weight`、`tenant`、`audit`、`slowcall`、`metrics`、`retry`、`resilience`。
+**途径一（推荐，适用 13 个官方插件）：属性开关** —— 引入插件模块依赖后，只需设置 `flexpoint.plugins.<name>.enabled=true`，`FlexPointPluginsAutoConfiguration` 便自动创建并装配对应插件 Bean，无需写代码。适用：`tag`、`gray`、`ab`、`weight`、`tenant`、`audit`、`slowcall`、`metrics`、`retry`、`resilience`、`observability`、`code`、`code-version`。其中 `code` / `code-version` 在开关之外还需容器提供对应的 `Resolver` Bean（`@ConditionalOnBean`），`observability` 可选注入 `AlertStrategy` / `MetricsCollector`（详见 [官方插件模块](/guide/plugins-official)）。
 
 ```yaml
 flexpoint:
@@ -67,20 +67,13 @@ flexpoint:
     retry: { enabled: true, max-attempts: 3, backoff-ms: 100 }
 ```
 
-**途径二：声明 `@Bean`** —— 需要构造参数的官方插件（`code` / `code-version` 需 `Resolver`、`cache` 需 `delegate`、`observability` 无属性开关）必须自行声明 Bean；你声明的同类型 Bean 也会覆盖属性装配的默认（`@ConditionalOnMissingBean`）：
+**途径二：声明 `@Bean`** —— 缓存选择器 `cache` 是装饰器，需要被包装的 `delegate`，**不纳入属性装配**，必须自行声明 Bean（原因见 [官方插件模块](/guide/plugins-official#缓存选择器-cache)）。此外，你声明的任意同类型插件 Bean 都会覆盖属性装配的默认（`@ConditionalOnMissingBean`）：
 
 ```java
 @Bean
-public CodeVersionSelectorPlugin codeVersionSelectorPlugin() {
-    return new CodeVersionSelectorPlugin(new CodeVersionSelector.CodeVersionResolver() {
-        @Override public String resolveCode() { return FlexPointContext.current().getAppCode(); }
-        @Override public String resolveVersion() { return FlexPointContext.current().getVersion(); }
-    });
-}
-
-@Bean
-public ObservabilityPlugin observabilityPlugin() {
-    return new ObservabilityPlugin();
+public CachingSelectorPlugin cachingSelectorPlugin(TenantSelector delegate) {
+    // 用独立 name 避免与被包装 delegate 同名冲突
+    return new CachingSelectorPlugin(delegate, 5000L, "cachedTenantSelector");
 }
 ```
 
