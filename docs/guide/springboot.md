@@ -18,17 +18,22 @@
 
 ```mermaid
 flowchart TD
-    AC["FlexPointAutoConfiguration"] --> CORE["FlexPointCoreAutoConfiguration<br/>构建 FlexPoint，收集 List&lt;Plugin&gt; 装配"]
+    AC["FlexPointAutoConfiguration"] --> PLUGINS["FlexPointPluginsAutoConfiguration<br/>按 flexpoint.plugins.*.enabled 装配官方插件"]
+    AC --> CORE["FlexPointCoreAutoConfiguration<br/>构建 FlexPoint，收集 List&lt;Plugin&gt; 装配"]
     AC --> REG["FlexPointRegistryAutoConfiguration<br/>注册 ExtAbility / Selector Bean"]
     AC --> PROC["FlexPointProcessorAutoConfiguration<br/>@FpExt 字段注入"]
     AC --> BANNER["FlexPointBannerAutoConfiguration<br/>启动 Banner"]
+    PLUGINS -.生成 Plugin Bean.-> CORE
 ```
 
-- **核心实例**：`FlexPointCoreAutoConfiguration` 用 `FlexPointBuilder` 基于 `FlexPointProperties` 构建 `FlexPoint`，并收集容器中所有 `Plugin` Bean 一并装配（装配顺序 = Bean 收集顺序）。
-- **自动注册**：`FlexPointSpringExtAbilityRegister` / `FlexPointSpringSelectorRegister` 在启动时扫描所有 `ExtAbility` 与 `Selector` Bean 并注册到 `FlexPoint`。
-- **注解注入**：`ExtAbilityProcessor`（`BeanPostProcessor`）为标注 `@FpExt` 的字段注入扩展点代理。
+- **核心实例**：`FlexPointCoreAutoConfiguration` 用 `FlexPointBuilder` 基于 `FlexPointProperties` 构建 `FlexPoint`，并收集容器中所有 `Plugin` Bean（`List<Plugin>`）一并装配（装配顺序 = Bean 收集顺序）。
+- **官方插件装配**：`FlexPointPluginsAutoConfiguration` 依据 `flexpoint.plugins.<name>.enabled=true` 为 10 个官方插件生成 `Plugin` Bean（见下文）。
+- **自动注册**：`FlexPointSpringExtAbilityRegister` / `FlexPointSpringSelectorRegister` 在启动时扫描所有 `ExtAbility` 与 `Selector` Bean 并注册到 `FlexPoint`（受 `flexpoint.registry.enabled` 控制）。
+- **注解注入**：`ExtAbilityProcessor`（`BeanPostProcessor`）为标注 `@FpExt` 的字段注入扩展点代理（受 `flexpoint.processor.enabled` 控制）。
 
-## 三个核心注解
+## 核心注解
+
+框架仅提供两个注解（均在 `com.flexpoint.common.annotations`）：`@FpSelector`（类型）与 `@FpExt`（字段）。扩展点实现类用 Spring 自带的 `@Component` 标注即可。
 
 `@FpSelector`（类型注解）声明扩展点接口使用的选择器：
 
@@ -49,11 +54,20 @@ public class OrderController {
 
 扩展点实现类用 Spring 的 `@Component`（或 `@Service` 等）标注即可被自动扫描注册。
 
-## 注册选择器 / 插件
+## 插件装配
 
-在 Spring Boot 中有两种等价方式让选择器生效：
+`FlexPoint` 由自动配置构建时会收集容器中**所有** `Plugin` 类型 Bean（`List<Plugin>`）并按收集顺序装配。让插件生效有三种途径：
 
-**方式一（推荐）：以插件 Bean 提供官方选择器** —— 插件被自动收集装配，选择器在插件 `start()` 时注册：
+**途径一（推荐，适用 10 个官方插件）：属性开关** —— 引入插件模块依赖后，只需设置 `flexpoint.plugins.<name>.enabled=true`，`FlexPointPluginsAutoConfiguration` 便自动创建并装配对应插件 Bean，无需写代码。适用：`tag`、`gray`、`ab`、`weight`、`tenant`、`audit`、`slowcall`、`metrics`、`retry`、`resilience`。
+
+```yaml
+flexpoint:
+  plugins:
+    tag: { enabled: true }
+    retry: { enabled: true, max-attempts: 3, backoff-ms: 100 }
+```
+
+**途径二：声明 `@Bean`** —— 需要构造参数的官方插件（`code` / `code-version` 需 `Resolver`、`cache` 需 `delegate`、`observability` 无属性开关）必须自行声明 Bean；你声明的同类型 Bean 也会覆盖属性装配的默认（`@ConditionalOnMissingBean`）：
 
 ```java
 @Bean
@@ -63,9 +77,14 @@ public CodeVersionSelectorPlugin codeVersionSelectorPlugin() {
         @Override public String resolveVersion() { return FlexPointContext.current().getVersion(); }
     });
 }
+
+@Bean
+public ObservabilityPlugin observabilityPlugin() {
+    return new ObservabilityPlugin();
+}
 ```
 
-**方式二：直接暴露 `Selector` Bean** —— 任何 `Selector` 类型的 Bean 都会被自动注册（适合完全自定义的选择器）：
+**途径三：直接暴露 `Selector` / `ExtAbility` Bean** —— 任何 `Selector` 或 `ExtAbility` 类型的 Bean 都会被自动注册（适合完全自定义的选择器 / 实现），无需包成插件：
 
 ```java
 @Component
@@ -75,14 +94,7 @@ public class TenantSelector extends AbstractSelector {
 }
 ```
 
-启用可观测插件同样只需声明一个 Bean：
-
-```java
-@Bean
-public ObservabilityPlugin observabilityPlugin() {
-    return new ObservabilityPlugin();
-}
-```
+各官方插件的 pluginId、构造参数与完整配置项见 [官方插件模块](/guide/plugins-official)。
 
 ## 配置项
 
@@ -94,8 +106,9 @@ public ObservabilityPlugin observabilityPlugin() {
 | `flexpoint.banner-print` | boolean | `true` | 是否打印启动 Banner |
 | `flexpoint.registry.enabled` | boolean | `true` | 是否启用扩展点 / 选择器自动注册 |
 | `flexpoint.processor.enabled` | boolean | `true` | 是否启用 `@FpExt` 注入处理器 |
-| `flexpoint.monitor.*` | - | - | 监控相关，详见 [监控与可观测](/guide/monitor) |
-| `flexpoint.event.*` | - | - | 事件总线线程池相关 |
+| `flexpoint.monitor.*` | - | - | 监控相关，详见 [可观测](/guide/observability) |
+| `flexpoint.event.*` | - | - | 事件总线线程池相关，详见 [可观测](/guide/observability#事件线程池配置) |
+| `flexpoint.plugins.<name>.*` | - | - | 官方插件属性装配，详见 [官方插件模块](/guide/plugins-official) |
 
 ```yaml
 flexpoint:
@@ -121,7 +134,7 @@ flexpoint:
 
 1. 引入 `flexpoint-springboot` + 所需官方插件模块。
 2. 定义 `@FpSelector` 扩展点接口，写多套 `@Component` 实现。
-3. 声明选择器插件 / 选择器 Bean。
+3. 开启选择器：属性开关（`flexpoint.plugins.<name>.enabled=true`）或声明插件 / 选择器 Bean。
 4. 在请求入口（如 Web Filter）填充 `FlexPointContext`，请求结束 `clear()`。
 5. 业务 Bean 用 `@FpExt` 注入并调用。
 

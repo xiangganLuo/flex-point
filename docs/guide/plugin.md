@@ -36,10 +36,32 @@ stateDiagram-v2
     DESTROYED --> [*]
 ```
 
-- **装配顺序 = 注册顺序**：`PluginManager` 按注册先后依次 `init → start`；关闭时逆序 `stop → destroy`。
+状态枚举 `PluginState` 共 6 个：`CREATED`（已注册未运行）、`INITIALIZED`（init 完成）、`STARTED`（start 完成、能力已暴露）、`STOPPED`（stop 完成）、`FAILED`（任一阶段异常，降级态）、`DESTROYED`（destroy 完成）。
+
+- **装配顺序 = 注册顺序**：`PluginManager` 按注册先后依次 `init → start`；关闭时**逆序** `stop → destroy`。
 - **统一降级**：任何插件启动失败都不会中断构建 —— 标记 `FAILED`、记入加载报告、继续装配其它插件。
 - **无依赖 / 顺序声明**：若插件间存在先后要求，由接入方控制注册顺序。
-- **pluginId 唯一**：重复 ID 在注册期直接失败。
+- **pluginId 唯一**：重复 ID 在注册期直接抛 `PluginException`。
+
+### PluginManager
+
+`PluginManager` 负责插件的注册、装配、启停与状态维护：
+
+```java
+public interface PluginManager {
+    void register(Plugin plugin);
+    void registerAll(Iterable<Plugin> plugins);
+    void installAll();   // 按注册顺序 init→start
+    void stopAll();      // 逆序 stop→destroy
+    void enable(String pluginId);
+    void disable(String pluginId);
+    PluginLoadReport getLoadReport();
+    Map<String, PluginState> getPluginStates();
+    Plugin getPlugin(String pluginId);
+}
+```
+
+`installAll()` 中任一插件 `init`/`start` 抛异常 → 该插件置 `FAILED` 并记入报告，**继续**装配后续插件（不中断构建）；`stopAll()` 中的异常仅告警。
 
 ## PluginContext：唯一受控入口
 
@@ -111,12 +133,13 @@ Spring Boot 环境下，容器中所有 `Plugin` 类型的 Bean 会被自动收�
 ## 运行期治理与可观测
 
 ```java
-// 运行期启停（disable 仅对 STARTED 生效，stop 后可再 enable）
+// 运行期启停：disable 仅对 STARTED 生效（→ STOPPED，不 destroy，可再 enable）；
+// enable 幂等，STOPPED 只 start，CREATED/FAILED/DESTROYED 会先 init 再 start。
 flexPoint.enablePlugin("biz.selector.tenant");
 flexPoint.disablePlugin("biz.selector.tenant");
 
-// 加载报告：装配顺序 / 各插件状态 / 失败原因
-PluginLoadReport report = flexPoint.getPluginLoadReport();
+// 加载报告：装配顺序（orderedPluginIds）/ 各插件状态（states）/ 失败原因（errors）
+PluginLoadReport report = flexPoint.getPluginLoadReport(); // 纯内核（无插件）实例返回 null
 
 // 当前状态快照
 Map<String, PluginState> states = flexPoint.getPluginStates();

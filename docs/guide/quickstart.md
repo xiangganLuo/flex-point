@@ -167,6 +167,6 @@ public class OrderController {
 ## 下一步
 
 - 理解模型：[核心概念](/guide/concepts)
-- 路由与排障：[选择器与决策解释](/guide/selector)
-- 扩展调用行为：[调用管线与拦截器](/guide/interceptor)
-- 观测调用：[监控与可观测](/guide/monitor)
+- 深入扩展点：[扩展点](/guide/ext)
+- 路由与排障：[选择器](/guide/selector)
+- 观测调用：[可观测](/guide/observability)

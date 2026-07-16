@@ -19,6 +19,12 @@ export default withMermaid(
     head: [
       ['link', { rel: 'icon', href: '/logo.svg' }],
       ['meta', { name: 'theme-color', content: '#2563eb' }],
+      // 首帧前标记，用于首页动画的初始隐藏态；prefers-reduced-motion 下不添加（降级为静态）
+      [
+        'script',
+        {},
+        "try{if(!matchMedia('(prefers-reduced-motion: reduce)').matches){document.documentElement.classList.add('fp-anim')}}catch(e){}",
+      ],
     ],
 
     themeConfig: {
@@ -50,16 +56,22 @@ export default withMermaid(
             text: '核心概念',
             items: [
               { text: '核心概念', link: '/guide/concepts' },
-              { text: '选择器与决策解释', link: '/guide/selector' },
-              { text: '调用管线与拦截器', link: '/guide/interceptor' },
-              { text: '监控与可观测', link: '/guide/monitor' },
+              { text: '扩展点', link: '/guide/ext' },
+              { text: '选择器', link: '/guide/selector' },
+              { text: '插件体系（Plugin SPI）', link: '/guide/plugin' },
+              { text: '可观测', link: '/guide/observability' },
             ],
           },
           {
-            text: '插件体系',
+            text: '官方插件',
             items: [
-              { text: '插件体系（Plugin SPI）', link: '/guide/plugin' },
               { text: '官方插件模块', link: '/guide/plugins-official' },
+            ],
+          },
+          {
+            text: '参考',
+            items: [
+              { text: '术语表', link: '/guide/glossary' },
             ],
           },
           {

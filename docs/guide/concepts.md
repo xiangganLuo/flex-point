@@ -62,7 +62,7 @@ public interface Selector {
 }
 ```
 
-一次 `select` 同时产出「命中实现 + 决策解释 + 结论」，统一 命中 / 未命中 / 歧义 三种语义。详见 [选择器与决策解释](/guide/selector)。
+一次 `select` 同时产出「命中实现 + 决策解释 + 结论」，统一 命中 / 未命中 / 歧义 三种语义。详见 [选择器](/guide/selector)。
 
 扩展点接口通过注解声明使用的选择器，二者以名称对应：
 
@@ -101,7 +101,7 @@ OrderProcessAbility ability = flexPoint.findAbility(OrderProcessAbility.class);
 String result = ability.processOrder("order-1");
 ```
 
-返回的是一个**动态代理**：调用会经过拦截器链与事件埋点（见 [调用管线与拦截器](/guide/interceptor)）。
+返回的是一个**动态代理**：调用会经过拦截器链与事件埋点（见 [扩展点 · 调用管线与拦截器](/guide/ext#调用管线与拦截器)）。
 
 框架也提供不依赖选择器的直接查找方法，适合简单场景：
 

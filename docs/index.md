@@ -29,7 +29,7 @@ features:
     title: 场景选择器
     details: 一个接口、多套实现，由 Selector 在运行期按上下文动态选中；一次 select 同时产出命中实现与决策解释（HIT / MISS / AMBIGUOUS），路由可追溯。
     link: /guide/selector
-    linkText: 选择器与决策解释
+    linkText: 选择器
   - icon: 🔌
     title: 插件化 SPI
     details: 选择器、事件订阅、监控、拦截器均以插件接入。模型极简 —— getId() + 生命周期，由 PluginManager 统一装配启停，任一插件失败统一降级。
@@ -38,13 +38,13 @@ features:
   - icon: 🪝
     title: 调用拦截器
     details: 扩展点调用经动态代理进入 around 语义的拦截器链，可插拔式接入重试、超时、熔断、限流、缓存等横切能力。
-    link: /guide/interceptor
-    linkText: 调用管线与拦截器
+    link: /guide/ext
+    linkText: 扩展点 · 调用管线
   - icon: 📊
     title: 可观测
     details: 调用管线内置事件埋点拦截器，发布调用生命周期事件；配合 ExtMonitor 沉淀调用次数、耗时、成功率等指标，支持责任链处理与异步。
-    link: /guide/monitor
-    linkText: 监控与可观测
+    link: /guide/observability
+    linkText: 可观测
   - icon: 🚀
     title: Spring Boot 开箱即用
     details: 引入 flexpoint-springboot 即零配置启动：自动扫描注册扩展点/选择器，@FpSelector 声明选择器、@FpExt 自动注入扩展点。
