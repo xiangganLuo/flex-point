@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.List;
 
 /**
@@ -27,9 +26,6 @@ public class PluginRuntimeToggleTest {
     static class ToggleSelectorPlugin extends AbstractPlugin {
         static final String NAME = "toggleSel";
         static final String ID = "test.toggle";
-        private final PluginDescriptor descriptor = PluginDescriptor.builder(ID, "1.0.0")
-                .capabilities(EnumSet.of(PluginCapability.SELECTOR))
-                .build();
         private SelectorRegistry registry;
         private final Selector selector = new Selector() {
             @Override public <T extends ExtAbility> T select(List<T> c) { return c.isEmpty() ? null : c.get(0); }
@@ -38,7 +34,7 @@ public class PluginRuntimeToggleTest {
                 return DecisionExplanation.fromSelection(getName(), c, select(c));
             }
         };
-        @Override public PluginDescriptor getDescriptor() { return descriptor; }
+        @Override public String getId() { return ID; }
         @Override public void init(PluginContext ctx) { this.registry = ctx.selectorRegistry(); }
         @Override public void start() { registry.register(selector); }
         @Override public void stop() { registry.unregister(NAME); }

@@ -28,6 +28,19 @@
             <groupId>com.flexpoint</groupId>
             <artifactId>flexpoint-springboot</artifactId>
         </dependency>
+        <!-- 官方插件（测试装配与官方样板用例） -->
+        <dependency>
+            <groupId>com.flexpoint</groupId>
+            <artifactId>flexpoint-plugin-selector-code</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.flexpoint</groupId>
+            <artifactId>flexpoint-plugin-selector-code-version</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.flexpoint</groupId>
+            <artifactId>flexpoint-plugin-observability</artifactId>
+        </dependency>
 
         <!-- 测试依赖 -->
         <dependency>

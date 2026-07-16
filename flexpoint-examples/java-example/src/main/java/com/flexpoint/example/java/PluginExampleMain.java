@@ -17,8 +17,8 @@ import java.util.List;
  *
  * <p>演示：
  * <ul>
- *   <li>依赖与顺序：乱序传入插件，依赖解析后 BasePlugin 先于 GreetingSelectorPlugin 装配；</li>
- *   <li>降级：非关键的 FaultyOptionalPlugin 启动失败不阻断构建；</li>
+ *   <li>装配顺序 = 注册顺序：按传入顺序 init/start；</li>
+ *   <li>降级：FaultyOptionalPlugin 启动失败不阻断构建，其它插件仍可用；</li>
  *   <li>加载报告：可观测装配顺序与各插件状态；</li>
  *   <li>运行期启停：disable/enable 选择器插件动态摘挂能力。</li>
  * </ul>
@@ -30,11 +30,11 @@ public class PluginExampleMain {
     public static void main(String[] args) {
         System.out.println("=== Flex Point 自定义插件示例 ===\n");
 
-        // 乱序传入，交由依赖解析确定顺序
+        // 装配顺序 = 注册顺序
         List<Plugin> plugins = new ArrayList<>();
-        plugins.add(new FaultyOptionalPlugin());
-        plugins.add(new GreetingSelectorPlugin());
         plugins.add(new BasePlugin());
+        plugins.add(new GreetingSelectorPlugin());
+        plugins.add(new FaultyOptionalPlugin());
 
         FlexPoint flexPoint = FlexPointBuilder.create().withPlugins(plugins).build();
 

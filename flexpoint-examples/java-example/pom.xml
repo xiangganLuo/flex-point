@@ -16,5 +16,10 @@
             <groupId>com.flexpoint</groupId>
             <artifactId>flexpoint-core</artifactId>
         </dependency>
+        <!-- 官方选择器插件（Code+Version） -->
+        <dependency>
+            <groupId>com.flexpoint</groupId>
+            <artifactId>flexpoint-plugin-selector-code-version</artifactId>
+        </dependency>
     </dependencies>
 </project> 

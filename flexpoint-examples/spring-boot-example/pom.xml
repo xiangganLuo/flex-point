@@ -16,6 +16,11 @@
             <groupId>com.flexpoint</groupId>
             <artifactId>flexpoint-springboot</artifactId>
         </dependency>
+        <!-- 官方选择器插件（Code+Version） -->
+        <dependency>
+            <groupId>com.flexpoint</groupId>
+            <artifactId>flexpoint-plugin-selector-code-version</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>

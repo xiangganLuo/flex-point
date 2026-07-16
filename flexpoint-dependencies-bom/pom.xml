@@ -74,6 +74,22 @@
                 <artifactId>flexpoint-test</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <!-- 官方插件模块 -->
+            <dependency>
+                <groupId>com.flexpoint</groupId>
+                <artifactId>flexpoint-plugin-selector-code</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.flexpoint</groupId>
+                <artifactId>flexpoint-plugin-selector-code-version</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.flexpoint</groupId>
+                <artifactId>flexpoint-plugin-observability</artifactId>
+                <version>${project.version}</version>
+            </dependency>
 
             <!-- 外部依赖 -->
             <dependency>

@@ -8,8 +8,8 @@ import com.flexpoint.core.ext.ExtAbility;
 import com.flexpoint.core.monitor.ExtMetrics;
 import com.flexpoint.core.plugin.Plugin;
 import com.flexpoint.core.plugin.PluginState;
-import com.flexpoint.core.plugin.official.observability.ObservabilityPlugin;
-import com.flexpoint.core.plugin.official.selector.CodeSelectorPlugin;
+import com.flexpoint.plugin.observability.ObservabilityPlugin;
+import com.flexpoint.plugin.selector.code.CodeSelectorPlugin;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

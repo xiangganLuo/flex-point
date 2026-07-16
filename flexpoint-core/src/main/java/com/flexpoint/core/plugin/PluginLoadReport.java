@@ -1,9 +1,13 @@
 package com.flexpoint.core.plugin;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
- * 插件加载报告（最小实现，便于后续扩展）。
+ * 插件加载报告。
  *
  * <p>汇总装配顺序、状态与错误信息，便于诊断。</p>
  *
@@ -11,8 +15,7 @@ import java.util.*;
  * <pre>
  *   report.addOrdered("a");
  *   report.setState("a", PluginState.STARTED);
- *   report.addError("b", "Missing dependency x");
- *   report.addMissingDep("x");
+ *   report.addError("b", "start failed: ...");
  * </pre>
  * </p>
  *
@@ -24,18 +27,15 @@ public final class PluginLoadReport {
     private final List<String> orderedPluginIds = new ArrayList<>();
     private final Map<String, PluginState> states = new LinkedHashMap<>();
     private final Map<String, String> errors = new LinkedHashMap<>();
-    private final List<String> missingDependencies = new ArrayList<>();
 
-    /** 记录解析出的顺序中的一个 pluginId */
+    /** 记录装配顺序中的一个 pluginId */
     public void addOrdered(String pluginId) { orderedPluginIds.add(pluginId); }
     /** 设置某插件当前状态 */
     public void setState(String pluginId, PluginState state) { states.put(pluginId, state); }
     /** 记录某插件的错误信息 */
     public void addError(String pluginId, String error) { errors.put(pluginId, error); }
-    public void addMissingDep(String dep) { missingDependencies.add(dep); }
 
     public List<String> getOrderedPluginIds() { return Collections.unmodifiableList(new ArrayList<>(orderedPluginIds)); }
     public Map<String, PluginState> getStates() { return Collections.unmodifiableMap(new LinkedHashMap<>(states)); }
     public Map<String, String> getErrors() { return Collections.unmodifiableMap(new LinkedHashMap<>(errors)); }
-    public List<String> getMissingDependencies() { return Collections.unmodifiableList(new ArrayList<>(missingDependencies)); }
 }

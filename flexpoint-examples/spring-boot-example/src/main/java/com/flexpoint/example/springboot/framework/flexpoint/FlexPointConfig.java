@@ -1,6 +1,6 @@
 package com.flexpoint.example.springboot.framework.flexpoint;
 
-import com.flexpoint.core.plugin.official.selector.resolves.CodeVersionSelector;
+import com.flexpoint.plugin.selector.codeversion.CodeVersionSelector;
 import com.flexpoint.example.springboot.framework.flexpoint.context.SysAppContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

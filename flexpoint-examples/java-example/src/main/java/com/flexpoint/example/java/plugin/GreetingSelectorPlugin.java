@@ -2,22 +2,17 @@ package com.flexpoint.example.java.plugin;
 
 import com.flexpoint.core.ext.ExtAbility;
 import com.flexpoint.core.plugin.AbstractPlugin;
-import com.flexpoint.core.plugin.PluginCapability;
 import com.flexpoint.core.plugin.PluginContext;
-import com.flexpoint.core.plugin.PluginDependency;
-import com.flexpoint.core.plugin.PluginDescriptor;
 import com.flexpoint.core.selector.DecisionExplanation;
 import com.flexpoint.core.selector.Selector;
 import com.flexpoint.core.selector.SelectorRegistry;
 import com.flexpoint.example.java.context.AppContext;
 
-import java.util.Collections;
-import java.util.EnumSet;
 import java.util.List;
 
 /**
- * 自定义选择器插件：依赖 {@link BasePlugin}，注册名为 {@code greetingSelector} 的选择器。
- * <p>演示：依赖声明、装配顺序、能力注册与对称反注册（支持运行期启停）。</p>
+ * 自定义选择器插件：注册名为 {@code greetingSelector} 的选择器。
+ * <p>演示：能力注册与对称反注册（支持运行期启停）。</p>
  *
  * @author xiangganluo
  */
@@ -25,13 +20,6 @@ public class GreetingSelectorPlugin extends AbstractPlugin {
 
     public static final String PLUGIN_ID = "example.greeting-selector";
     public static final String SELECTOR_NAME = "greetingSelector";
-
-    private final PluginDescriptor descriptor = PluginDescriptor.builder(PLUGIN_ID, "1.0.0")
-            .capabilities(EnumSet.of(PluginCapability.SELECTOR))
-            .dependencies(Collections.singletonList(new PluginDependency(BasePlugin.PLUGIN_ID, null)))
-            .order(10)
-            .critical(false)
-            .build();
 
     private SelectorRegistry registry;
 
@@ -59,14 +47,14 @@ public class GreetingSelectorPlugin extends AbstractPlugin {
     };
 
     @Override
-    public PluginDescriptor getDescriptor() {
-        return descriptor;
+    public String getId() {
+        return PLUGIN_ID;
     }
 
     @Override
     public void init(PluginContext context) {
         this.registry = context.selectorRegistry();
-        System.out.println("[GreetingSelectorPlugin] init：依赖 " + BasePlugin.PLUGIN_ID + " 已就绪");
+        System.out.println("[GreetingSelectorPlugin] init：上下文就绪");
     }
 
     @Override

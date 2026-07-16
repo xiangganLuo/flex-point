@@ -9,7 +9,7 @@ import java.util.Map;
 /**
  * 插件管理器接口。
  *
- * <p>负责插件注册索引、依赖解析、生命周期编排与运行期治理。</p>
+ * <p>负责插件注册索引、生命周期编排与运行期治理。装配顺序即注册顺序。</p>
  *
  * @author xiangganluo
  * @version 1.0.0
@@ -20,9 +20,7 @@ public interface PluginManager {
     void register(Plugin plugin);
     /** 批量注册插件 */
     void registerAll(Iterable<Plugin> plugins);
-    /** 解析依赖与装配顺序 */
-    void resolve();
-    /** 按顺序安装（init→start） */
+    /** 按注册顺序安装（init→start） */
     void installAll();
     /** 逆序停止并销毁（stop→destroy） */
     void stopAll();

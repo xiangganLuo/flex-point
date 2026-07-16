@@ -8,17 +8,16 @@ import com.flexpoint.core.ext.DefaultExtAbilityRegistry;
 import com.flexpoint.core.ext.ExtAbilityRegistry;
 import com.flexpoint.core.monitor.ExtMonitor;
 import com.flexpoint.core.monitor.MonitorFactory;
-import com.flexpoint.core.plugin.*;
+import com.flexpoint.core.plugin.AbstractPlugin;
+import com.flexpoint.core.plugin.PluginContext;
 import com.flexpoint.core.plugin.manage.DefaultPluginManager;
 import com.flexpoint.core.selector.DefaultSelectorRegistry;
 import com.flexpoint.core.selector.SelectorRegistry;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import java.util.EnumSet;
-
 /**
- * 插件上下文能力边界用例（覆盖 Phase B 任务 A2）。
+ * 插件上下文能力边界用例。
  *
  * <p>验证 {@link PluginContext} 向插件暴露的受控能力（registry/selector/event/monitor/config）
  * 与内核装配的实例一致，且插件可通过上下文注册自身能力。</p>
@@ -29,10 +28,7 @@ public class PluginContextBoundaryTest {
 
     static class CapturingPlugin extends AbstractPlugin {
         PluginContext captured;
-        private final PluginDescriptor descriptor = PluginDescriptor.builder("test.capture", "1.0.0")
-                .capabilities(EnumSet.of(PluginCapability.OTHER))
-                .build();
-        @Override public PluginDescriptor getDescriptor() { return descriptor; }
+        @Override public String getId() { return "test.capture"; }
         @Override public void init(PluginContext ctx) { this.captured = ctx; }
     }
 
@@ -48,7 +44,6 @@ public class PluginContextBoundaryTest {
         DefaultPluginManager pm = new DefaultPluginManager(registry, selectorRegistry, eventBus, monitor, config);
         CapturingPlugin plugin = new CapturingPlugin();
         pm.register(plugin);
-        pm.resolve();
         pm.installAll();
 
         PluginContext ctx = plugin.captured;

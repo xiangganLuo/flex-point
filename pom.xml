@@ -48,6 +48,7 @@
         <module>flexpoint-core</module>
         <module>flexpoint-spring</module>
         <module>flexpoint-springboot</module>
+        <module>flexpoint-plugin-all</module>
         <module>flexpoint-test</module>
         <module>flexpoint-examples</module>
     </modules>

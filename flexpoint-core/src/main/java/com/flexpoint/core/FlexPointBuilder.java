@@ -169,7 +169,6 @@ public class FlexPointBuilder {
                 resolvedRegistry, resolvedSelectorRegistry, resolvedEventDispatcher.getEventBus(), resolvedMonitor, resolvedConfig
         );
         pm.registerAll(plugins);
-        pm.resolve();
         pm.installAll();
 
         // FlexPoint 持有 PluginManager：shutdown 时逆序停止插件，并对外暴露加载报告与状态

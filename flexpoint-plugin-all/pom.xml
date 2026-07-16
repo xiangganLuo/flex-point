@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.flexpoint</groupId>
+        <artifactId>flexpoint-framework</artifactId>
+        <version>${revision}</version>
+    </parent>
+
+    <artifactId>flexpoint-plugin-all</artifactId>
+    <packaging>pom</packaging>
+    <name>Flex Point Plugins</name>
+    <description>官方插件聚合模块 - 每个插件独立子模块</description>
+
+    <modules>
+        <module>flexpoint-plugin-selector-code</module>
+        <module>flexpoint-plugin-selector-code-version</module>
+        <module>flexpoint-plugin-observability</module>
+    </modules>
+</project>

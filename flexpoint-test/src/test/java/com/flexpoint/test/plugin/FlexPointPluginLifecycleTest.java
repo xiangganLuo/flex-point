@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.List;
 
 /**
@@ -23,10 +22,7 @@ public class FlexPointPluginLifecycleTest {
         boolean started;
         boolean stopped;
         boolean destroyed;
-        private final PluginDescriptor descriptor = PluginDescriptor.builder("test.trace", "1.0.0")
-                .capabilities(EnumSet.of(PluginCapability.OTHER))
-                .build();
-        @Override public PluginDescriptor getDescriptor() { return descriptor; }
+        @Override public String getId() { return "test.trace"; }
         @Override public void start() { started = true; }
         @Override public void stop() { stopped = true; }
         @Override public void destroy() { destroyed = true; }

@@ -1,15 +1,10 @@
 package com.flexpoint.example.java.plugin;
 
 import com.flexpoint.core.plugin.AbstractPlugin;
-import com.flexpoint.core.plugin.PluginCapability;
 import com.flexpoint.core.plugin.PluginContext;
-import com.flexpoint.core.plugin.PluginDescriptor;
-
-import java.util.EnumSet;
 
 /**
- * 前置基础插件（被 {@link GreetingSelectorPlugin} 依赖）。
- * <p>用于演示依赖顺序：必须先于依赖它的插件装配。</p>
+ * 前置基础插件（先于其它插件注册，用于演示装配顺序=注册顺序）。
  *
  * @author xiangganluo
  */
@@ -17,15 +12,9 @@ public class BasePlugin extends AbstractPlugin {
 
     public static final String PLUGIN_ID = "example.base";
 
-    private final PluginDescriptor descriptor = PluginDescriptor.builder(PLUGIN_ID, "1.0.0")
-            .capabilities(EnumSet.of(PluginCapability.OTHER))
-            .order(0)
-            .critical(false)
-            .build();
-
     @Override
-    public PluginDescriptor getDescriptor() {
-        return descriptor;
+    public String getId() {
+        return PLUGIN_ID;
     }
 
     @Override
