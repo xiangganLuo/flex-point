@@ -3,6 +3,7 @@ package com.flexpoint.plugin.selector.codeversion;
 import com.flexpoint.common.constants.FlexPointConstants;
 import com.flexpoint.core.ext.ExtAbility;
 import com.flexpoint.plugin.selector.code.CodeSelector;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.Objects;
@@ -14,6 +15,7 @@ import java.util.Optional;
  *
  * @author xiangganluo
  */
+@Slf4j
 public class CodeVersionSelector extends CodeSelector {
 
     public static final String VERSION_TAG_KEY = "version";
@@ -32,10 +34,13 @@ public class CodeVersionSelector extends CodeSelector {
         if (resolver instanceof CodeVersionResolver) {
             String targetVersion = Optional.ofNullable(((CodeVersionResolver) resolver).resolveVersion())
                     .orElse(DEFAULT_VERSION);
+            int beforeVersion = codeFiltered.size();
             codeFiltered.removeIf(ability -> {
                 String abilityVersion = ability.getTags().getString(VERSION_TAG_KEY, DEFAULT_VERSION);
                 return !Objects.equals(targetVersion, abilityVersion);
             });
+            log.debug("[{}] 按 version={} 过滤: code命中={}, version命中={}",
+                    getName(), targetVersion, beforeVersion, codeFiltered.size());
         }
         return codeFiltered;
     }

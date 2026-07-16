@@ -112,6 +112,7 @@ public class EventDispatcher {
     public void publishEventAsync(EventContext eventContext) {
         if (eventBus != null) {
             try {
+                log.debug("异步发布事件: eventType={}, eventId={}", eventContext.getEventType(), eventContext.getEventId());
                 eventBus.publishAsync(eventContext);
             } catch (Exception e) {
                 log.error("异步发布事件失败: eventType={}", eventContext.getEventType(), e);
@@ -122,6 +123,7 @@ public class EventDispatcher {
     public CompletableFuture<Void> publishEvent(EventContext eventContext) {
         if (eventBus != null) {
             try {
+                log.debug("同步发布事件: eventType={}, eventId={}", eventContext.getEventType(), eventContext.getEventId());
                 eventBus.publish(eventContext);
             } catch (Exception e) {
                 log.error("发布事件失败: eventType={}", eventContext.getEventType(), e);

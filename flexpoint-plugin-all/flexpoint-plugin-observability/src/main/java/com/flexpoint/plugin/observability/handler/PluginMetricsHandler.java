@@ -5,6 +5,7 @@ import com.flexpoint.core.monitor.ExtMetrics;
 import com.flexpoint.core.monitor.ExtMetricsImpl;
 import com.flexpoint.core.monitor.handler.MetricsProvider;
 import com.flexpoint.core.monitor.handler.MonitorHandler;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -14,6 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author xiangganluo
  */
+@Slf4j
 public class PluginMetricsHandler implements MonitorHandler, MetricsProvider {
     private final ConcurrentHashMap<String, ExtMetricsImpl> metricsMap = new ConcurrentHashMap<>();
 
@@ -21,12 +23,19 @@ public class PluginMetricsHandler implements MonitorHandler, MetricsProvider {
     public void handleInvocation(ExtAbility extAbility, long duration, boolean success, ExtMetrics m) {
         ExtMetricsImpl metrics = metricsMap.computeIfAbsent(extAbility.getExtId(), k -> new ExtMetricsImpl());
         metrics.recordInvocation(duration, success);
+        if (log.isDebugEnabled()) {
+            log.debug("指标累计: extId={}, total={}, success={}", extAbility.getExtId(),
+                    metrics.getTotalInvocations(), metrics.getSuccessInvocations());
+        }
     }
 
     @Override
     public void handleException(ExtAbility extAbility, Throwable exception, ExtMetrics m) {
         ExtMetricsImpl metrics = metricsMap.computeIfAbsent(extAbility.getExtId(), k -> new ExtMetricsImpl());
         metrics.recordException();
+        if (log.isDebugEnabled()) {
+            log.debug("异常计数: extId={}, exceptionCount={}", extAbility.getExtId(), metrics.getExceptionCount());
+        }
     }
 
     @Override

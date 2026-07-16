@@ -3,6 +3,7 @@ package com.flexpoint.core.event.router;
 import com.flexpoint.core.event.EventContext;
 import com.flexpoint.core.event.EventSubscriber;
 import com.flexpoint.core.event.filter.EventFilter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -13,15 +14,19 @@ import java.util.stream.Collectors;
  *
  * @author xiangganluo
  */
+@Slf4j
 public class FilterEventRouter implements EventRouter {
-    
+
     @Override
     public List<EventSubscriber> route(EventContext eventContext, List<EventSubscriber> allSubscribers) {
-        return allSubscribers.stream()
+        List<EventSubscriber> matched = allSubscribers.stream()
                 .filter(subscriber -> {
                     EventFilter filter = subscriber.getEventFilter();
                     return filter == null || filter.matches(eventContext);
                 })
                 .collect(Collectors.toList());
+        log.debug("事件路由(过滤): eventType={}, 候选订阅者={}, 匹配={}",
+                eventContext.getEventType(), allSubscribers.size(), matched.size());
+        return matched;
     }
 }

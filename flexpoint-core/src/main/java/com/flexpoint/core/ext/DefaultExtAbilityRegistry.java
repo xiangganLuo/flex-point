@@ -50,13 +50,15 @@ public class DefaultExtAbilityRegistry implements ExtAbilityRegistry {
         }
 
         // 注册到类型映射 - 允许同一个code的多个实现
-        extAbilityMap.computeIfAbsent(extType, k -> new CopyOnWriteArrayList<>()).add(instance);
-        
+        List<ExtAbility> typeList = extAbilityMap.computeIfAbsent(extType, k -> new CopyOnWriteArrayList<>());
+        typeList.add(instance);
+
         // 发布注册事件
         publishEvent(EventType.EXT_REGISTERED, instance);
-        
-        log.info("扩展点注册成功: type={}, code={}, class={}", 
+
+        log.info("扩展点注册成功: type={}, code={}, class={}",
             extType.getSimpleName(), instance.getCode(), instance.getClass().getName());
+        log.debug("扩展点类型[{}]当前实现数={}, 已注册总数={}", extType.getSimpleName(), typeList.size(), getRegisteredCount());
     }
     
     @Override
@@ -84,11 +86,14 @@ public class DefaultExtAbilityRegistry implements ExtAbilityRegistry {
     public <T extends ExtAbility> List<T> getAllExtAbility(Class<T> extType) {
         List<ExtAbility> list = extAbilityMap.get(extType);
         if (list == null) {
+            log.debug("读取扩展点列表: type={}, 无注册实现", extType.getSimpleName());
             return Collections.emptyList();
         }
         // 纯读取：不在此发布 EXT_FOUND/EXT_NOT_FOUND 事件。
         // 查找语义（找到/未找到）由上层 FlexPoint 在正确节点单一发布，避免重复与矛盾事件。
-        return new ArrayList<>(list).stream().map(extType::cast).collect(Collectors.toList());
+        List<T> snapshot = new ArrayList<>(list).stream().map(extType::cast).collect(Collectors.toList());
+        log.debug("读取扩展点列表快照: type={}, size={}", extType.getSimpleName(), snapshot.size());
+        return snapshot;
     }
     
     /**

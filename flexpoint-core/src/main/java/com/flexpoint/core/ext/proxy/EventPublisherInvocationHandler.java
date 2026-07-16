@@ -4,6 +4,7 @@ import com.flexpoint.core.event.EventDispatcher;
 import com.flexpoint.core.ext.ExtAbility;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
@@ -25,6 +26,7 @@ import java.lang.reflect.Method;
  *
  * @author luoxianggan
  */
+@Slf4j
 @Getter
 @RequiredArgsConstructor
 public class EventPublisherInvocationHandler implements InvocationHandler {
@@ -46,18 +48,25 @@ public class EventPublisherInvocationHandler implements InvocationHandler {
 
         String methodName = method.getName();
         long startTime = System.currentTimeMillis();
+        log.debug("扩展点调用开始: extId={}, method={}", ability.getExtId(), methodName);
         eventDispatcher.publishInvokeBefore(ability, methodName, args);
         try {
             Object result = method.invoke(ability, args);
-            eventDispatcher.publishInvokeSuccess(ability, methodName, args, result, elapsed(startTime));
+            long cost = elapsed(startTime);
+            log.debug("扩展点调用成功: extId={}, method={}, cost={}ms", ability.getExtId(), methodName, cost);
+            eventDispatcher.publishInvokeSuccess(ability, methodName, args, result, cost);
             return result;
         } catch (InvocationTargetException invocationException) {
             // 目标方法内部业务异常：发布 INVOKE_FAIL 并透出原始异常
             Throwable target = invocationException.getTargetException();
+            log.debug("扩展点调用业务异常(INVOKE_FAIL): extId={}, method={}, ex={}",
+                    ability.getExtId(), methodName, target != null ? target.getClass().getSimpleName() : "ITE");
             eventDispatcher.publishInvokeFail(ability, methodName, args, invocationException, elapsed(startTime));
             throw target != null ? target : invocationException;
         } catch (Throwable throwable) {
             // 框架/反射层异常：发布 INVOKE_EXCEPTION
+            log.debug("扩展点调用框架异常(INVOKE_EXCEPTION): extId={}, method={}, ex={}",
+                    ability.getExtId(), methodName, throwable.getClass().getSimpleName());
             eventDispatcher.publishInvokeException(ability, methodName, args, throwable, elapsed(startTime));
             throw throwable;
         }

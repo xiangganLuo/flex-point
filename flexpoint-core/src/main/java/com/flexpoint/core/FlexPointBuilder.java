@@ -159,17 +159,24 @@ public class FlexPointBuilder {
             resolvedSelectorRegistry = FlexPointComponentCreator.createSelectorRegistry(resolvedEventDispatcher);
         }
 
+        log.debug("构建 FlexPoint: 自定义组件[registry={}, monitor={}, selectorRegistry={}, dispatcher={}], 插件数={}",
+                this.registry != null, this.monitor != null, this.selectorRegistry != null,
+                this.eventDispatcher != null, plugins.size());
+
         // 无插件时保持纯内核实例；插件装配交由接入层（如 Spring Boot）负责
         if (CollectionUtil.isEmpty(plugins)) {
+            log.debug("未提供插件，构建纯内核 FlexPoint 实例");
             return new FlexPoint(resolvedRegistry, resolvedMonitor, resolvedSelectorRegistry, resolvedEventDispatcher, resolvedConfig);
         }
 
         // 插件装配（仅当显式提供插件时）
+        log.debug("开始装配插件，共 {} 个", plugins.size());
         DefaultPluginManager pm = new DefaultPluginManager(
                 resolvedRegistry, resolvedSelectorRegistry, resolvedEventDispatcher.getEventBus(), resolvedMonitor, resolvedConfig
         );
         pm.registerAll(plugins);
         pm.installAll();
+        log.debug("插件装配完成: {}", pm.getLoadReport().getStates());
 
         // FlexPoint 持有 PluginManager：shutdown 时逆序停止插件，并对外暴露加载报告与状态
         return new FlexPoint(resolvedRegistry, resolvedMonitor, resolvedSelectorRegistry, resolvedEventDispatcher, resolvedConfig, pm);

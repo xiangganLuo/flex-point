@@ -87,7 +87,10 @@ public class DefaultEventBus implements EventBus {
             .filter(EventSubscriber::isEnabled)
             .sorted(Comparator.comparingInt(EventSubscriber::getPriority))
             .collect(Collectors.toList());
-        
+
+        log.debug("事件[{}]路由到 {} 个订阅者（启用后 {} 个）",
+            eventContext.getEventType(), targetSubscribers.size(), sortedSubscribers.size());
+
         for (EventSubscriber subscriber : sortedSubscribers) {
             try {
                 if (subscriber.isAsync()) {
@@ -116,6 +119,8 @@ public class DefaultEventBus implements EventBus {
         }
         subscribers.add(subscriber);
         log.info("订阅成功: subscriber={}", subscriber.getName());
+        log.debug("订阅者已加入: name={}, async={}, priority={}, 当前订阅者数={}",
+            subscriber.getName(), subscriber.isAsync(), subscriber.getPriority(), subscribers.size());
     }
 
     @Override

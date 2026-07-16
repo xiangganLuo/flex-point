@@ -29,6 +29,7 @@ public class FlexPointSpringExtAbilityRegister implements InitializingBean, Appl
     @Override
     public void afterPropertiesSet() {
         Map<String, ExtAbility> extAbilityBeans = applicationContext.getBeansOfType(ExtAbility.class);
+        log.debug("扫描 ExtAbility Bean: 共发现 {} 个", extAbilityBeans.size());
         if (extAbilityBeans.isEmpty()) {
             return;
         }
@@ -37,10 +38,11 @@ public class FlexPointSpringExtAbilityRegister implements InitializingBean, Appl
             String beanName = entry.getKey();
             ExtAbility extAbility = entry.getValue();
 
+            log.debug("注册扩展点 Bean[{}] -> code={}", beanName, extAbility.getCode());
             flexPoint.register(extAbility);
             log.info("注册扩展点: code={}, tags={}, class={}", extAbility.getCode(), extAbility.getTags(), extAbility.getClass().getName());
         }
-        log.info("完成选择器自动注册，共注册{}个选择器", extAbilityBeans.size());
+        log.info("完成扩展点自动注册，共注册{}个扩展点", extAbilityBeans.size());
     }
 
     @Override

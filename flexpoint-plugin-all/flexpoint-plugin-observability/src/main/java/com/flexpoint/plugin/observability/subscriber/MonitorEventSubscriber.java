@@ -26,6 +26,7 @@ public class MonitorEventSubscriber implements EventSubscriber {
     public void onEvent(EventContext eventContext) {
         if (extMonitor == null || eventContext == null) return;
         EventType eventType = eventContext.getEventType();
+        log.debug("监控订阅者收到事件: eventType={}, eventId={}", eventType, eventContext.getEventId());
         switch (eventType) {
             case INVOKE_SUCCESS:
                 extMonitor.recordInvocation(

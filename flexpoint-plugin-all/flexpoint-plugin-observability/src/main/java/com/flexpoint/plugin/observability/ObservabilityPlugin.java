@@ -10,6 +10,7 @@ import com.flexpoint.plugin.observability.handler.PluginCollectorHandler;
 import com.flexpoint.plugin.observability.handler.PluginMetricsHandler;
 import com.flexpoint.plugin.observability.metrics.MetricsCollector;
 import com.flexpoint.plugin.observability.subscriber.MonitorEventSubscriber;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
@@ -22,6 +23,7 @@ import java.util.List;
  *
  * @author xiangganluo
  */
+@Slf4j
 public final class ObservabilityPlugin extends AbstractPlugin {
 
     public static final String PLUGIN_ID = "core.observability";
@@ -58,6 +60,9 @@ public final class ObservabilityPlugin extends AbstractPlugin {
         this.alertHandler = new PluginAlertHandler(alertStrategies);
         this.eventBus = context.eventBus();
         this.subscriber = new MonitorEventSubscriber(monitor);
+        log.debug("[{}] init: alertStrategies={}, collectors={}", PLUGIN_ID,
+                alertStrategies != null ? alertStrategies.size() : 0,
+                collectors != null ? collectors.size() : 0);
     }
 
     @Override
@@ -69,10 +74,13 @@ public final class ObservabilityPlugin extends AbstractPlugin {
         }
         monitor.addHandler(alertHandler);
         eventBus.subscribe(subscriber);
+        log.debug("[{}] start: 注入监控处理链(metrics{}/alert) 并订阅事件总线", PLUGIN_ID,
+                collectorHandler != null ? "/collector" : "");
     }
 
     @Override
     public void stop() {
+        log.debug("[{}] stop: 反订阅事件总线并移除监控处理链", PLUGIN_ID);
         if (eventBus != null && subscriber != null) eventBus.unsubscribe(subscriber);
         if (monitor != null) {
             if (metricsHandler != null) monitor.removeHandler(metricsHandler);

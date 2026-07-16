@@ -45,6 +45,11 @@ public class PluginAlertHandler implements MonitorHandler {
     }
 
     private void doAlert(String extId, String message) {
+        if (alertStrategies.isEmpty()) {
+            log.debug("无告警策略，跳过告警: extId={}, message={}", extId, message);
+            return;
+        }
+        log.debug("分发告警: extId={}, message={}, 策略数={}", extId, message, alertStrategies.size());
         for (AlertStrategy alertStrategy : alertStrategies) {
             try {
                 if (alertStrategy.shouldAlert(extId, AlertType.EXCEPTION)) {

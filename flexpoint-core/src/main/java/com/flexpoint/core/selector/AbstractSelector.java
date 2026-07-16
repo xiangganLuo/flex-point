@@ -2,6 +2,7 @@ package com.flexpoint.core.selector;
 
 import com.flexpoint.common.exception.MultipleExtMatchedException;
 import com.flexpoint.core.ext.ExtAbility;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
@@ -13,21 +14,27 @@ import java.util.List;
  * @version 1.0.0
  * @email xiangganluo@gmail.com
  */
+@Slf4j
 public abstract class AbstractSelector implements Selector {
 
     @Override
     public <T extends ExtAbility> T select(List<T> candidates) {
+        int total = candidates == null ? 0 : candidates.size();
         List<T> filtered = filter(candidates);
-        
+        log.debug("选择器[{}]过滤: 候选={}, 命中={}", getName(), total, filtered.size());
+
         if (filtered.isEmpty()) {
+            log.debug("选择器[{}]未命中任何候选", getName());
             return null;
         }
-        
+
         if (filtered.size() == 1) {
+            log.debug("选择器[{}]命中唯一候选: extId={}", getName(), filtered.get(0).getExtId());
             return filtered.get(0);
         }
-        
+
         // 有多个匹配结果，抛出专门的异常
+        log.debug("选择器[{}]命中多个候选({})，判定为歧义", getName(), filtered.size());
         throw new MultipleExtMatchedException(getName(), filtered.size());
     }
 

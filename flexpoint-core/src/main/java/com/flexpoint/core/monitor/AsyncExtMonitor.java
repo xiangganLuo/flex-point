@@ -55,7 +55,10 @@ public class AsyncExtMonitor extends AbstractChainExtMonitor {
     private void submitTask(Runnable task) {
         try {
             if (!executor.isShutdown()) {
+                log.debug("提交异步监控任务");
                 executor.submit(task);
+            } else {
+                log.debug("异步监控器已关闭，跳过任务提交");
             }
         } catch (RejectedExecutionException e) {
             log.warn("监控任务队列已满，使用调用线程执行: {}", e.getMessage());

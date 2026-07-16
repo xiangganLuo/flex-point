@@ -37,7 +37,11 @@ public abstract class AbstractChainExtMonitor implements ExtMonitor {
     @Override
     public void recordInvocation(ExtAbility extAbility, long duration, boolean success) {
         if (!getMonitorConfig().isEnabled()) return;
-        
+
+        if (log.isDebugEnabled()) {
+            log.debug("记录扩展点调用: extId={}, duration={}ms, success={}, handlers={}",
+                    extAbility.getExtId(), duration, success, handlerChain.size());
+        }
         executeMonitorTask(() -> {
             for (MonitorHandler handler : handlerChain) {
                 try {
@@ -52,7 +56,11 @@ public abstract class AbstractChainExtMonitor implements ExtMonitor {
     @Override
     public void recordException(ExtAbility extAbility, Throwable exception) {
         if (!getMonitorConfig().isEnabled()) return;
-        
+
+        if (log.isDebugEnabled()) {
+            log.debug("记录扩展点异常: extId={}, exception={}", extAbility.getExtId(),
+                    exception != null ? exception.getClass().getSimpleName() : "null");
+        }
         executeMonitorTask(() -> {
             for (MonitorHandler handler : handlerChain) {
                 try {
@@ -94,12 +102,15 @@ public abstract class AbstractChainExtMonitor implements ExtMonitor {
     public void addHandler(MonitorHandler handler) {
         if (handler != null) {
             handlerChain.add(handler);
+            log.debug("监控处理器已加入: {}, 当前链长={}", handler.getClass().getSimpleName(), handlerChain.size());
         }
     }
 
     @Override
     public void removeHandler(MonitorHandler handler) {
-        handlerChain.remove(handler);
+        if (handlerChain.remove(handler) && handler != null) {
+            log.debug("监控处理器已移除: {}, 当前链长={}", handler.getClass().getSimpleName(), handlerChain.size());
+        }
     }
 
     @Override

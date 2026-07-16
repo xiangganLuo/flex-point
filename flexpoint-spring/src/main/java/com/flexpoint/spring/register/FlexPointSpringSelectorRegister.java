@@ -26,7 +26,8 @@ public class FlexPointSpringSelectorRegister implements InitializingBean, Applic
     @Override
     public void afterPropertiesSet() {
         Map<String, Selector> selectorBeans = applicationContext.getBeansOfType(Selector.class);
-        
+        log.debug("扫描 Selector Bean: 共发现 {} 个", selectorBeans.size());
+
         if (selectorBeans.isEmpty()) {
             return;
         }

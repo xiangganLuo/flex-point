@@ -43,11 +43,15 @@ public class DefaultSelectorRegistry implements SelectorRegistry {
         // 发布选择器注册事件
         eventDispatcher.publishSelectorRegistered(selector.getName());
         log.info("注册选择器[{}]", selectorName);
+        log.debug("选择器注册成功: name={}, class={}, 当前选择器总数={}",
+                selectorName, selector.getClass().getName(), selectorMap.size());
     }
-    
+
     @Override
     public Selector getSelector(String selectorName) {
-        return selectorMap.get(selectorName);
+        Selector selector = selectorMap.get(selectorName);
+        log.debug("查找选择器: name={}, 命中={}", selectorName, selector != null);
+        return selector;
     }
     
     @Override

@@ -40,7 +40,10 @@ public class MonitorFactory {
                 monitor.addHandler(handler);
             }
         }
-        
+
+        log.debug("监控器创建完成: type={}, asyncEnabled={}, 初始处理器数={}",
+                monitor.getClass().getSimpleName(), config.isAsyncEnabled(),
+                handlers != null ? handlers.size() : 0);
         return monitor;
     }
 

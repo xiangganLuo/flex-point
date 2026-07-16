@@ -89,6 +89,7 @@ public class FlexPoint {
      */
     public <T extends ExtAbility> T findAbility(Class<T> extType) {
         String typeName = extType.getSimpleName();
+        log.debug("开始查找扩展点: type={}", typeName);
 
         // 从扩展点接口的@FpSelector注解获取选择器名称
         FpSelector selectorAnno = extType.getAnnotation(FpSelector.class);
@@ -168,13 +169,15 @@ public class FlexPoint {
                 .collect(Collectors.toList());
         
         if (!matched.isEmpty()) {
+            log.debug("按 code 匹配到扩展点: type={}, code={}, count={}", extType.getSimpleName(), code, matched.size());
             // 发布扩展点选择事件
             matched.forEach(ext -> eventDispatcher.publishExtSelected(ext, FlexPointConstants.CODE_SELECTOR_NAME));
         } else {
+            log.debug("按 code 未匹配到扩展点: type={}, code={}", extType.getSimpleName(), code);
             // 发布扩展点选择失败事件
             eventDispatcher.publishExtSelectionFailed(extType, FlexPointConstants.CODE_SELECTOR_NAME, "未找到匹配的扩展点");
         }
-        
+
         return matched;
     }
 
@@ -232,9 +235,13 @@ public class FlexPoint {
                 .collect(Collectors.toList());
 
         if (!matched.isEmpty()) {
+            log.debug("按 code+tags 匹配到扩展点: type={}, code={}, tagCount={}, count={}",
+                    extType.getSimpleName(), code, tagMap.size(), matched.size());
             // 发布扩展点选择事件
             matched.forEach(ext -> eventDispatcher.publishExtSelected(ext, FlexPointConstants.CODE_TAGS_SELECTOR_NAME));
         } else {
+            log.debug("按 code+tags 未匹配到扩展点: type={}, code={}, tagCount={}",
+                    extType.getSimpleName(), code, tagMap.size());
             // 发布扩展点选择失败事件
             eventDispatcher.publishExtSelectionFailed(extType, FlexPointConstants.CODE_TAGS_SELECTOR_NAME, "未找到匹配的扩展点");
         }
@@ -302,8 +309,10 @@ public class FlexPoint {
      * 再关闭监控器异步资源，最后关闭事件总线。</p>
      */
     public void shutdown() {
+        log.debug("FlexPoint 开始关闭: hasPluginManager={}", pluginManager != null);
         if (pluginManager != null) {
             try {
+                log.debug("逆序停止插件...");
                 pluginManager.stopAll();
             } catch (Exception e) {
                 log.warn("插件停止过程中出现异常", e);
@@ -311,12 +320,15 @@ public class FlexPoint {
         }
         if (extMonitor != null) {
             try {
+                log.debug("关闭监控器异步资源...");
                 extMonitor.shutdown();
             } catch (Exception e) {
                 log.warn("监控器关闭过程中出现异常", e);
             }
         }
+        log.debug("关闭事件总线...");
         eventDispatcher.shutdown();
+        log.debug("FlexPoint 关闭完成");
     }
 
     /**
@@ -413,6 +425,9 @@ public class FlexPoint {
      * 集成监控和事件发布功能
      */
     private <T extends ExtAbility> T getProxy(Class<T> extType, T ability) {
+        if (log.isDebugEnabled()) {
+            log.debug("创建扩展点代理: type={}, target={}", extType.getSimpleName(), ability.getClass().getName());
+        }
         @SuppressWarnings("unchecked")
         T proxyInstance = (T) Proxy.newProxyInstance(
                 ability.getClass().getClassLoader(),

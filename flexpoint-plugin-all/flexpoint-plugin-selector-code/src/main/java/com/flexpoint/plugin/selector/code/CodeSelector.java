@@ -4,6 +4,7 @@ import com.flexpoint.common.constants.FlexPointConstants;
 import com.flexpoint.core.ext.ExtAbility;
 import com.flexpoint.core.selector.AbstractSelector;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collections;
 import java.util.List;
@@ -15,6 +16,7 @@ import java.util.stream.Collectors;
  *
  * @author xiangganluo
  */
+@Slf4j
 @RequiredArgsConstructor
 public class CodeSelector extends AbstractSelector {
 
@@ -33,10 +35,15 @@ public class CodeSelector extends AbstractSelector {
             throw new IllegalStateException(getName() + " Selector 的 Resolver 不能为空，请注册业务实现！");
         }
         String code = resolver.resolveCode();
+        log.debug("[{}] 解析上下文 code={}", getName(), code);
         if (code == null) {
+            log.debug("[{}] code 为空，返回空候选", getName());
             return Collections.emptyList();
         }
-        return candidates.stream().filter(ext -> code.equals(ext.getCode())).collect(Collectors.toList());
+        List<T> result = candidates.stream().filter(ext -> code.equals(ext.getCode())).collect(Collectors.toList());
+        log.debug("[{}] 按 code={} 过滤: 候选={}, 命中={}", getName(), code,
+                candidates == null ? 0 : candidates.size(), result.size());
+        return result;
     }
 
     @Override

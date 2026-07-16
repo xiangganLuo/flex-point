@@ -5,6 +5,7 @@ import com.flexpoint.core.FlexPoint;
 import com.flexpoint.core.ext.ExtAbility;
 import com.flexpoint.spring.proxy.ExtAbilityInvocationHandler;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.cglib.proxy.Proxy;
@@ -18,6 +19,7 @@ import java.lang.reflect.Field;
  * @author xiangganluo
  * @version 1.0.0
  */
+@Slf4j
 @RequiredArgsConstructor
 public class ExtAbilityProcessor implements BeanPostProcessor {
 
@@ -32,6 +34,8 @@ public class ExtAbilityProcessor implements BeanPostProcessor {
             if (reference != null) {
                 Class<?> abilityClass = field.getType();
                 if (ExtAbility.class.isAssignableFrom(abilityClass) && abilityClass.isInterface()) {
+                    log.debug("为 Bean[{}] 字段[{}] 注入扩展点代理: type={}",
+                            beanName, field.getName(), abilityClass.getSimpleName());
                     Object proxy = Proxy.newProxyInstance(
                             abilityClass.getClassLoader(),
                             new Class[]{abilityClass},
@@ -43,6 +47,8 @@ public class ExtAbilityProcessor implements BeanPostProcessor {
                     } catch (IllegalAccessException e) {
                         throw new BeansException("Failed to inject ExtAbility proxy", e) {};
                     }
+                } else {
+                    log.warn("@FpExt 字段[{}]类型[{}]不是 ExtAbility 接口，已跳过注入", field.getName(), abilityClass.getName());
                 }
             }
         }

@@ -58,6 +58,7 @@ public class DefaultPluginManager implements PluginManager {
         }
         plugins.put(id, plugin);
         states.put(id, PluginState.CREATED);
+        log.debug("插件已注册: id={}, class={}", id, plugin.getClass().getName());
     }
 
     @Override
@@ -68,11 +69,14 @@ public class DefaultPluginManager implements PluginManager {
 
     @Override
     public synchronized void installAll() {
+        log.debug("开始按注册顺序装配插件, 数量={}, 顺序={}", plugins.size(), plugins.keySet());
         for (Plugin p : plugins.values()) {
             String id = p.getId();
             report.addOrdered(id);
             try {
+                log.debug("装配插件: id={} -> init", id);
                 p.init(context); states.put(id, PluginState.INITIALIZED); report.setState(id, PluginState.INITIALIZED);
+                log.debug("装配插件: id={} -> start", id);
                 p.start();       states.put(id, PluginState.STARTED);     report.setState(id, PluginState.STARTED);
                 log.info("Plugin started: {}", id);
             } catch (Exception e) {
@@ -86,6 +90,7 @@ public class DefaultPluginManager implements PluginManager {
 
     @Override
     public synchronized void stopAll() {
+        log.debug("开始逆序停止插件, 数量={}", plugins.size());
         List<Plugin> ordered = new ArrayList<>(plugins.values());
         ListIterator<Plugin> it = ordered.listIterator(ordered.size());
         while (it.hasPrevious()) {
