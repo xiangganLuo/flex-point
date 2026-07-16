@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>com.flexpoint</groupId>
+        <groupId>io.github.xiangganluo</groupId>
         <artifactId>flexpoint-framework</artifactId>
         <version>${revision}</version>
     </parent>

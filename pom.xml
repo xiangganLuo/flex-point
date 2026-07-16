@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.flexpoint</groupId>
+    <groupId>io.github.xiangganluo</groupId>
     <artifactId>flexpoint-framework</artifactId>
     <version>${revision}</version>
     <packaging>pom</packaging>
@@ -73,7 +73,7 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>com.flexpoint</groupId>
+                <groupId>io.github.xiangganluo</groupId>
                 <artifactId>flexpoint-dependencies-bom</artifactId>
                 <version>${project.version}</version>
                 <type>pom</type>
@@ -138,7 +138,7 @@
                 <version>${maven-flatten-plugin.version}</version>
                 <configuration>
                     <updatePomFile>true</updatePomFile>
-                    <flattenMode>resolveCiFriendliesOnly</flattenMode>
+                    <flattenMode>oss</flattenMode>
                 </configuration>
                 <executions>
                     <execution>

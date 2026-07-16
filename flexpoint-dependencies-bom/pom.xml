@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.flexpoint</groupId>
+    <groupId>io.github.xiangganluo</groupId>
     <artifactId>flexpoint-dependencies-bom</artifactId>
     <version>${revision}</version>
     <packaging>pom</packaging>
@@ -50,98 +50,98 @@
         <dependencies>
             <!-- 内部模块依赖 -->
             <dependency>
-                <groupId>com.flexpoint</groupId>
+                <groupId>io.github.xiangganluo</groupId>
                 <artifactId>flexpoint-common</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.flexpoint</groupId>
+                <groupId>io.github.xiangganluo</groupId>
                 <artifactId>flexpoint-core</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.flexpoint</groupId>
+                <groupId>io.github.xiangganluo</groupId>
                 <artifactId>flexpoint-spring</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.flexpoint</groupId>
+                <groupId>io.github.xiangganluo</groupId>
                 <artifactId>flexpoint-springboot</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.flexpoint</groupId>
+                <groupId>io.github.xiangganluo</groupId>
                 <artifactId>flexpoint-test</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <!-- 官方插件模块 -->
             <dependency>
-                <groupId>com.flexpoint</groupId>
+                <groupId>io.github.xiangganluo</groupId>
                 <artifactId>flexpoint-plugin-selector-code</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.flexpoint</groupId>
+                <groupId>io.github.xiangganluo</groupId>
                 <artifactId>flexpoint-plugin-selector-code-version</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.flexpoint</groupId>
+                <groupId>io.github.xiangganluo</groupId>
                 <artifactId>flexpoint-plugin-observability</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.flexpoint</groupId>
+                <groupId>io.github.xiangganluo</groupId>
                 <artifactId>flexpoint-plugin-selector-tag</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.flexpoint</groupId>
+                <groupId>io.github.xiangganluo</groupId>
                 <artifactId>flexpoint-plugin-selector-gray</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.flexpoint</groupId>
+                <groupId>io.github.xiangganluo</groupId>
                 <artifactId>flexpoint-plugin-selector-ab</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.flexpoint</groupId>
+                <groupId>io.github.xiangganluo</groupId>
                 <artifactId>flexpoint-plugin-selector-weight</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.flexpoint</groupId>
+                <groupId>io.github.xiangganluo</groupId>
                 <artifactId>flexpoint-plugin-selector-tenant</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.flexpoint</groupId>
+                <groupId>io.github.xiangganluo</groupId>
                 <artifactId>flexpoint-plugin-selector-cache</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.flexpoint</groupId>
+                <groupId>io.github.xiangganluo</groupId>
                 <artifactId>flexpoint-plugin-audit</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.flexpoint</groupId>
+                <groupId>io.github.xiangganluo</groupId>
                 <artifactId>flexpoint-plugin-slowcall</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.flexpoint</groupId>
+                <groupId>io.github.xiangganluo</groupId>
                 <artifactId>flexpoint-plugin-metrics</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.flexpoint</groupId>
+                <groupId>io.github.xiangganluo</groupId>
                 <artifactId>flexpoint-plugin-retry</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.flexpoint</groupId>
+                <groupId>io.github.xiangganluo</groupId>
                 <artifactId>flexpoint-plugin-resilience</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -298,6 +298,15 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-deploy-plugin</artifactId>
                 <version>${maven-deploy-plugin.version}</version>
+            </plugin>
+            <!-- BOM 需保留 dependencyManagement：用 bom 模式扁平化（覆盖父的 oss 模式） -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>flatten-maven-plugin</artifactId>
+                <version>${maven-flatten-plugin.version}</version>
+                <configuration>
+                    <flattenMode>bom</flattenMode>
+                </configuration>
             </plugin>
         </plugins>
     </build>

@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>com.flexpoint</groupId>
+        <groupId>io.github.xiangganluo</groupId>
         <artifactId>flexpoint-framework</artifactId>
         <version>${revision}</version>
     </parent>
@@ -22,38 +22,38 @@
     <dependencies>
         <!-- 内部依赖 -->
         <dependency>
-            <groupId>com.flexpoint</groupId>
+            <groupId>io.github.xiangganluo</groupId>
             <artifactId>flexpoint-core</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.flexpoint</groupId>
+            <groupId>io.github.xiangganluo</groupId>
             <artifactId>flexpoint-spring</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.flexpoint</groupId>
+            <groupId>io.github.xiangganluo</groupId>
             <artifactId>flexpoint-springboot</artifactId>
         </dependency>
         <!-- 官方插件（测试装配与官方样板用例） -->
         <dependency>
-            <groupId>com.flexpoint</groupId>
+            <groupId>io.github.xiangganluo</groupId>
             <artifactId>flexpoint-plugin-selector-code</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.flexpoint</groupId>
+            <groupId>io.github.xiangganluo</groupId>
             <artifactId>flexpoint-plugin-selector-code-version</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.flexpoint</groupId>
+            <groupId>io.github.xiangganluo</groupId>
             <artifactId>flexpoint-plugin-observability</artifactId>
         </dependency>
         <!-- 「配置即装配」自动配置集成测试用（代表性插件） -->
         <dependency>
-            <groupId>com.flexpoint</groupId>
+            <groupId>io.github.xiangganluo</groupId>
             <artifactId>flexpoint-plugin-selector-tag</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.flexpoint</groupId>
+            <groupId>io.github.xiangganluo</groupId>
             <artifactId>flexpoint-plugin-retry</artifactId>
             <scope>test</scope>
         </dependency>

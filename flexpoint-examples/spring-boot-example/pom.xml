@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>com.flexpoint</groupId>
+        <groupId>io.github.xiangganluo</groupId>
         <artifactId>flexpoint-examples</artifactId>
         <version>${revision}</version>
     </parent>
@@ -13,12 +13,12 @@
     <description>Spring Boot环境下的Flex Point用法示例</description>
     <dependencies>
         <dependency>
-            <groupId>com.flexpoint</groupId>
+            <groupId>io.github.xiangganluo</groupId>
             <artifactId>flexpoint-springboot</artifactId>
         </dependency>
         <!-- 官方选择器插件（Code+Version） -->
         <dependency>
-            <groupId>com.flexpoint</groupId>
+            <groupId>io.github.xiangganluo</groupId>
             <artifactId>flexpoint-plugin-selector-code-version</artifactId>
         </dependency>
         <dependency>
