@@ -76,6 +76,21 @@
             <artifactId>flexpoint-plugin-resilience</artifactId>
             <optional>true</optional>
         </dependency>
+        <dependency>
+            <groupId>com.flexpoint</groupId>
+            <artifactId>flexpoint-plugin-observability</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>com.flexpoint</groupId>
+            <artifactId>flexpoint-plugin-selector-code</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>com.flexpoint</groupId>
+            <artifactId>flexpoint-plugin-selector-code-version</artifactId>
+            <optional>true</optional>
+        </dependency>
 
         <!-- Spring Boot依赖 接入方自行引入Spring Boot 版本 -->
         <dependency>

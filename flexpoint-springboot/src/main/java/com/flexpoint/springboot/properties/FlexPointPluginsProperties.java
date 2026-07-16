@@ -41,6 +41,12 @@ public class FlexPointPluginsProperties {
     private Retry retry = new Retry();
     /** 超时+熔断 */
     private Resilience resilience = new Resilience();
+    /** 可观测性（事件订阅 + 监控处理链） */
+    private Observability observability = new Observability();
+    /** Code 选择器 */
+    private Code code = new Code();
+    /** Code + Version 选择器（属性前缀 code-version） */
+    private CodeVersion codeVersion = new CodeVersion();
 
     @Data
     public static class Tag {
@@ -114,5 +120,20 @@ public class FlexPointPluginsProperties {
         private int minimumCalls = 20;
         /** 熔断打开持续时间（毫秒） */
         private long openMillis = 5000L;
+    }
+
+    @Data
+    public static class Observability {
+        private boolean enabled = false;
+    }
+
+    @Data
+    public static class Code {
+        private boolean enabled = false;
+    }
+
+    @Data
+    public static class CodeVersion {
+        private boolean enabled = false;
     }
 }
