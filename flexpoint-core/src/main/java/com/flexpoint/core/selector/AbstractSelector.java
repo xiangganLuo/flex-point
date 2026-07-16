@@ -32,8 +32,23 @@ public abstract class AbstractSelector implements Selector {
     }
 
     /**
+     * 基于过滤链路产出决策解释：命中 / 未命中 / 歧义。
+     */
+    @Override
+    public <T extends ExtAbility> DecisionExplanation explain(List<T> candidates) {
+        List<T> filtered = filter(candidates);
+        if (filtered.isEmpty()) {
+            return DecisionExplanation.miss(getName(), candidates, "无候选通过过滤");
+        }
+        if (filtered.size() == 1) {
+            return DecisionExplanation.hit(getName(), candidates, filtered, filtered.get(0).getExtId());
+        }
+        return DecisionExplanation.ambiguous(getName(), candidates, filtered);
+    }
+
+    /**
      * 从候选列表中过滤匹配的扩展点
-     * 
+     *
      * @param candidates 候选扩展点列表
      * @param <T> 扩展点类型
      * @return 匹配的扩展点列表

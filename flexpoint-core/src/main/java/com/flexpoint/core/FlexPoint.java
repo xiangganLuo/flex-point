@@ -118,6 +118,11 @@ public class FlexPoint {
             return null;
         }
 
+        // 决策解释 v1：默认 Debug 级输出候选/过滤/命中原因，便于排查路由问题
+        if (log.isDebugEnabled()) {
+            log.debug("扩展点选择决策: type={}, {}", typeName, selector.explain(exts));
+        }
+
         T ability = selector.select(exts);
         if (ability == null) {
             String errorMsg = "选择器未找到匹配的扩展点";

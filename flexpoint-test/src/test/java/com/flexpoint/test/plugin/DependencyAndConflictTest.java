@@ -12,6 +12,7 @@ import com.flexpoint.core.plugin.*;
 import com.flexpoint.core.plugin.exception.PluginDependencyException;
 import com.flexpoint.core.plugin.exception.PluginException;
 import com.flexpoint.core.plugin.manage.DefaultPluginManager;
+import com.flexpoint.core.selector.DecisionExplanation;
 import com.flexpoint.core.selector.DefaultSelectorRegistry;
 import com.flexpoint.core.selector.Selector;
 import com.flexpoint.core.selector.SelectorRegistry;
@@ -77,6 +78,9 @@ public class DependencyAndConflictTest {
             registry.register(new Selector() {
                 @Override public <T extends ExtAbility> T select(List<T> candidates) { return null; }
                 @Override public String getName() { return selectorName; }
+                @Override public <T extends ExtAbility> DecisionExplanation explain(List<T> candidates) {
+                    return DecisionExplanation.fromSelection(getName(), candidates, select(candidates));
+                }
             });
         }
     }

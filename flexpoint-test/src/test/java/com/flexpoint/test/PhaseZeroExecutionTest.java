@@ -8,6 +8,7 @@ import com.flexpoint.core.event.EventSubscriber;
 import com.flexpoint.core.event.EventType;
 import com.flexpoint.core.event.EventDispatcher;
 import com.flexpoint.core.ext.ExtAbility;
+import com.flexpoint.core.selector.DecisionExplanation;
 import com.flexpoint.core.selector.Selector;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -58,6 +59,11 @@ public class PhaseZeroExecutionTest {
         @Override
         public String getName() {
             return "phase0Selector";
+        }
+
+        @Override
+        public <T extends ExtAbility> DecisionExplanation explain(List<T> candidates) {
+            return DecisionExplanation.fromSelection(getName(), candidates, select(candidates));
         }
     }
 

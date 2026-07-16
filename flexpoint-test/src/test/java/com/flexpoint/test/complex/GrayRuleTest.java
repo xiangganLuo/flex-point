@@ -6,6 +6,7 @@ import com.flexpoint.core.FlexPointBuilder;
 import com.flexpoint.core.config.FlexPointConfig;
 import com.flexpoint.core.ext.ExtAbility;
 
+import com.flexpoint.core.selector.DecisionExplanation;
 import com.flexpoint.core.selector.Selector;
 import java.util.List;
 import org.junit.jupiter.api.Assertions;
@@ -50,6 +51,10 @@ public class GrayRuleTest {
         }
         @Override
         public String getName() { return "GraySelector"; }
+        @Override
+        public <T extends ExtAbility> DecisionExplanation explain(List<T> candidates) {
+            return DecisionExplanation.fromSelection(getName(), candidates, select(candidates));
+        }
     }
     static class UserContext {
         private static final ThreadLocal<String> holder = new ThreadLocal<>();

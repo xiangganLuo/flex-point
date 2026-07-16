@@ -51,6 +51,10 @@ public class PluginSpiExampleTest {
                 }
 
                 @Override public String getName() { return "PluginSelector"; }
+
+                @Override public <T extends ExtAbility> com.flexpoint.core.selector.DecisionExplanation explain(List<T> candidates) {
+                    return com.flexpoint.core.selector.DecisionExplanation.fromSelection(getName(), candidates, select(candidates));
+                }
             });
         }
         @Override public PluginDescriptor getDescriptor() {
