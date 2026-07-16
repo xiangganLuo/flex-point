@@ -26,4 +26,17 @@
         <module>java-example</module>
     </modules>
 
+    <build>
+        <plugins>
+            <!-- 示例模块不发布到 Maven Central：central-publishing 不认 maven.deploy.skip，需显式 skipPublishing。由子模块继承 -->
+            <plugin>
+                <groupId>org.sonatype.central</groupId>
+                <artifactId>central-publishing-maven-plugin</artifactId>
+                <configuration>
+                    <skipPublishing>true</skipPublishing>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
 </project> 

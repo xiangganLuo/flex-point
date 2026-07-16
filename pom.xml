@@ -175,6 +175,10 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-deploy-plugin</artifactId>
                 <version>${maven-deploy-plugin.version}</version>
+                <configuration>
+                    <!-- 发布统一走 central-publishing 插件；禁用标准 deploy，避免被环境的部署重定向推到其它仓库 -->
+                    <skip>true</skip>
+                </configuration>
             </plugin>
             <!-- GPG 签名（中央仓库强制要求）：绑定 verify 阶段。本地非发布构建可用 -Dgpg.skip=true 跳过 -->
             <plugin>
