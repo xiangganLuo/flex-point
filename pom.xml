@@ -200,6 +200,9 @@
                 <configuration>
                     <publishingServerId>central</publishingServerId>
                     <tokenAuth>true</tokenAuth>
+                    <!-- 上传后停在 Portal「校验通过」态，由人工在网页点 Publish 最终发布（避免自动不可逆发布） -->
+                    <autoPublish>false</autoPublish>
+                    <waitUntil>validated</waitUntil>
                 </configuration>
             </plugin>
         </plugins>
