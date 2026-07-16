@@ -1,6 +1,6 @@
 # Flex Point 核心架构（2.0）
 
-> 本文与 2.0 代码对齐（`revision = 2.0.0-SNAPSHOT`）。更完整的使用文档见官网 `docs/`（VitePress）。
+> 本文与 2.0 代码对齐（`revision = 2.0.0`）。更完整的使用文档见官网 `docs/`（VitePress）。
 
 ## 项目核心作用
 

@@ -55,7 +55,7 @@
 
     <properties>
         <!-- flex-point版本 -->
-        <revision>2.0.0-SNAPSHOT</revision>
+        <revision>2.0.0</revision>
         <java.encoding>UTF-8</java.encoding>
         <!-- maven plugin -->
         <maven.compiler.source>1.8</maven.compiler.source>
