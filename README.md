@@ -49,6 +49,10 @@ FlexPoint/
 ├── flexpoint-core/               # 核心模块 - 核心功能实现，不依赖Spring
 ├── flexpoint-spring/             # Spring集成模块 - Spring环境下的集成
 ├── flexpoint-springboot/         # Spring Boot自动配置模块
+├── flexpoint-plugin-all/         # 官方插件聚合模块 - 每个插件一个子模块
+│   ├── flexpoint-plugin-selector-code/          # Code 选择器插件
+│   ├── flexpoint-plugin-selector-code-version/  # Code+Version 选择器插件
+│   └── flexpoint-plugin-observability/          # 可观测性插件（事件订阅+监控链）
 ├── flexpoint-test/               # 测试模块 - 测试用例和示例
 └── flexpoint-examples/           # 多场景接入示例模块 - Spring Boot、Java原生
 ```
@@ -57,9 +61,10 @@ FlexPoint/
 |------------------------------|----------------------------------------|
 | flexpoint-dependencies-bom    | 依赖版本BOM管理，所有依赖版本统一配置   |
 | flexpoint-common              | 公共基础模块，接口、注解、常量、异常等   |
-| flexpoint-core                | 核心实现模块，扩展点注册/查找/监控      |
+| flexpoint-core                | 核心实现模块，扩展点注册/查找/监控/插件SPI |
 | flexpoint-spring              | Spring集成，自动扫描注册扩展点           |
 | flexpoint-springboot          | Spring Boot自动配置，开箱即用           |
+| flexpoint-plugin-all          | 官方插件聚合模块，每个插件独立子模块      |
 | flexpoint-test                | 测试模块，测试用例和示例                |
 | flexpoint-examples            | 多场景接入示例模块（Spring Boot、Java原生） |
 
@@ -209,8 +214,16 @@ OrderProcessAbility ability = flexPoint.findAbility(OrderProcessAbility.class);
 
 #### 推荐：默认选择器注册（Spring Boot最佳实践）
 
+> 官方选择器已独立为插件模块，使用前请引入对应依赖：
+> ```xml
+> <dependency>
+>     <groupId>com.flexpoint</groupId>
+>     <artifactId>flexpoint-plugin-selector-code-version</artifactId>
+> </dependency>
+> ```
+
 ```java
-import com.flexpoint.core.plugin.official.selector.resolves.CodeVersionSelector;
+import com.flexpoint.plugin.selector.codeversion.CodeVersionSelector;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 

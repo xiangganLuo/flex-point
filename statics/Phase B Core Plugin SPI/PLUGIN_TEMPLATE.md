@@ -1,19 +1,18 @@
-# 最小插件模板
+# 最小插件模板（极简模型）
 
-> 复制下面的骨架，改名与元数据即可开始。配合 [ONE_PAGER.md](./ONE_PAGER.md) 阅读。
+> 复制下面的骨架，改 `getId()` 与逻辑即可开始。配合 [ONE_PAGER.md](./ONE_PAGER.md) 阅读。
 
 ---
 
 ## 1. 骨架：继承 `AbstractPlugin`（推荐）
 
-`AbstractPlugin` 提供四个生命周期方法的空实现，按需覆写即可。
+`AbstractPlugin` 提供四个生命周期方法的空实现，按需覆写；`getId()` 需自行实现。
 
 ```java
 package com.example.plugin;
 
-import com.flexpoint.core.plugin.*;
-
-import java.util.EnumSet;
+import com.flexpoint.core.plugin.AbstractPlugin;
+import com.flexpoint.core.plugin.PluginContext;
 
 /**
  * 示例插件：在 start 阶段注册一个自定义能力，在 stop 阶段对称反注册。
@@ -22,17 +21,11 @@ public class MyPlugin extends AbstractPlugin {
 
     public static final String PLUGIN_ID = "example.my-plugin";
 
-    private final PluginDescriptor descriptor = PluginDescriptor.builder(PLUGIN_ID, "1.0.0")
-            .capabilities(EnumSet.of(PluginCapability.OTHER))
-            .order(50)
-            .critical(false)
-            .build();
-
     private PluginContext ctx;
 
     @Override
-    public PluginDescriptor getDescriptor() {
-        return descriptor;
+    public String getId() {
+        return PLUGIN_ID;
     }
 
     @Override
@@ -53,26 +46,12 @@ public class MyPlugin extends AbstractPlugin {
 
     @Override
     public void destroy() {
-        // 释放资源、置空引用
         this.ctx = null;
     }
 }
 ```
 
-## 2. 声明依赖
-
-```java
-import java.util.Collections;
-
-private final PluginDescriptor descriptor = PluginDescriptor.builder(PLUGIN_ID, "1.0.0")
-        .capabilities(EnumSet.of(PluginCapability.OTHER))
-        .dependencies(Collections.singletonList(
-                new PluginDependency("example.base-plugin", null))) // 依赖先装配
-        .order(50)
-        .build();
-```
-
-## 3. 一个可注册选择器的插件
+## 2. 一个可注册选择器的插件
 
 ```java
 public class MySelectorPlugin extends AbstractPlugin {
@@ -80,24 +59,21 @@ public class MySelectorPlugin extends AbstractPlugin {
     public static final String PLUGIN_ID = "example.selector";
     private static final String SELECTOR_NAME = "mySelector";
 
-    private final PluginDescriptor descriptor = PluginDescriptor.builder(PLUGIN_ID, "1.0.0")
-            .capabilities(EnumSet.of(PluginCapability.SELECTOR))
-            .order(10)
-            .build();
-
     private SelectorRegistry registry;
 
-    @Override public PluginDescriptor getDescriptor() { return descriptor; }
+    @Override public String getId() { return PLUGIN_ID; }
 
     @Override public void init(PluginContext ctx) { this.registry = ctx.selectorRegistry(); }
 
     @Override public void start() {
         registry.register(new Selector() {
             @Override public <T extends ExtAbility> T select(List<T> candidates) {
-                // 你的路由逻辑
                 return candidates.isEmpty() ? null : candidates.get(0);
             }
             @Override public String getName() { return SELECTOR_NAME; }
+            @Override public <T extends ExtAbility> DecisionExplanation explain(List<T> candidates) {
+                return DecisionExplanation.fromSelection(getName(), candidates, select(candidates));
+            }
         });
     }
 
@@ -107,9 +83,9 @@ public class MySelectorPlugin extends AbstractPlugin {
 }
 ```
 
-> 注意：选择器名是「资源名」，全局禁止同名覆盖。重复注册会直接抛异常。
+> 注意：选择器名是「资源名」，全局禁止同名覆盖，重复注册会直接抛异常（对应插件被降级为 FAILED）。
 
-## 4. 装配到 FlexPoint
+## 3. 装配到 FlexPoint（装配顺序 = 注册顺序）
 
 ```java
 FlexPoint fp = FlexPointBuilder.create()
@@ -117,9 +93,9 @@ FlexPoint fp = FlexPointBuilder.create()
         .build();
 ```
 
-## 5. 最小自测脚手架
+## 4. 最小自测脚手架
 
-直接构造 `DefaultPluginManager` 精确验证装配 / 依赖 / 状态流转（无需完整 FlexPoint）：
+直接构造 `DefaultPluginManager` 精确验证装配 / 状态流转（无需完整 FlexPoint）：
 
 ```java
 FlexPointConfig config = FlexPointConfig.defaultConfig();
@@ -131,7 +107,6 @@ ExtMonitor monitor = MonitorFactory.createDefaultMonitor(config.getMonitor());
 DefaultPluginManager pm = new DefaultPluginManager(
         registry, selectorRegistry, dispatcher.getEventBus(), monitor, config);
 pm.register(new MySelectorPlugin());
-pm.resolve();
 pm.installAll();
 
 assert pm.getPluginStates().get("example.selector") == PluginState.STARTED;
@@ -140,16 +115,15 @@ assert selectorRegistry.has("mySelector");
 pm.stopAll(); // 逆序 stop + destroy
 ```
 
-> 完整用例可参考 `flexpoint-test` 下的 `plugin/DependencyAndConflictTest`、
-> `plugin/PluginLifecycleTest`、`plugin/PluginContextBoundaryTest`。
+> 完整用例参考 `flexpoint-test` 下的 `plugin/PluginManagerBasicsTest`、`plugin/PluginLifecycleTest`、
+> `plugin/PluginContextBoundaryTest`；可运行示例见 `flexpoint-examples/java-example` 的 `PluginExampleMain`。
 
-## 6. 常见坑
+## 5. 常见坑
 
 | 现象 | 原因 | 处理 |
 |------|------|------|
-| 构建期抛 `PluginDependencyException: Missing dependency` | 依赖的 pluginId 未注册 | 确认依赖插件一并装配 |
-| 构建期抛 `Cyclic dependency detected` | 依赖成环 | 拆解环、引入中间层 |
-| 构建期抛 `Duplicate pluginId` | ID 冲突 | 改为唯一 ID |
-| 插件被标记 `FAILED` 但构建成功 | 非关键插件 start 抛异常 | 查 `getLoadReport().getErrors()` |
+| 注册期抛 `Duplicate pluginId` | `getId()` 冲突 | 改为唯一 ID |
+| 注册期抛 `pluginId must not be empty` | `getId()` 返回空 | 返回非空稳定标识 |
+| 插件被标记 `FAILED` 但构建成功 | 该插件 start 抛异常（统一降级） | 查 `getLoadReport().getErrors()` |
 | 选择器注册抛「名称已存在」 | 资源名同名覆盖 | 改选择器名，或确认只装配一次 |
-| 关键插件失败导致构建中断 | `critical=true` 且 start 抛异常 | 修复启动逻辑或下调关键性 |
+| 装配顺序不符预期 | 顺序即注册顺序 | 调整 `withPlugin`/`withPlugins` 传入次序 |
