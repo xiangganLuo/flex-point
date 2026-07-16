@@ -25,6 +25,58 @@
             <artifactId>flexpoint-core</artifactId>
         </dependency>
 
+        <!-- 官方插件（optional：消费方按需引入对应插件模块，本模块仅用于「配置即装配」的条件装配） -->
+        <dependency>
+            <groupId>com.flexpoint</groupId>
+            <artifactId>flexpoint-plugin-selector-tag</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>com.flexpoint</groupId>
+            <artifactId>flexpoint-plugin-selector-gray</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>com.flexpoint</groupId>
+            <artifactId>flexpoint-plugin-selector-ab</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>com.flexpoint</groupId>
+            <artifactId>flexpoint-plugin-selector-weight</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>com.flexpoint</groupId>
+            <artifactId>flexpoint-plugin-selector-tenant</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>com.flexpoint</groupId>
+            <artifactId>flexpoint-plugin-audit</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>com.flexpoint</groupId>
+            <artifactId>flexpoint-plugin-slowcall</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>com.flexpoint</groupId>
+            <artifactId>flexpoint-plugin-metrics</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>com.flexpoint</groupId>
+            <artifactId>flexpoint-plugin-retry</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>com.flexpoint</groupId>
+            <artifactId>flexpoint-plugin-resilience</artifactId>
+            <optional>true</optional>
+        </dependency>
+
         <!-- Spring Boot依赖 接入方自行引入Spring Boot 版本 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

@@ -19,6 +19,7 @@ import org.springframework.context.annotation.Import;
 @ConditionalOnProperty(prefix = FlexPointProperties.PREFIX, name = "enabled", havingValue = "true", matchIfMissing = true)
 @EnableConfigurationProperties(FlexPointProperties.class)
 @Import({
+    FlexPointPluginsAutoConfiguration.class,
     FlexPointCoreAutoConfiguration.class,
     FlexPointRegistryAutoConfiguration.class,
     FlexPointProcessorAutoConfiguration.class,
