@@ -172,7 +172,8 @@ public class FlexPointBuilder {
         pm.resolve();
         pm.installAll();
 
-        return new FlexPoint(resolvedRegistry, resolvedMonitor, resolvedSelectorRegistry, resolvedEventDispatcher, resolvedConfig);
+        // FlexPoint 持有 PluginManager：shutdown 时逆序停止插件，并对外暴露加载报告与状态
+        return new FlexPoint(resolvedRegistry, resolvedMonitor, resolvedSelectorRegistry, resolvedEventDispatcher, resolvedConfig, pm);
     }
 
     /**

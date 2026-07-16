@@ -68,4 +68,10 @@ public interface ExtMonitor {
      */
     FlexPointConfig.MonitorConfig getConfig();
 
+    /**
+     * 关闭监控器，释放其持有的异步资源（如线程池）。
+     * <p>默认空实现；同步监控器无需释放，异步监控器应覆写以关闭线程池。</p>
+     */
+    default void shutdown() {}
+
 } 

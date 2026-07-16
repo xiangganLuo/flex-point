@@ -11,6 +11,9 @@ import com.flexpoint.core.ext.ExtAbilityRegistry;
 import com.flexpoint.core.ext.proxy.EventPublisherInvocationHandler;
 import com.flexpoint.core.monitor.ExtMetrics;
 import com.flexpoint.core.monitor.ExtMonitor;
+import com.flexpoint.core.plugin.PluginLoadReport;
+import com.flexpoint.core.plugin.PluginState;
+import com.flexpoint.core.plugin.manage.PluginManager;
 import com.flexpoint.core.selector.Selector;
 import com.flexpoint.core.selector.SelectorRegistry;
 import lombok.Getter;
@@ -42,17 +45,34 @@ public class FlexPoint {
     @Getter
     private final FlexPointConfig flexPointConfig;
 
+    /**
+     * 插件管理器（可为 null，表示以纯内核方式构建、未装配任何插件）。
+     * 持有它是为了在 {@link #shutdown()} 时逆序停止插件，并对外暴露加载报告与状态。
+     */
+    private final PluginManager pluginManager;
+
     public FlexPoint(ExtAbilityRegistry extAbilityRegistry,
                      ExtMonitor extMonitor,
                      SelectorRegistry selectorRegistry,
                      EventDispatcher eventDispatcher,
                      FlexPointConfig flexPointConfig
     ) {
+        this(extAbilityRegistry, extMonitor, selectorRegistry, eventDispatcher, flexPointConfig, null);
+    }
+
+    public FlexPoint(ExtAbilityRegistry extAbilityRegistry,
+                     ExtMonitor extMonitor,
+                     SelectorRegistry selectorRegistry,
+                     EventDispatcher eventDispatcher,
+                     FlexPointConfig flexPointConfig,
+                     PluginManager pluginManager
+    ) {
         this.extAbilityRegistry = extAbilityRegistry;
         this.extMonitor = extMonitor;
         this.selectorRegistry = selectorRegistry;
         this.eventDispatcher = eventDispatcher;
         this.flexPointConfig = flexPointConfig;
+        this.pluginManager = pluginManager;
     }
 
     public EventBus getEventBus() {
@@ -244,10 +264,40 @@ public class FlexPoint {
     }
 
     /**
-     * 关闭 FlexPoint 相关资源
+     * 关闭 FlexPoint 相关资源。
+     * <p>顺序：先逆序停止插件（插件 stop 可能需要反注册订阅/处理链，依赖事件总线仍在线），
+     * 再关闭监控器异步资源，最后关闭事件总线。</p>
      */
     public void shutdown() {
+        if (pluginManager != null) {
+            try {
+                pluginManager.stopAll();
+            } catch (Exception e) {
+                log.warn("插件停止过程中出现异常", e);
+            }
+        }
+        if (extMonitor != null) {
+            try {
+                extMonitor.shutdown();
+            } catch (Exception e) {
+                log.warn("监控器关闭过程中出现异常", e);
+            }
+        }
         eventDispatcher.shutdown();
+    }
+
+    /**
+     * 获取插件加载报告（顺序/状态/错误）。未装配插件时返回 null。
+     */
+    public PluginLoadReport getPluginLoadReport() {
+        return pluginManager != null ? pluginManager.getLoadReport() : null;
+    }
+
+    /**
+     * 获取当前插件状态快照。未装配插件时返回空 Map。
+     */
+    public Map<String, PluginState> getPluginStates() {
+        return pluginManager != null ? pluginManager.getPluginStates() : Collections.emptyMap();
     }
 
     /**
