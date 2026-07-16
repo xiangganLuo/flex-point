@@ -49,10 +49,13 @@ FlexPoint/
 ├── flexpoint-core/               # 核心模块 - 核心功能实现，不依赖Spring
 ├── flexpoint-spring/             # Spring集成模块 - Spring环境下的集成
 ├── flexpoint-springboot/         # Spring Boot自动配置模块
-├── flexpoint-plugin-all/         # 官方插件聚合模块 - 每个插件一个子模块
-│   ├── flexpoint-plugin-selector-code/          # Code 选择器插件
-│   ├── flexpoint-plugin-selector-code-version/  # Code+Version 选择器插件
-│   └── flexpoint-plugin-observability/          # 可观测性插件（事件订阅+监控链）
+├── flexpoint-plugin-all/         # 官方插件聚合模块 - 每个插件一个独立子模块
+│   ├── flexpoint-plugin-selector-code / -code-version   # 选择器：Code / Code+Version
+│   ├── flexpoint-plugin-selector-tag / -gray / -ab      # 选择器：标签 / 灰度 / A-B
+│   ├── flexpoint-plugin-selector-weight / -tenant / -cache  # 选择器：权重 / 租户 / 缓存
+│   ├── flexpoint-plugin-observability / -audit          # 观测：监控链融合 / 审计日志
+│   ├── flexpoint-plugin-slowcall / -metrics             # 观测：慢调用告警 / 指标汇总
+│   └── flexpoint-plugin-retry / -resilience             # 行为：重试 / 超时+熔断
 ├── flexpoint-test/               # 测试模块 - 测试用例和示例
 └── flexpoint-examples/           # 多场景接入示例模块 - Spring Boot、Java原生
 ```
@@ -102,6 +105,7 @@ FlexPoint/
 
 ## 📝 文档
 
+- **官网与文档（VitePress）**：`docs/`（本地 `cd docs && npm install && npm run docs:dev`）
 - [核心架构V1](statics/ARCHITECTURE_V1.md)
 - [项目计划](statics/FLEXPOINT_PLAN.md)
 - [多场景接入示例（Spring Boot/Java原生）](flexpoint-examples/README.md)
@@ -243,20 +247,28 @@ public class FlexPointConfig {
 
 #### 进阶：自定义 Selector（如需特殊路由/多维选择）
 
+> 选择器统一实现 `SelectionResult<T> select(List<T>)`（HIT/MISS/AMBIGUOUS + 决策解释）。
+> 推荐继承 `AbstractSelector` 只实现 `filter(...)`，命中语义由基类处理；并从标准上下文
+> `FlexPointContext` 读取路由信息（配合接入层入口填充，无需业务 Resolver）。
+
 ```java
+import com.flexpoint.core.context.FlexPointContext;
+import com.flexpoint.core.selector.AbstractSelector;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Component
-public class CustomSelector implements Selector {
+public class CustomSelector extends AbstractSelector {
     @Override
-    public <T extends ExtAbility> T select(List<T> candidates) {
-        String code = SysAppContext.getAppCode();
-        for (T ext : candidates) {
-            if (code.equals(ext.getCode())) return ext;
-        }
-        return null;
+    protected <T extends ExtAbility> List<T> filter(List<T> candidates) {
+        String code = FlexPointContext.current().getAppCode();
+        return candidates.stream()
+                .filter(ext -> code.equals(ext.getCode()))
+                .collect(Collectors.toList());
     }
-    
+
     @Override
     public String getName() { return "customSelector"; }
 }
@@ -275,11 +287,56 @@ public interface OrderProcessAbility extends ExtAbility {
 ### 扩展点监控
 
 ```java
-// 获取扩展点调用统计
-ExtMetrics metrics = flexPoint.getExtMetrics("mall:1.0.0");
+// 获取扩展点调用统计（传入扩展点实例）
+ExtMetrics metrics = flexPoint.getExtMetrics(orderAbility);
 System.out.println("调用次数: " + metrics.getTotalInvocations());
-System.out.println("平均耗时: " + metrics.getAverageDuration() + "ms");
+System.out.println("平均耗时: " + metrics.getAverageResponseTime() + "ms");
 ```
+
+> 监控数据由 `flexpoint-plugin-observability` 插件（订阅调用事件 → 汇入 `ExtMonitor`）产出，
+> 需装配该插件后 `getExtMetrics/getAllExtMetrics` 才有数据。
+
+---
+
+## 🧩 官方插件（配置即装配）
+
+官方插件已从内核拆分为独立模块（`flexpoint-plugin-*`），Spring Boot 下**引入所需插件模块 + 配置开关即装配，无需编码**：
+
+```xml
+<!-- 例：引入灰度选择器 + 重试插件 -->
+<dependency>
+    <groupId>com.flexpoint</groupId>
+    <artifactId>flexpoint-plugin-selector-gray</artifactId>
+</dependency>
+<dependency>
+    <groupId>com.flexpoint</groupId>
+    <artifactId>flexpoint-plugin-retry</artifactId>
+</dependency>
+```
+
+```yaml
+flexpoint:
+  plugins:
+    tag:       { enabled: true }                       # 标签选择器
+    gray:      { enabled: true, percentage: 20 }       # 灰度（按上下文 uid 哈希放量）
+    ab:        { enabled: true, buckets: { A: 50, B: 50 } }  # A/B 分流
+    weight:    { enabled: true }                       # 权重（按扩展点 weight 标签）
+    tenant:    { enabled: true, fallback: true }       # 租户路由 + 回退
+    audit:     { enabled: true }                       # 审计日志
+    slowcall:  { enabled: true, threshold-ms: 200 }    # 慢调用告警
+    metrics:   { enabled: true, interval-seconds: 60 } # 指标汇总
+    retry:     { enabled: true, max-attempts: 3, backoff-ms: 100 }  # 重试
+    resilience:{ enabled: true, timeout-ms: 500, failure-rate-threshold: 0.5 }  # 超时+熔断
+```
+
+| 类别 | 模块 | 能力 |
+|------|------|------|
+| 选择器 | selector-code / -code-version / -tag / -gray / -ab / -weight / -tenant / -cache | Code/版本/标签/灰度/AB/权重/租户/缓存路由 |
+| 观测 | observability / audit / slowcall / metrics | 监控链融合 / 审计日志 / 慢调用告警 / 指标汇总 |
+| 行为增强 | retry / resilience | 重试 / 超时+熔断（基于调用拦截器 SPI） |
+
+> 选择器类插件从标准上下文 `FlexPointContext`（`tenantId/appCode/version/uid/labels`）读取路由信息；
+> 缓存选择器（selector-cache）需包装 delegate，以编程方式使用。详见 `docs/` 官网文档。
 
 ---
 
