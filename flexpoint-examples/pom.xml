@@ -17,6 +17,8 @@
         <java.version>1.8</java.version>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
+        <!-- 示例模块不发布到中央仓库 -->
+        <maven.deploy.skip>true</maven.deploy.skip>
     </properties>
 
     <modules>

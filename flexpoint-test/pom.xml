@@ -14,6 +14,11 @@
     <name>Flex Point Test</name>
     <description>扩展点框架测试模块</description>
 
+    <properties>
+        <!-- 测试模块不发布到中央仓库 -->
+        <maven.deploy.skip>true</maven.deploy.skip>
+    </properties>
+
     <dependencies>
         <!-- 内部依赖 -->
         <dependency>
