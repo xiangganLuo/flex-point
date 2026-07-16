@@ -3,6 +3,8 @@ package com.flexpoint.core.plugin.manage;
 import com.flexpoint.core.config.FlexPointConfig;
 import com.flexpoint.core.event.EventBus;
 import com.flexpoint.core.ext.ExtAbilityRegistry;
+import com.flexpoint.core.ext.interceptor.DefaultInterceptorRegistry;
+import com.flexpoint.core.ext.interceptor.InterceptorRegistry;
 import com.flexpoint.core.monitor.ExtMonitor;
 import com.flexpoint.core.plugin.Plugin;
 import com.flexpoint.core.plugin.PluginContext;
@@ -44,7 +46,16 @@ public class DefaultPluginManager implements PluginManager {
                                 EventBus eventBus,
                                 ExtMonitor monitor,
                                 FlexPointConfig config) {
-        this.context = new DefaultPluginContext(extRegistry, selectorRegistry, eventBus, monitor, config);
+        this(extRegistry, selectorRegistry, eventBus, monitor, config, new DefaultInterceptorRegistry());
+    }
+
+    public DefaultPluginManager(ExtAbilityRegistry extRegistry,
+                                SelectorRegistry selectorRegistry,
+                                EventBus eventBus,
+                                ExtMonitor monitor,
+                                FlexPointConfig config,
+                                InterceptorRegistry interceptorRegistry) {
+        this.context = new DefaultPluginContext(extRegistry, selectorRegistry, eventBus, monitor, config, interceptorRegistry);
     }
 
     @Override

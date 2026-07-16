@@ -8,6 +8,8 @@ import com.flexpoint.core.event.EventDispatcher;
 import com.flexpoint.core.event.EventRejectionPolicy;
 import com.flexpoint.core.ext.DefaultExtAbilityRegistry;
 import com.flexpoint.core.ext.ExtAbilityRegistry;
+import com.flexpoint.core.ext.interceptor.DefaultInterceptorRegistry;
+import com.flexpoint.core.ext.interceptor.InterceptorRegistry;
 import com.flexpoint.core.monitor.ExtMonitor;
 import com.flexpoint.core.monitor.MonitorFactory;
 import com.flexpoint.core.plugin.Plugin;
@@ -163,23 +165,26 @@ public class FlexPointBuilder {
                 this.registry != null, this.monitor != null, this.selectorRegistry != null,
                 this.eventDispatcher != null, plugins.size());
 
+        // 拦截器注册表：由 Builder 统一创建，插件（注册方）与 FlexPoint（读取方）共享同一份
+        InterceptorRegistry interceptorRegistry = new DefaultInterceptorRegistry();
+
         // 无插件时保持纯内核实例；插件装配交由接入层（如 Spring Boot）负责
         if (CollectionUtil.isEmpty(plugins)) {
             log.debug("未提供插件，构建纯内核 FlexPoint 实例");
-            return new FlexPoint(resolvedRegistry, resolvedMonitor, resolvedSelectorRegistry, resolvedEventDispatcher, resolvedConfig);
+            return new FlexPoint(resolvedRegistry, resolvedMonitor, resolvedSelectorRegistry, resolvedEventDispatcher, resolvedConfig, null, interceptorRegistry);
         }
 
         // 插件装配（仅当显式提供插件时）
         log.debug("开始装配插件，共 {} 个", plugins.size());
         DefaultPluginManager pm = new DefaultPluginManager(
-                resolvedRegistry, resolvedSelectorRegistry, resolvedEventDispatcher.getEventBus(), resolvedMonitor, resolvedConfig
+                resolvedRegistry, resolvedSelectorRegistry, resolvedEventDispatcher.getEventBus(), resolvedMonitor, resolvedConfig, interceptorRegistry
         );
         pm.registerAll(plugins);
         pm.installAll();
         log.debug("插件装配完成: {}", pm.getLoadReport().getStates());
 
-        // FlexPoint 持有 PluginManager：shutdown 时逆序停止插件，并对外暴露加载报告与状态
-        return new FlexPoint(resolvedRegistry, resolvedMonitor, resolvedSelectorRegistry, resolvedEventDispatcher, resolvedConfig, pm);
+        // FlexPoint 持有 PluginManager 与拦截器注册表
+        return new FlexPoint(resolvedRegistry, resolvedMonitor, resolvedSelectorRegistry, resolvedEventDispatcher, resolvedConfig, pm, interceptorRegistry);
     }
 
     /**

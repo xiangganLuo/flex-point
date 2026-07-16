@@ -5,7 +5,6 @@ import com.flexpoint.core.FlexPoint;
 import com.flexpoint.core.FlexPointBuilder;
 import com.flexpoint.core.ext.ExtAbility;
 import com.flexpoint.core.plugin.*;
-import com.flexpoint.core.selector.DecisionExplanation;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -44,16 +43,13 @@ public class PluginSpiExampleTest {
         @Override public void start() {
             // 简单选择器：固定选择 code = "plugin" 的实现
             ctx.selectorRegistry().register(new com.flexpoint.core.selector.Selector() {
-                @Override
-                public <T extends ExtAbility> T select(List<T> candidates) {
-                    for (T c : candidates) { if ("plugin".equals(c.getCode())) return c; }
-                    return null;
-                }
-
                 @Override public String getName() { return "PluginSelector"; }
 
-                @Override public <T extends ExtAbility> DecisionExplanation explain(List<T> candidates) {
-                    return DecisionExplanation.fromSelection(getName(), candidates, select(candidates));
+                @Override
+                public <T extends ExtAbility> com.flexpoint.core.selector.SelectionResult<T> select(List<T> candidates) {
+                    T picked = null;
+                    for (T c : candidates) { if ("plugin".equals(c.getCode())) { picked = c; break; } }
+                    return com.flexpoint.core.selector.SelectionResult.of(getName(), candidates, picked);
                 }
             });
         }

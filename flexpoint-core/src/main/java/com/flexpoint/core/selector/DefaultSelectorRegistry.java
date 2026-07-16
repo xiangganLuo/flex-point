@@ -3,7 +3,10 @@ package com.flexpoint.core.selector;
 import com.flexpoint.core.event.EventDispatcher;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -74,5 +77,15 @@ public class DefaultSelectorRegistry implements SelectorRegistry {
     @Override
     public boolean has(String selectorName) {
         return selectorMap.containsKey(selectorName);
+    }
+
+    @Override
+    public Set<String> getSelectorNames() {
+        return Collections.unmodifiableSet(new LinkedHashSet<>(selectorMap.keySet()));
+    }
+
+    @Override
+    public int size() {
+        return selectorMap.size();
     }
 }

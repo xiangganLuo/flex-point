@@ -3,7 +3,7 @@ package com.flexpoint.example.java.plugin;
 import com.flexpoint.core.ext.ExtAbility;
 import com.flexpoint.core.plugin.AbstractPlugin;
 import com.flexpoint.core.plugin.PluginContext;
-import com.flexpoint.core.selector.DecisionExplanation;
+import com.flexpoint.core.selector.SelectionResult;
 import com.flexpoint.core.selector.Selector;
 import com.flexpoint.core.selector.SelectorRegistry;
 import com.flexpoint.example.java.context.AppContext;
@@ -25,24 +25,18 @@ public class GreetingSelectorPlugin extends AbstractPlugin {
 
     private final Selector selector = new Selector() {
         @Override
-        public <T extends ExtAbility> T select(List<T> candidates) {
-            String code = AppContext.getAppCode();
-            for (T c : candidates) {
-                if (c.getCode().equals(code)) {
-                    return c;
-                }
-            }
-            return null;
-        }
-
-        @Override
         public String getName() {
             return SELECTOR_NAME;
         }
 
         @Override
-        public <T extends ExtAbility> DecisionExplanation explain(List<T> candidates) {
-            return DecisionExplanation.fromSelection(getName(), candidates, select(candidates));
+        public <T extends ExtAbility> SelectionResult<T> select(List<T> candidates) {
+            String code = AppContext.getAppCode();
+            T picked = null;
+            for (T c : candidates) {
+                if (c.getCode().equals(code)) { picked = c; break; }
+            }
+            return SelectionResult.of(getName(), candidates, picked);
         }
     };
 

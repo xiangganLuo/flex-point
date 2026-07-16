@@ -2,24 +2,32 @@ package com.flexpoint.core;
 
 import com.flexpoint.common.annotations.FpSelector;
 import com.flexpoint.common.constants.FlexPointConstants;
+import com.flexpoint.common.exception.MultipleExtMatchedException;
 import com.flexpoint.common.exception.SelectorNotFoundException;
 import com.flexpoint.core.config.FlexPointConfig;
 import com.flexpoint.core.event.EventBus;
 import com.flexpoint.core.event.EventDispatcher;
 import com.flexpoint.core.ext.ExtAbility;
 import com.flexpoint.core.ext.ExtAbilityRegistry;
-import com.flexpoint.core.ext.proxy.EventPublisherInvocationHandler;
+import com.flexpoint.core.ext.interceptor.DefaultInterceptorRegistry;
+import com.flexpoint.core.ext.interceptor.ExtInvocationInterceptor;
+import com.flexpoint.core.ext.interceptor.InterceptorRegistry;
+import com.flexpoint.core.ext.proxy.EventPublishingInterceptor;
+import com.flexpoint.core.ext.proxy.ExtInvocationHandler;
 import com.flexpoint.core.monitor.ExtMetrics;
 import com.flexpoint.core.monitor.ExtMonitor;
 import com.flexpoint.core.plugin.PluginLoadReport;
 import com.flexpoint.core.plugin.PluginState;
 import com.flexpoint.core.plugin.manage.PluginManager;
+import com.flexpoint.core.selector.DecisionExplanation;
+import com.flexpoint.core.selector.SelectionResult;
 import com.flexpoint.core.selector.Selector;
 import com.flexpoint.core.selector.SelectorRegistry;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Proxy;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -51,6 +59,16 @@ public class FlexPoint {
      */
     private final PluginManager pluginManager;
 
+    /**
+     * 调用拦截器注册表（around 增强）。core 只提供 SPI 与默认注册表，具体拦截器由行为插件注册。
+     */
+    private final InterceptorRegistry interceptorRegistry;
+
+    /**
+     * 核心内置事件埋点拦截器（最内层，始终生效）。
+     */
+    private final ExtInvocationInterceptor eventPublishingInterceptor;
+
     public FlexPoint(ExtAbilityRegistry extAbilityRegistry,
                      ExtMonitor extMonitor,
                      SelectorRegistry selectorRegistry,
@@ -67,12 +85,25 @@ public class FlexPoint {
                      FlexPointConfig flexPointConfig,
                      PluginManager pluginManager
     ) {
+        this(extAbilityRegistry, extMonitor, selectorRegistry, eventDispatcher, flexPointConfig, pluginManager, null);
+    }
+
+    public FlexPoint(ExtAbilityRegistry extAbilityRegistry,
+                     ExtMonitor extMonitor,
+                     SelectorRegistry selectorRegistry,
+                     EventDispatcher eventDispatcher,
+                     FlexPointConfig flexPointConfig,
+                     PluginManager pluginManager,
+                     InterceptorRegistry interceptorRegistry
+    ) {
         this.extAbilityRegistry = extAbilityRegistry;
         this.extMonitor = extMonitor;
         this.selectorRegistry = selectorRegistry;
         this.eventDispatcher = eventDispatcher;
         this.flexPointConfig = flexPointConfig;
         this.pluginManager = pluginManager;
+        this.interceptorRegistry = interceptorRegistry != null ? interceptorRegistry : new DefaultInterceptorRegistry();
+        this.eventPublishingInterceptor = new EventPublishingInterceptor(eventDispatcher);
     }
 
     public EventBus getEventBus() {
@@ -120,29 +151,38 @@ public class FlexPoint {
         // 存在候选：发布"找到"事件（单一来源）
         eventDispatcher.publishExtFound(extType);
 
-        // 决策解释 v1：默认 Debug 级输出候选/过滤/命中原因，便于排查路由问题
+        // 一次选择，同时产出命中/解释/结论（不再 select+explain 双跑）
+        SelectionResult<T> result = selector.select(exts);
+        DecisionExplanation explanation = result.getExplanation();
+        // 决策解释：默认 Debug 级输出候选/过滤/命中原因，便于排查路由问题
         if (log.isDebugEnabled()) {
-            log.debug("扩展点选择决策: type={}, {}", typeName, selector.explain(exts));
+            log.debug("扩展点选择决策: type={}, {}", typeName, explanation);
         }
 
-        T ability = selector.select(exts);
-        if (ability == null) {
-            String errorMsg = "选择器未找到匹配的扩展点";
-            log.warn("选择器[{}]未找到匹配的扩展点: type={}", selectorName, typeName);
-            // 发布扩展点选择失败事件
-            eventDispatcher.publishExtSelectionFailed(extType, selectorName, errorMsg);
-            return null;
+        switch (result.getOutcome()) {
+            case HIT: {
+                T ability = result.getSelected();
+                // 发布扩展点选择事件（携带决策解释）
+                eventDispatcher.publishExtSelected(ability, selectorName, explanation);
+                if (log.isDebugEnabled()) {
+                    log.debug("成功获取扩展点: type={}, code={}, selector={}, class={}",
+                            typeName, ability.getCode(), selectorName, ability.getClass().getName());
+                }
+                return getProxy(extType, ability);
+            }
+            case AMBIGUOUS: {
+                int matched = explanation.getFilteredExtIds().size();
+                log.warn("选择器[{}]命中多个候选({}): type={}", selectorName, matched, typeName);
+                eventDispatcher.publishExtSelectionFailed(extType, selectorName, "命中多个候选", explanation);
+                throw new MultipleExtMatchedException(selectorName, matched);
+            }
+            case MISS:
+            default: {
+                log.warn("选择器[{}]未找到匹配的扩展点: type={}", selectorName, typeName);
+                eventDispatcher.publishExtSelectionFailed(extType, selectorName, "选择器未找到匹配的扩展点", explanation);
+                return null;
+            }
         }
-
-        // 发布扩展点选择事件
-        eventDispatcher.publishExtSelected(ability, selectorName);
-
-        if (log.isDebugEnabled()) {
-            log.debug("成功获取扩展点: type={}, code={}, selector={}, class={}",
-                    typeName, ability.getCode(), selectorName, ability.getClass().getName());
-        }
-
-        return getProxy(extType, ability);
     }
 
     /**
@@ -425,14 +465,18 @@ public class FlexPoint {
      * 集成监控和事件发布功能
      */
     private <T extends ExtAbility> T getProxy(Class<T> extType, T ability) {
+        // 组装调用链：注册表拦截器（外→内，已按 order 排序）+ 事件埋点拦截器（最内层，始终生效）
+        List<ExtInvocationInterceptor> chain = new ArrayList<>(interceptorRegistry.getInterceptors());
+        chain.add(eventPublishingInterceptor);
         if (log.isDebugEnabled()) {
-            log.debug("创建扩展点代理: type={}, target={}", extType.getSimpleName(), ability.getClass().getName());
+            log.debug("创建扩展点代理: type={}, target={}, 拦截器数={}",
+                    extType.getSimpleName(), ability.getClass().getName(), chain.size());
         }
         @SuppressWarnings("unchecked")
         T proxyInstance = (T) Proxy.newProxyInstance(
                 ability.getClass().getClassLoader(),
                 new Class[]{extType},
-                new EventPublisherInvocationHandler(ability, eventDispatcher)
+                new ExtInvocationHandler(ability, chain)
         );
         return proxyInstance;
     }

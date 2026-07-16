@@ -4,7 +4,7 @@ import com.flexpoint.core.FlexPoint;
 import com.flexpoint.core.FlexPointBuilder;
 import com.flexpoint.core.ext.ExtAbility;
 import com.flexpoint.core.plugin.*;
-import com.flexpoint.core.selector.DecisionExplanation;
+import com.flexpoint.core.selector.SelectionResult;
 import com.flexpoint.core.selector.Selector;
 import com.flexpoint.core.selector.SelectorRegistry;
 import org.junit.jupiter.api.Assertions;
@@ -28,10 +28,10 @@ public class PluginRuntimeToggleTest {
         static final String ID = "test.toggle";
         private SelectorRegistry registry;
         private final Selector selector = new Selector() {
-            @Override public <T extends ExtAbility> T select(List<T> c) { return c.isEmpty() ? null : c.get(0); }
             @Override public String getName() { return NAME; }
-            @Override public <T extends ExtAbility> DecisionExplanation explain(List<T> c) {
-                return DecisionExplanation.fromSelection(getName(), c, select(c));
+            @Override public <T extends ExtAbility> SelectionResult<T> select(List<T> c) {
+                T picked = c.isEmpty() ? null : c.get(0);
+                return SelectionResult.of(getName(), c, picked);
             }
         };
         @Override public String getId() { return ID; }

@@ -1,7 +1,5 @@
 package com.flexpoint.core.ext;
 
-import com.flexpoint.core.utils.ExtUtil;
-
 /**
  * 扩展点能力接口
  * 所有扩展点实现类都应该实现此接口

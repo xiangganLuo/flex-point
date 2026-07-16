@@ -3,6 +3,7 @@ package com.flexpoint.core.plugin;
 import com.flexpoint.core.config.FlexPointConfig;
 import com.flexpoint.core.event.EventBus;
 import com.flexpoint.core.ext.ExtAbilityRegistry;
+import com.flexpoint.core.ext.interceptor.InterceptorRegistry;
 import com.flexpoint.core.monitor.ExtMonitor;
 import com.flexpoint.core.selector.SelectorRegistry;
 
@@ -27,4 +28,6 @@ public interface PluginContext {
     ExtMonitor monitor();
     /** 框架配置 */
     FlexPointConfig config();
+    /** 调用拦截器注册表（行为增强类插件在此注册 around 拦截器） */
+    InterceptorRegistry interceptorRegistry();
 }

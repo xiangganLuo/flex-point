@@ -6,7 +6,7 @@ import com.flexpoint.core.FlexPoint;
 import com.flexpoint.core.FlexPointBuilder;
 import com.flexpoint.core.ext.ExtAbility;
 import com.flexpoint.core.event.EventType;
-import com.flexpoint.core.selector.DecisionExplanation;
+import com.flexpoint.core.selector.SelectionResult;
 import com.flexpoint.core.selector.Selector;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -39,12 +39,10 @@ public class EventSemanticsTest {
     }
 
     static class EsSelector implements Selector {
-        @Override public <T extends ExtAbility> T select(List<T> candidates) {
-            return candidates.isEmpty() ? null : candidates.get(0);
-        }
         @Override public String getName() { return "es"; }
-        @Override public <T extends ExtAbility> DecisionExplanation explain(List<T> candidates) {
-            return DecisionExplanation.fromSelection(getName(), candidates, select(candidates));
+        @Override public <T extends ExtAbility> SelectionResult<T> select(List<T> candidates) {
+            T picked = candidates.isEmpty() ? null : candidates.get(0);
+            return SelectionResult.of(getName(), candidates, picked);
         }
     }
 

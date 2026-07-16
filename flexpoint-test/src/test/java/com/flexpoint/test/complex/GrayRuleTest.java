@@ -6,7 +6,7 @@ import com.flexpoint.core.FlexPointBuilder;
 import com.flexpoint.core.config.FlexPointConfig;
 import com.flexpoint.core.ext.ExtAbility;
 
-import com.flexpoint.core.selector.DecisionExplanation;
+import com.flexpoint.core.selector.SelectionResult;
 import com.flexpoint.core.selector.Selector;
 import java.util.List;
 import org.junit.jupiter.api.Assertions;
@@ -39,21 +39,16 @@ public class GrayRuleTest {
         private final Set<String> grayUsers;
         public GraySelector(Set<String> grayUsers) { this.grayUsers = grayUsers; }
         @Override
-        public <T extends ExtAbility> T select(List<T> candidates) {
-            String userId = UserContext.get();
-            String code = grayUsers.contains(userId) ? "gray" : "normal";
-            for (T ext : candidates) {
-                if (code.equals(ext.getCode())) {
-                    return ext;
-                }
-            }
-            return null;
-        }
-        @Override
         public String getName() { return "GraySelector"; }
         @Override
-        public <T extends ExtAbility> DecisionExplanation explain(List<T> candidates) {
-            return DecisionExplanation.fromSelection(getName(), candidates, select(candidates));
+        public <T extends ExtAbility> SelectionResult<T> select(List<T> candidates) {
+            String userId = UserContext.get();
+            String code = grayUsers.contains(userId) ? "gray" : "normal";
+            T picked = null;
+            for (T ext : candidates) {
+                if (code.equals(ext.getCode())) { picked = ext; break; }
+            }
+            return SelectionResult.of(getName(), candidates, picked);
         }
     }
     static class UserContext {

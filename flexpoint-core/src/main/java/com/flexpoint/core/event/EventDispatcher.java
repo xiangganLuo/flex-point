@@ -1,6 +1,7 @@
 package com.flexpoint.core.event;
 
 import com.flexpoint.core.ext.ExtAbility;
+import com.flexpoint.core.selector.DecisionExplanation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -14,6 +15,9 @@ import java.util.concurrent.CompletableFuture;
 @Slf4j
 @RequiredArgsConstructor
 public class EventDispatcher {
+
+    /** 事件属性 key：决策解释（{@link DecisionExplanation}）。 */
+    public static final String ATTR_DECISION_EXPLANATION = "decisionExplanation";
 
     private final EventBus eventBus;
 
@@ -45,11 +49,33 @@ public class EventDispatcher {
         publishEvent(eventContext);
     }
 
+    /**
+     * 发布扩展点选择成功事件，并附带决策解释（供 monitor/审计消费）。
+     */
+    public void publishExtSelected(ExtAbility extAbility, String selectorName, DecisionExplanation explanation) {
+        EventContext eventContext = EventContext.createExtEvent(EventType.EXT_SELECTED, extAbility);
+        eventContext.setSelectorName(selectorName);
+        eventContext.withAttribute(ATTR_DECISION_EXPLANATION, explanation);
+        publishEvent(eventContext);
+    }
+
     public void publishExtSelectionFailed(Class<? extends ExtAbility> extType, String selectorName, String reason) {
         EventContext eventContext = EventContext.create(EventType.EXT_SELECTION_FAILED);
         eventContext.setExtType(extType);
         eventContext.setSelectorName(selectorName);
         eventContext.withAttribute("reason", reason);
+        publishEvent(eventContext);
+    }
+
+    /**
+     * 发布扩展点选择失败事件，并附带决策解释（供 monitor/审计消费）。
+     */
+    public void publishExtSelectionFailed(Class<? extends ExtAbility> extType, String selectorName, String reason, DecisionExplanation explanation) {
+        EventContext eventContext = EventContext.create(EventType.EXT_SELECTION_FAILED);
+        eventContext.setExtType(extType);
+        eventContext.setSelectorName(selectorName);
+        eventContext.withAttribute("reason", reason);
+        eventContext.withAttribute(ATTR_DECISION_EXPLANATION, explanation);
         publishEvent(eventContext);
     }
 

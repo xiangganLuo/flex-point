@@ -1,6 +1,4 @@
-package com.flexpoint.core.utils;
-
-import com.flexpoint.core.ext.ExtAbility;
+package com.flexpoint.core.ext;
 
 import java.util.Collections;
 import java.util.List;

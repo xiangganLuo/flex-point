@@ -3,6 +3,7 @@ package com.flexpoint.test.selector;
 import com.flexpoint.core.ext.ExtAbility;
 import com.flexpoint.core.selector.AbstractSelector;
 import com.flexpoint.core.selector.DecisionExplanation;
+import com.flexpoint.core.selector.SelectionResult;
 import com.flexpoint.core.selector.Selector;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -12,8 +13,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * 决策解释 v1 用例：命中 / 未命中 / 歧义，以及 AbstractSelector 通用实现与
- * 直接实现 Selector 时的便捷推导。
+ * 决策解释用例：命中 / 未命中 / 歧义（经由 select() 返回的 SelectionResult 携带解释），
+ * 以及 AbstractSelector 通用实现与直接实现 Selector 时的便捷推导。
  *
  * @author xiangganluo
  */
@@ -45,7 +46,10 @@ public class DecisionExplanationTest {
 
     @Test
     void abstract_selector_explains_hit() {
-        DecisionExplanation e = new CodeEq("b").explain(candidates("a", "b", "c"));
+        SelectionResult<DemoAbility> r = new CodeEq("b").select(candidates("a", "b", "c"));
+        Assertions.assertTrue(r.isHit());
+        Assertions.assertNotNull(r.getSelected());
+        DecisionExplanation e = r.getExplanation();
         Assertions.assertEquals(DecisionExplanation.Outcome.HIT, e.getOutcome());
         Assertions.assertNotNull(e.getSelectedExtId());
         Assertions.assertEquals(3, e.getCandidateExtIds().size());
@@ -55,7 +59,10 @@ public class DecisionExplanationTest {
 
     @Test
     void abstract_selector_explains_miss() {
-        DecisionExplanation e = new CodeEq("x").explain(candidates("a", "b"));
+        SelectionResult<DemoAbility> r = new CodeEq("x").select(candidates("a", "b"));
+        Assertions.assertTrue(r.isMiss());
+        Assertions.assertNull(r.getSelected());
+        DecisionExplanation e = r.getExplanation();
         Assertions.assertEquals(DecisionExplanation.Outcome.MISS, e.getOutcome());
         Assertions.assertNull(e.getSelectedExtId());
         Assertions.assertTrue(e.getFilteredExtIds().isEmpty());
@@ -63,29 +70,30 @@ public class DecisionExplanationTest {
 
     @Test
     void abstract_selector_explains_ambiguous() {
-        DecisionExplanation e = new CodeEq("dup").explain(candidates("dup", "dup", "other"));
+        SelectionResult<DemoAbility> r = new CodeEq("dup").select(candidates("dup", "dup", "other"));
+        Assertions.assertTrue(r.isAmbiguous());
+        Assertions.assertNull(r.getSelected());
+        DecisionExplanation e = r.getExplanation();
         Assertions.assertEquals(DecisionExplanation.Outcome.AMBIGUOUS, e.getOutcome());
         Assertions.assertNull(e.getSelectedExtId());
         Assertions.assertEquals(2, e.getFilteredExtIds().size());
     }
 
     @Test
-    void raw_selector_can_use_from_selection_helper() {
+    void raw_selector_can_use_selection_result_helper() {
         Selector raw = new Selector() {
-            @Override public <T extends ExtAbility> T select(List<T> candidates) {
-                return candidates.isEmpty() ? null : candidates.get(0);
-            }
             @Override public String getName() { return "raw"; }
-            @Override public <T extends ExtAbility> DecisionExplanation explain(List<T> candidates) {
-                return DecisionExplanation.fromSelection(getName(), candidates, select(candidates));
+            @Override public <T extends ExtAbility> SelectionResult<T> select(List<T> candidates) {
+                T picked = candidates.isEmpty() ? null : candidates.get(0);
+                return SelectionResult.of(getName(), candidates, picked);
             }
         };
 
-        DecisionExplanation hit = raw.explain(candidates("a", "b"));
-        Assertions.assertEquals(DecisionExplanation.Outcome.HIT, hit.getOutcome());
-        Assertions.assertNotNull(hit.getSelectedExtId());
+        SelectionResult<DemoAbility> hit = raw.select(candidates("a", "b"));
+        Assertions.assertTrue(hit.isHit());
+        Assertions.assertNotNull(hit.getExplanation().getSelectedExtId());
 
-        DecisionExplanation miss = raw.explain(candidates());
-        Assertions.assertEquals(DecisionExplanation.Outcome.MISS, miss.getOutcome());
+        SelectionResult<DemoAbility> miss = raw.select(candidates());
+        Assertions.assertTrue(miss.isMiss());
     }
 }

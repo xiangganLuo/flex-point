@@ -1,49 +1,33 @@
 package com.flexpoint.core.selector;
 
 import com.flexpoint.core.ext.ExtAbility;
+
 import java.util.List;
 
 /**
- * 选择器接口，所有选择器必须实现。
- * 选择器可以返回多个候选者，由调用方决定如何处理
+ * 选择器 SPI：从候选扩展点中选出目标。
+ *
+ * <p>一次 {@link #select(List)} 同时产出「命中实现 + 决策解释 + 结论」（{@link SelectionResult}），
+ * 避免选择与解释重复计算，并统一 命中/未命中/歧义 语义。</p>
+ *
+ * <p>直接实现本接口的选择器可用 {@link SelectionResult#of(String, List, ExtAbility)} 一行返回；
+ * 继承 {@link AbstractSelector} 的选择器只需实现 {@code filter(...)}。</p>
+ *
  * @author xiangganluo
  */
 public interface Selector {
-    
-    /**
-     * 从候选列表中选择匹配的扩展点
-     *
-     * @param candidates 候选扩展点列表
-     * @param <T> 扩展点类型
-     * @return 匹配的扩展点
-     */
-    <T extends ExtAbility> T select(List<T> candidates);
 
     /**
-     * 获取选择器名称
-     *
-     * @return 选择器名称，用于注册和查找
+     * 获取选择器名称（用于注册与查找，全局唯一）。
      */
     String getName();
 
     /**
-     * 产出本次选择的决策解释（v1，调试级）。
-     *
-     * <p>用于回答「为什么命中 / 为什么未命中」：包含候选快照、过滤链路与命中原因，
-     * 供框架在 Debug 级别输出以便排查路由问题。</p>
-     *
-     * <p>继承 {@link AbstractSelector} 的选择器已提供通用实现；直接实现本接口的选择器
-     * 可复用 {@link DecisionExplanation#fromSelection(String, List, ExtAbility)} 一行完成：
-     * <pre>{@code
-     * @Override
-     * public <T extends ExtAbility> DecisionExplanation explain(List<T> candidates) {
-     *     return DecisionExplanation.fromSelection(getName(), candidates, select(candidates));
-     * }
-     * }</pre></p>
+     * 从候选列表中选择匹配的扩展点，返回结果对象（含命中、解释与结论）。
      *
      * @param candidates 候选扩展点列表
      * @param <T> 扩展点类型
-     * @return 决策解释对象（不可为 null）
+     * @return 选择结果（不可为 null）
      */
-    <T extends ExtAbility> DecisionExplanation explain(List<T> candidates);
+    <T extends ExtAbility> SelectionResult<T> select(List<T> candidates);
 }

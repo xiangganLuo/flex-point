@@ -14,7 +14,7 @@ import com.flexpoint.core.plugin.PluginState;
 import com.flexpoint.core.plugin.exception.PluginException;
 import com.flexpoint.core.plugin.manage.DefaultPluginManager;
 import com.flexpoint.core.selector.DefaultSelectorRegistry;
-import com.flexpoint.core.selector.DecisionExplanation;
+import com.flexpoint.core.selector.SelectionResult;
 import com.flexpoint.core.selector.Selector;
 import com.flexpoint.core.selector.SelectorRegistry;
 import org.junit.jupiter.api.Assertions;
@@ -57,10 +57,9 @@ public class PluginManagerBasicsTest {
         @Override public void init(PluginContext ctx) { this.registry = ctx.selectorRegistry(); }
         @Override public void start() {
             registry.register(new Selector() {
-                @Override public <T extends ExtAbility> T select(List<T> c) { return null; }
                 @Override public String getName() { return selectorName; }
-                @Override public <T extends ExtAbility> DecisionExplanation explain(List<T> c) {
-                    return DecisionExplanation.fromSelection(getName(), c, select(c));
+                @Override public <T extends ExtAbility> SelectionResult<T> select(List<T> c) {
+                    return SelectionResult.of(getName(), c, null);
                 }
             });
         }

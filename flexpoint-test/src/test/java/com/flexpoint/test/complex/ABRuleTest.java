@@ -7,7 +7,7 @@ import com.flexpoint.core.config.FlexPointConfig;
 import com.flexpoint.core.ext.ExtAbility;
 
 import java.util.Map;
-import com.flexpoint.core.selector.DecisionExplanation;
+import com.flexpoint.core.selector.SelectionResult;
 import com.flexpoint.core.selector.Selector;
 import java.util.List;
 import org.junit.jupiter.api.Assertions;
@@ -39,21 +39,16 @@ public class ABRuleTest {
         private final Map<String, String> userGroup;
         public ABTestSelector(Map<String, String> userGroup) { this.userGroup = userGroup; }
         @Override
-        public <T extends ExtAbility> T select(List<T> candidates) {
-            String userId = UserContext.get();
-            String code = userGroup.getOrDefault(userId, "normal");
-            for (T ext : candidates) {
-                if (code.equals(ext.getCode())) {
-                    return ext;
-                }
-            }
-            return null;
-        }
-        @Override
         public String getName() { return "ABTestSelector"; }
         @Override
-        public <T extends ExtAbility> DecisionExplanation explain(List<T> candidates) {
-            return DecisionExplanation.fromSelection(getName(), candidates, select(candidates));
+        public <T extends ExtAbility> SelectionResult<T> select(List<T> candidates) {
+            String userId = UserContext.get();
+            String code = userGroup.getOrDefault(userId, "normal");
+            T picked = null;
+            for (T ext : candidates) {
+                if (code.equals(ext.getCode())) { picked = ext; break; }
+            }
+            return SelectionResult.of(getName(), candidates, picked);
         }
     }
     static class UserContext {

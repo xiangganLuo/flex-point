@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
-import static com.flexpoint.core.utils.ExtUtil.getExtType;
+import static com.flexpoint.core.ext.ExtUtil.getExtType;
 
 /**
  * 默认扩展点注册中心实现
