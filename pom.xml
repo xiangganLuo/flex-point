@@ -37,8 +37,8 @@
     </issueManagement>
 
     <scm>
-        <connection>scm:https://github.com/xiangganLuo/flex-point</connection>
-        <developerConnection>scm:git@github.com:xiangganLuo/flex-point.git</developerConnection>
+        <connection>scm:git:https://github.com/xiangganLuo/flex-point.git</connection>
+        <developerConnection>scm:git:git@github.com:xiangganLuo/flex-point.git</developerConnection>
         <url>https://github.com/xiangganLuo/flex-point</url>
     </scm>
 
