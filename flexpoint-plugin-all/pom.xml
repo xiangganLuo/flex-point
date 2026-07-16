@@ -16,8 +16,22 @@
     <description>官方插件聚合模块 - 每个插件独立子模块</description>
 
     <modules>
+        <!-- 选择器插件（每插件一模块） -->
         <module>flexpoint-plugin-selector-code</module>
         <module>flexpoint-plugin-selector-code-version</module>
+        <module>flexpoint-plugin-selector-tag</module>
+        <module>flexpoint-plugin-selector-gray</module>
+        <module>flexpoint-plugin-selector-ab</module>
+        <module>flexpoint-plugin-selector-weight</module>
+        <module>flexpoint-plugin-selector-tenant</module>
+        <module>flexpoint-plugin-selector-cache</module>
+        <!-- 观测/治理插件 -->
         <module>flexpoint-plugin-observability</module>
+        <module>flexpoint-plugin-audit</module>
+        <module>flexpoint-plugin-slowcall</module>
+        <module>flexpoint-plugin-metrics</module>
+        <!-- 行为增强插件 -->
+        <module>flexpoint-plugin-retry</module>
+        <module>flexpoint-plugin-resilience</module>
     </modules>
 </project>

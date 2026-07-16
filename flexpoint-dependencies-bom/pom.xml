@@ -90,6 +90,61 @@
                 <artifactId>flexpoint-plugin-observability</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.flexpoint</groupId>
+                <artifactId>flexpoint-plugin-selector-tag</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.flexpoint</groupId>
+                <artifactId>flexpoint-plugin-selector-gray</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.flexpoint</groupId>
+                <artifactId>flexpoint-plugin-selector-ab</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.flexpoint</groupId>
+                <artifactId>flexpoint-plugin-selector-weight</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.flexpoint</groupId>
+                <artifactId>flexpoint-plugin-selector-tenant</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.flexpoint</groupId>
+                <artifactId>flexpoint-plugin-selector-cache</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.flexpoint</groupId>
+                <artifactId>flexpoint-plugin-audit</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.flexpoint</groupId>
+                <artifactId>flexpoint-plugin-slowcall</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.flexpoint</groupId>
+                <artifactId>flexpoint-plugin-metrics</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.flexpoint</groupId>
+                <artifactId>flexpoint-plugin-retry</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.flexpoint</groupId>
+                <artifactId>flexpoint-plugin-resilience</artifactId>
+                <version>${project.version}</version>
+            </dependency>
 
             <!-- 外部依赖 -->
             <dependency>

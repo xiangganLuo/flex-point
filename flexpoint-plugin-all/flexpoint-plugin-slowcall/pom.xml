@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.flexpoint</groupId>
+        <artifactId>flexpoint-plugin-all</artifactId>
+        <version>${revision}</version>
+    </parent>
+
+    <artifactId>flexpoint-plugin-slowcall</artifactId>
+    <name>Flex Point Plugin - Slow Call Alert</name>
+    <description>官方插件：慢调用告警（超阈值告警）</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.flexpoint</groupId>
+            <artifactId>flexpoint-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>
