@@ -17,6 +17,8 @@
 > - `FlexPoint` 接管插件生命周期：shutdown 逆序停止插件、暴露加载报告与状态。
 > - 决策解释 v1：`DecisionExplanation` + `Selector.explain`（Debug 级输出）。
 > - DX 文档：`ONE_PAGER.md` / `PLUGIN_TEMPLATE.md`；核心 Review：`../CORE_REVIEW_2026-07-16.md`。
+> - 运行期治理：`PluginManager.enable/disable` 落地最小可用，`FlexPoint.enablePlugin/disablePlugin` 暴露入口。
+> - E2/E3：官方插件装配生效测试、并发发布事件下插件稳定性测试补齐（测试总数 50，全绿）。
 > - 详细清单见 [TASK_BREAKDOWN.md](./TASK_BREAKDOWN.md)。
 
 > 前置依赖：第0阶段（现有内核优化）完成。

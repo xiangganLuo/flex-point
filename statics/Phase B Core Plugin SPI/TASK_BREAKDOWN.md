@@ -27,7 +27,7 @@
 - [ ] 回退语义说明（code → code+tags）
 
 ### 第 5–6 周：质量门槛 + DX
-- [ ] 并发冒烟：插件启停回滚幂等、事件发布不丢失（注册中心并发已覆盖 ConcurrentRegistryTest；插件启停并发待补）
+- [x] 并发冒烟：插件启停回滚幂等、事件发布不丢失（ConcurrentRegistryTest + PluginRuntimeToggleTest + ConcurrentPluginEventTest）
 - [x] 一页纸标准 + 最小插件模板 + 自测脚手架说明（ONE_PAGER.md / PLUGIN_TEMPLATE.md）
 - [x] 文档对齐（FLEXPOINT_PLAN/Phase B 勾选同步）与变更记录（CORE_REVIEW_2026-07-16.md）
 
@@ -146,14 +146,14 @@
 
 ### E2. 集成测试
 - [x] Builder + PluginManager 集成测试（flexpoint-test/PluginSpiExampleTest）
-- [ ] 官方插件装配生效测试（新增 ObservabilityPlugin/SelectorPlugin 用例）
+- [x] 官方插件装配生效测试（OfficialPluginAssemblyTest：ObservabilityPlugin 指标累计 + SelectorPlugin 注册 + 降级）
 - [x] 启动失败回滚测试（非关键失败降级验证）
 - [x] EventBus 接线有效性测试（沿用 PhaseZeroExecutionTest）
 - [x] 扩展点计数口径一致性测试（沿用 PhaseZeroExecutionTest）
 
 ### E3. 并发测试
-- [ ] 并发启停一致性测试
-- [ ] 并发发布事件下插件稳定性测试
+- [x] 并发启停一致性测试（enable/disable 已 synchronized；PluginRuntimeToggleTest 覆盖幂等）
+- [x] 并发发布事件下插件稳定性测试（ConcurrentPluginEventTest：8 线程并发调用，指标原子累计正确）
 
 ### E4. 回归与兼容
 - [ ] 旧用法（无插件）回归
