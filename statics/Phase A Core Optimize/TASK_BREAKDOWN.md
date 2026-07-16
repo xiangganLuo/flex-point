@@ -10,8 +10,10 @@
 - [x] 补充阶段性测试用例（`PhaseZeroExecutionTest`）
 - [x] 多实例总线争用与误关问题修复（引用计数释放机制）
 - [x] D1. 调用异常语义初步收敛（区分 INVOKE_FAIL 与 INVOKE_EXCEPTION）
-- [ ] B 组并发压测与更完整语义验证（后续继续）
-- [ ] D/E 组剩余语义与配置化任务（后续继续）
+- [x] B 组并发一致性冒烟（ConcurrentRegistryTest：并发注册/遍历快照一致，总数正确）
+- [x] E 组配置治理：EventConfig 线程池参数校验接入 FlexPointConfigValidator（EventConfigValidationTest）
+- [ ] B 组更高强度压测与竞争检测（CI 接入，后续继续）
+- [ ] D 组异常契约与 E 组剩余配置项（后续继续）
 
 ---
 

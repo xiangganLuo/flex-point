@@ -19,17 +19,17 @@
 - [ ] 校验异常文案与示例完善（文档同步）
 - [x] 能力并存：移除 capability 层面的唯一性/冲突判定
 - [x] 资源级唯一（选择器）：同名禁止覆盖；事件/监控注册点约束规划
-- [ ] 单测：资源名冲突失败用例
+- [x] 单测：资源名冲突失败用例（DependencyAndConflictTest#duplicate_selector_name_marks_second_plugin_failed）
 
 ### 第 3–4 周：路由闭环 + 决策解释 v1
-- [ ] 决策解释 v1：候选快照/过滤链路/命中与未命中原因（调试级）
+- [x] 决策解释 v1：候选快照/过滤链路/命中与未命中原因（调试级）（DecisionExplanation + Selector.explain + FlexPoint Debug 输出）
 - [x] 官方最小选择器插件样板（Code/CodeVersion），持续集成运行
 - [ ] 回退语义说明（code → code+tags）
 
 ### 第 5–6 周：质量门槛 + DX
-- [ ] 并发冒烟：插件启停回滚幂等、事件发布不丢失
-- [ ] 一页纸标准 + 最小插件模板 + 自测脚手架说明
-- [ ] 文档对齐（FLEXPOINT_PLAN/Phase B 勾选同步）与变更记录
+- [ ] 并发冒烟：插件启停回滚幂等、事件发布不丢失（注册中心并发已覆盖 ConcurrentRegistryTest；插件启停并发待补）
+- [x] 一页纸标准 + 最小插件模板 + 自测脚手架说明（ONE_PAGER.md / PLUGIN_TEMPLATE.md）
+- [x] 文档对齐（FLEXPOINT_PLAN/Phase B 勾选同步）与变更记录（CORE_REVIEW_2026-07-16.md）
 
 ### 验收（短期）
 - [ ] 构建期冲突/依赖可诊断；非关键失败降级可用
@@ -54,7 +54,7 @@
 
 **验收**
 - [x] 插件可通过 context 注册自身能力
-- [ ] 上下文能力边界有单测验证
+- [x] 上下文能力边界有单测验证（PluginContextBoundaryTest）
 
 ---
 
@@ -136,13 +136,13 @@
 ## 5. 任务包 E：测试与质量门槛（P0）
 
 ### E1. 单元测试
-- [ ] 插件模型校验测试
-- [ ] 依赖解析测试
-- [ ] 冲突检测测试
-- [ ] 生命周期状态机测试
+- [x] 插件模型校验测试（PluginDescriptorValidationTest）
+- [x] 依赖解析测试（DependencyAndConflictTest：顺序/缺失/循环/重复）
+- [x] 冲突检测测试（资源级唯一：DependencyAndConflictTest）
+- [x] 生命周期状态机测试（PluginLifecycleTest + FlexPointPluginLifecycleTest）
   
 > 本期补充：
-- [ ] 冲突白名单命中/未命中/错误配置用例（P0）
+- [ ] 冲突白名单命中/未命中/错误配置用例（P0，白名单本期未启用，暂缓）
 
 ### E2. 集成测试
 - [x] Builder + PluginManager 集成测试（flexpoint-test/PluginSpiExampleTest）

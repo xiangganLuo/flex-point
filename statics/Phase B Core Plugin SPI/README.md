@@ -11,4 +11,12 @@
 > - 官方内置插件（Selector/Event/Monitor）按 P1 排期保留；
 > - 单元测试（依赖解析/冲突/状态机）将按计划补齐。
 
+> 进展更新（2026-07-16）：
+> - 修复 `DependencyResolver` order 全局重排破坏拓扑顺序的缺陷（回归测试已补）。
+> - 单元测试补齐：依赖/冲突/资源级唯一、生命周期状态机、描述符校验、上下文边界、注册中心并发。
+> - `FlexPoint` 接管插件生命周期：shutdown 逆序停止插件、暴露加载报告与状态。
+> - 决策解释 v1：`DecisionExplanation` + `Selector.explain`（Debug 级输出）。
+> - DX 文档：`ONE_PAGER.md` / `PLUGIN_TEMPLATE.md`；核心 Review：`../CORE_REVIEW_2026-07-16.md`。
+> - 详细清单见 [TASK_BREAKDOWN.md](./TASK_BREAKDOWN.md)。
+
 > 前置依赖：第0阶段（现有内核优化）完成。
