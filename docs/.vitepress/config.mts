@@ -35,6 +35,13 @@ export default withMermaid(
         { text: '指南', link: '/guide/introduction', activeMatch: '/guide/' },
         { text: '快速开始', link: '/guide/quickstart' },
         {
+          text: '社区',
+          items: [
+            { text: '贡献指南', link: '/guide/contributing' },
+            { text: '联系作者', link: '/guide/contact' },
+          ],
+        },
+        {
           text: 'v2.0.0',
           items: [
             { text: '更新日志', link: `${GITHUB}/releases` },
@@ -78,6 +85,13 @@ export default withMermaid(
             text: '集成',
             items: [
               { text: 'Spring Boot 接入', link: '/guide/springboot' },
+            ],
+          },
+          {
+            text: '社区',
+            items: [
+              { text: '贡献指南', link: '/guide/contributing' },
+              { text: '联系作者', link: '/guide/contact' },
             ],
           },
         ],
