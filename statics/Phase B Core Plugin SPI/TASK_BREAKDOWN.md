@@ -24,7 +24,7 @@
 ### 第 3–4 周：路由闭环 + 决策解释 v1
 - [x] 决策解释 v1：候选快照/过滤链路/命中与未命中原因（调试级）（DecisionExplanation + Selector.explain + FlexPoint Debug 输出）
 - [x] 官方最小选择器插件样板（Code/CodeVersion），持续集成运行
-- [ ] 回退语义说明（code → code+tags）
+- [x] 回退语义（code+tags → code）：FlexPoint.findAbilityByCodeAndTagsOrFallback + CodeTagsFallbackTest
 
 ### 第 5–6 周：质量门槛 + DX
 - [x] 并发冒烟：插件启停回滚幂等、事件发布不丢失（ConcurrentRegistryTest + PluginRuntimeToggleTest + ConcurrentPluginEventTest）
@@ -180,17 +180,17 @@
 ## 6. 任务包 F：文档与示例（P1）
 
 ### F1. 文档
-- [ ] SPI 接口说明
-- [ ] 生命周期与状态机说明
-- [ ] 冲突与故障排查手册
+- [x] SPI 接口说明（ONE_PAGER.md）
+- [x] 生命周期与状态机说明（ONE_PAGER.md §3）
+- [x] 冲突与故障排查手册（PLUGIN_TEMPLATE.md §6 常见坑）
 
 ### F2. 示例
-- [ ] `flexpoint-examples` 增加“自定义插件”示例
-- [ ] 覆盖插件依赖、顺序、降级场景
+- [x] `flexpoint-examples` 增加“自定义插件”示例（java-example/PluginExampleMain）
+- [x] 覆盖插件依赖、顺序、降级场景（BasePlugin/GreetingSelectorPlugin/FaultyOptionalPlugin）
 
 **验收**
-- [ ] 文档可支持第三方开发一个最小插件
-- [ ] 示例可直接运行并验证加载结果
+- [x] 文档可支持第三方开发一个最小插件（ONE_PAGER + PLUGIN_TEMPLATE）
+- [x] 示例可直接运行并验证加载结果（已本地运行验证）
 
 ---
 

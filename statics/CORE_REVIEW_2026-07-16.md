@@ -26,12 +26,13 @@
   3. `AsyncExtMonitor` 亦无 shutdown 调用（守护线程，JVM 退出前泄漏）。
 - **建议**：`FlexPoint` 持有 `PluginManager`，`shutdown()` 逆序 `stopAll()`；暴露 `getPluginLoadReport()/getPluginStates()`。属对 `FlexPoint` 构造签名的内部改动。
 
-### [中] findAbility 事件语义存在重复/矛盾事件
+### [中][已修复 2026-07-16] findAbility 事件语义存在重复/矛盾事件
 - **文件**：`FlexPoint.findAbility` + `DefaultExtAbilityRegistry.getAllExtAbility`
 - **现象**：
   - `getAllExtAbility` 在每次读取时发布 `EXT_FOUND`/`EXT_NOT_FOUND`；`findAbility` 之后可能再次发布 `EXT_NOT_FOUND` → **同一次查找出现 EXT_NOT_FOUND 两次**，或（类型已注册后全部注销、list 空非 null 时）**同时出现 EXT_FOUND + EXT_NOT_FOUND**。
   - `SELECTOR_FOUND` 在校验选择器是否存在**之前**发布，选择器不存在时会紧接 `SELECTOR_NOT_FOUND`。
-- **影响**：订阅者/监控口径噪声。属行为变更（会影响事件订阅方），需确认后再收敛。
+- **影响**：订阅者/监控口径噪声。
+- **修复**：`getAllExtAbility` 改为无副作用纯读取；查找语义由 `FlexPoint` 单一发布；`SELECTOR_FOUND` 移到确认存在之后。回归见 `EventSemanticsTest`。
 
 ### [中] EventConfig 未纳入配置校验
 - **文件**：`config/FlexPointConfigValidator`

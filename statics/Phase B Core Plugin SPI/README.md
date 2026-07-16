@@ -19,6 +19,8 @@
 > - DX 文档：`ONE_PAGER.md` / `PLUGIN_TEMPLATE.md`；核心 Review：`../CORE_REVIEW_2026-07-16.md`。
 > - 运行期治理：`PluginManager.enable/disable` 落地最小可用，`FlexPoint.enablePlugin/disablePlugin` 暴露入口。
 > - E2/E3：官方插件装配生效测试、并发发布事件下插件稳定性测试补齐（测试总数 50，全绿）。
+> - 事件语义收敛：查找事件去重/去矛盾；新增 code+tags→code 回退（findAbilityByCodeAndTagsOrFallback）。
+> - F2 示例：java-example/PluginExampleMain 演示依赖/顺序/降级/运行期启停（已本地运行验证，测试总数 57，全绿）。
 > - 详细清单见 [TASK_BREAKDOWN.md](./TASK_BREAKDOWN.md)。
 
 > 前置依赖：第0阶段（现有内核优化）完成。
