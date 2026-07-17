@@ -79,7 +79,8 @@ public abstract class AbstractChainExtMonitor implements ExtMonitor {
                 return ((MetricsProvider) handler).getMetrics(extAbility);
             }
         }
-        return null;
+        // 无 MetricsProvider 时返回不可变空指标而非 null，避免调用方 NPE
+        return ExtMetrics.empty();
     }
 
     @Override

@@ -132,6 +132,13 @@ public class DefaultPluginManager implements PluginManager {
         }
         try {
             if (state == PluginState.CREATED || state == PluginState.FAILED || state == PluginState.DESTROYED) {
+                // FAILED/DESTROYED 可能已经历过一半生命周期（如 init 成功但 start 失败，
+                // 已注册选择器/拦截器/订阅者），重新 init 前先做防御式清理，保证幂等可恢复；
+                // CREATED 为全新状态无需清理。
+                if (state == PluginState.FAILED || state == PluginState.DESTROYED) {
+                    try { p.stop(); } catch (Exception e) { log.debug("enable 前置清理 stop 异常: {}", pluginId, e); }
+                    try { p.destroy(); } catch (Exception e) { log.debug("enable 前置清理 destroy 异常: {}", pluginId, e); }
+                }
                 p.init(context);
                 states.put(pluginId, PluginState.INITIALIZED);
                 report.setState(pluginId, PluginState.INITIALIZED);
@@ -174,7 +181,7 @@ public class DefaultPluginManager implements PluginManager {
         log.info("Plugin disabled: {}", pluginId);
     }
 
-    @Override public PluginLoadReport getLoadReport() { return report; }
+    @Override public synchronized PluginLoadReport getLoadReport() { return report.snapshot(); }
     @Override public synchronized Map<String, PluginState> getPluginStates() {
         return Collections.unmodifiableMap(new LinkedHashMap<>(states));
     }

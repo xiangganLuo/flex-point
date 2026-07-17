@@ -32,6 +32,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -68,6 +70,14 @@ public class FlexPoint {
      * 核心内置事件埋点拦截器（最内层，始终生效）。
      */
     private final ExtInvocationInterceptor eventPublishingInterceptor;
+
+    /**
+     * 扩展点代理缓存：同一 {@code (extType, ability)} 只建一次代理，避免每次查找都新建 Proxy。
+     * <p>键基于身份（{@code ==}）比较，避免业务类重写 equals 造成的误共享；
+     * 代理不冻结拦截链，链在每次 invoke 时从 {@link #interceptorRegistry} 惰性读取，
+     * 因此缓存的代理仍能反映运行期动态增删的拦截器。</p>
+     */
+    private final Map<IdentityKey, Object> proxyCache = new ConcurrentHashMap<>();
 
     public FlexPoint(ExtAbilityRegistry extAbilityRegistry,
                      ExtMonitor extMonitor,
@@ -204,10 +214,10 @@ public class FlexPoint {
         eventDispatcher.publishExtFound(extType);
 
         List<T> matched = exts.stream()
-                .filter(ext -> code.equals(ext.getCode()))
+                .filter(ext -> Objects.equals(code, ext.getCode()))
                 .map(ext -> getProxy(extType, ext))
                 .collect(Collectors.toList());
-        
+
         if (!matched.isEmpty()) {
             log.debug("按 code 匹配到扩展点: type={}, code={}, count={}", extType.getSimpleName(), code, matched.size());
             // 发布扩展点选择事件
@@ -253,22 +263,22 @@ public class FlexPoint {
         // 存在候选：发布"找到"事件（单一来源）
         eventDispatcher.publishExtFound(extType);
 
-        // 构建标签映射
+        // 构建标签映射（跳过 key 为 null 的键值对，避免 toString NPE）
         Map<String, Object> tagMap = new HashMap<>();
         for (int i = 0; i < tagsKeyValue.length; i += 2) {
-            if (i + 1 < tagsKeyValue.length) {
+            if (i + 1 < tagsKeyValue.length && tagsKeyValue[i] != null) {
                 tagMap.put(tagsKeyValue[i].toString(), tagsKeyValue[i + 1]);
             }
         }
 
         List<T> matched = exts.stream()
-                .filter(ext -> code.equals(ext.getCode()))
+                .filter(ext -> Objects.equals(code, ext.getCode()))
                 .filter(ext -> {
                     // 标签匹配逻辑
                     return tagMap.entrySet().stream()
                             .allMatch(entry -> {
                                 Object extValue = ext.getTags().get(entry.getKey());
-                                return entry.getValue().equals(extValue);
+                                return Objects.equals(entry.getValue(), extValue);
                             });
                 })
                 .map(ext -> getProxy(extType, ext))
@@ -461,24 +471,65 @@ public class FlexPoint {
     }
 
     /**
-     * 创建扩展点代理
-     * 集成监控和事件发布功能
+     * 创建（或复用缓存的）扩展点代理，集成监控和事件发布功能。
+     *
+     * <p>同一 {@code (extType, ability)} 只建一次代理并缓存；拦截链不在建代理时冻结，
+     * 而是由 {@code chainSupplier} 在每次 invoke 时从注册表读取最新快照，
+     * 因此运行期通过插件 enable/disable 增删的拦截器对已缓存代理立即可见。</p>
      */
+    @SuppressWarnings("unchecked")
     private <T extends ExtAbility> T getProxy(Class<T> extType, T ability) {
-        // 组装调用链：注册表拦截器（外→内，已按 order 排序）+ 事件埋点拦截器（最内层，始终生效）
-        List<ExtInvocationInterceptor> chain = new ArrayList<>(interceptorRegistry.getInterceptors());
-        chain.add(eventPublishingInterceptor);
-        if (log.isDebugEnabled()) {
-            log.debug("创建扩展点代理: type={}, target={}, 拦截器数={}",
-                    extType.getSimpleName(), ability.getClass().getName(), chain.size());
+        IdentityKey key = new IdentityKey(extType, ability);
+        return (T) proxyCache.computeIfAbsent(key, k -> {
+            // 每次 invoke 时组装调用链：注册表拦截器（外→内，已按 order 排序）+ 事件埋点拦截器（最内层，始终生效）
+            java.util.function.Supplier<List<ExtInvocationInterceptor>> chainSupplier = () -> {
+                List<ExtInvocationInterceptor> chain = new ArrayList<>(interceptorRegistry.getInterceptors());
+                chain.add(eventPublishingInterceptor);
+                return chain;
+            };
+            if (log.isDebugEnabled()) {
+                log.debug("创建扩展点代理: type={}, target={}", extType.getSimpleName(), ability.getClass().getName());
+            }
+            return Proxy.newProxyInstance(
+                    ability.getClass().getClassLoader(),
+                    new Class[]{extType},
+                    new ExtInvocationHandler(ability, chainSupplier)
+            );
+        });
+    }
+
+    /**
+     * 代理缓存键：基于身份比较（{@code extType} 相等 + {@code ability} 引用相同），
+     * 避免业务扩展点类重写 equals/hashCode 导致不同实例被误判为同一键而共享代理。
+     */
+    private static final class IdentityKey {
+        private final Class<?> extType;
+        private final Object ability;
+        private final int hash;
+
+        IdentityKey(Class<?> extType, Object ability) {
+            this.extType = extType;
+            this.ability = ability;
+            this.hash = 31 * extType.hashCode() + System.identityHashCode(ability);
         }
-        @SuppressWarnings("unchecked")
-        T proxyInstance = (T) Proxy.newProxyInstance(
-                ability.getClass().getClassLoader(),
-                new Class[]{extType},
-                new ExtInvocationHandler(ability, chain)
-        );
-        return proxyInstance;
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (!(o instanceof IdentityKey)) {
+                return false;
+            }
+            IdentityKey other = (IdentityKey) o;
+            // ability 用 == 比较；extType 为 Class，用 equals（等价于 ==）
+            return this.ability == other.ability && Objects.equals(this.extType, other.extType);
+        }
+
+        @Override
+        public int hashCode() {
+            return hash;
+        }
     }
 
 }

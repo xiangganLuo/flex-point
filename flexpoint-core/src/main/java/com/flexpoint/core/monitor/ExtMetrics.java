@@ -53,4 +53,13 @@ public interface ExtMetrics {
      * 获取QPS（每秒查询数）
      */
     double getQPS();
+
+    /**
+     * 返回不可变的空指标（各值均为 0）。
+     * <p>用于纯内核（未装配 observability 插件、无 {@code MetricsProvider}）场景，
+     * 避免调用方拿到 null 而 NPE。</p>
+     */
+    static ExtMetrics empty() {
+        return EmptyExtMetrics.INSTANCE;
+    }
 }

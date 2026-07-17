@@ -38,4 +38,16 @@ public final class PluginLoadReport {
     public List<String> getOrderedPluginIds() { return Collections.unmodifiableList(new ArrayList<>(orderedPluginIds)); }
     public Map<String, PluginState> getStates() { return Collections.unmodifiableMap(new LinkedHashMap<>(states)); }
     public Map<String, String> getErrors() { return Collections.unmodifiableMap(new LinkedHashMap<>(errors)); }
+
+    /**
+     * 返回一份独立的不可变快照副本，切断与内部可变状态的联系。
+     * <p>供 {@code getLoadReport()} 在持锁时返回，避免调用方读到后续被并发修改的活对象。</p>
+     */
+    public PluginLoadReport snapshot() {
+        PluginLoadReport copy = new PluginLoadReport();
+        copy.orderedPluginIds.addAll(this.orderedPluginIds);
+        copy.states.putAll(this.states);
+        copy.errors.putAll(this.errors);
+        return copy;
+    }
 }

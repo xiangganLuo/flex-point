@@ -4,6 +4,8 @@ import com.flexpoint.core.event.router.EventRouter;
 import com.flexpoint.core.event.router.FilterEventRouter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -23,9 +25,15 @@ import java.util.stream.Collectors;
 public class DefaultEventBus implements EventBus {
     
     /**
-     * 事件类型 -> 订阅者列表
+     * 订阅者集合（写路径的真源，保证并发安全的增删）
      */
     private final List<EventSubscriber> subscribers = new CopyOnWriteArrayList<>();
+
+    /**
+     * 按 priority 升序的不可变快照，供热路径 publish 直接使用，
+     * 在 subscribe/unsubscribe/clear 时重建，避免每次发布都重新排序。
+     */
+    private volatile List<EventSubscriber> sortedSnapshot = Collections.emptyList();
     
     /**
      * 异步处理线程池
@@ -70,22 +78,23 @@ public class DefaultEventBus implements EventBus {
             return;
         }
 
-        if (subscribers.isEmpty()) {
+        // 使用已按 priority 升序的不可变快照（避免热路径重复排序）
+        List<EventSubscriber> snapshot = sortedSnapshot;
+        if (snapshot.isEmpty()) {
             return;
         }
-        
-        // 使用路由器决定哪些订阅者接收此事件
-        List<EventSubscriber> targetSubscribers = eventRouter.route(eventContext, subscribers);
-        
+
+        // 使用路由器决定哪些订阅者接收此事件（保持快照的优先级顺序）
+        List<EventSubscriber> targetSubscribers = eventRouter.route(eventContext, snapshot);
+
         if (targetSubscribers.isEmpty()) {
             log.debug("事件类型[{}]经过路由后没有匹配的订阅者", eventContext.getEventType());
             return;
         }
-        
-        // 按优先级排序
+
+        // 仅过滤启用状态，顺序沿用快照的 priority 升序
         List<EventSubscriber> sortedSubscribers = targetSubscribers.stream()
             .filter(EventSubscriber::isEnabled)
-            .sorted(Comparator.comparingInt(EventSubscriber::getPriority))
             .collect(Collectors.toList());
 
         log.debug("事件[{}]路由到 {} 个订阅者（启用后 {} 个）",
@@ -118,6 +127,7 @@ public class DefaultEventBus implements EventBus {
             return;
         }
         subscribers.add(subscriber);
+        rebuildSnapshot();
         log.info("订阅成功: subscriber={}", subscriber.getName());
         log.debug("订阅者已加入: name={}, async={}, priority={}, 当前订阅者数={}",
             subscriber.getName(), subscriber.isAsync(), subscriber.getPriority(), subscribers.size());
@@ -129,6 +139,7 @@ public class DefaultEventBus implements EventBus {
             return;
         }
         subscribers.remove(subscriber);
+        rebuildSnapshot();
         log.info("取消订阅成功: subscriber={}", subscriber.getName());
     }
     
@@ -150,6 +161,17 @@ public class DefaultEventBus implements EventBus {
     @Override
     public void clear() {
         subscribers.clear();
+        rebuildSnapshot();
+    }
+
+    /**
+     * 重建按 priority 升序的不可变订阅者快照。
+     * 仅在增删（subscribe/unsubscribe/clear）时调用，热路径 publish 不再排序。
+     */
+    private void rebuildSnapshot() {
+        List<EventSubscriber> sorted = new ArrayList<>(subscribers);
+        sorted.sort(Comparator.comparingInt(EventSubscriber::getPriority));
+        this.sortedSnapshot = Collections.unmodifiableList(sorted);
     }
     
     @Override
