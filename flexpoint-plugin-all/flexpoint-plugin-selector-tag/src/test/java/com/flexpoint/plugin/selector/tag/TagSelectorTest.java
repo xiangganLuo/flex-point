@@ -1,6 +1,5 @@
 package com.flexpoint.plugin.selector.tag;
 
-import com.flexpoint.common.context.FlexPointContext;
 import com.flexpoint.core.ext.ExtAbility;
 import com.flexpoint.core.ext.ExtTags;
 import com.flexpoint.core.selector.SelectionResult;
@@ -8,7 +7,9 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -21,11 +22,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class TagSelectorTest {
 
-    private final TagSelector selector = new TagSelector();
+    /** 业务方 LabelResolver 由测试注入的可变 labels 提供。 */
+    private final Map<String, String> labels = new HashMap<>();
+    private final TagSelector selector = new TagSelector(() -> labels);
 
     @AfterEach
     void tearDown() {
-        FlexPointContext.clear();
+        labels.clear();
     }
 
     /** 简单扩展点：仅承载 code 与 tags。 */
@@ -60,7 +63,8 @@ class TagSelectorTest {
         TagExt us = new TagExt("us", ExtTags.builder().set("region", "us").set("env", "prod").build());
         List<ExtAbility> candidates = Arrays.asList(cn, us);
 
-        FlexPointContext.current().label("region", "cn").label("env", "prod");
+        labels.put("region", "cn");
+        labels.put("env", "prod");
         SelectionResult<ExtAbility> result = selector.select(candidates);
 
         assertTrue(result.isHit());
@@ -72,14 +76,15 @@ class TagSelectorTest {
         TagExt cn = new TagExt("cn", ExtTags.builder().set("region", "cn").build());
         List<ExtAbility> candidates = Arrays.asList((ExtAbility) cn);
 
-        FlexPointContext.current().label("region", "cn").label("env", "prod");
+        labels.put("region", "cn");
+        labels.put("env", "prod");
         SelectionResult<ExtAbility> result = selector.select(candidates);
 
         assertTrue(result.isMiss());
     }
 
     @Test
-    void shouldMissWhenContextHasNoLabels() {
+    void shouldMissWhenNoLabels() {
         TagExt cn = new TagExt("cn", ExtTags.builder().set("region", "cn").build());
         List<ExtAbility> candidates = Arrays.asList((ExtAbility) cn);
 
@@ -95,7 +100,7 @@ class TagSelectorTest {
         TagExt b = new TagExt("b", ExtTags.builder().set("region", "cn").build());
         List<ExtAbility> candidates = Arrays.asList(a, b);
 
-        FlexPointContext.current().label("region", "cn");
+        labels.put("region", "cn");
         SelectionResult<ExtAbility> result = selector.select(candidates);
 
         assertTrue(result.isAmbiguous());

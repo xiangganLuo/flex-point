@@ -1,6 +1,5 @@
 package com.flexpoint.plugin.selector.ab;
 
-import com.flexpoint.common.context.FlexPointContext;
 import com.flexpoint.core.ext.ExtAbility;
 import com.flexpoint.core.selector.AbstractSelector;
 import lombok.extern.slf4j.Slf4j;
@@ -9,13 +8,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
  * 官方插件：A/B 分流选择器。
  *
- * <p>依据桶配置（如 {@code {A:50, B:50}}）对分流 key（默认取 {@link FlexPointContext#getUid()}）
+ * <p>依据桶配置（如 {@code {A:50, B:50}}）对业务方 {@link AbKeyResolver} 提供的分流 key
  * 做稳定哈希落桶，再过滤出 tag {@code bucket} 等于命中桶的候选。</p>
  *
  * <p>桶按名称排序后累加权重划分区间，保证分流结果确定且可复现。</p>
@@ -33,22 +31,13 @@ public class AbTestSelector extends AbstractSelector {
 
     private final TreeMap<String, Integer> buckets;
     private final int totalWeight;
-    private final Function<FlexPointContext, String> keyProvider;
+    private final AbKeyResolver resolver;
 
     /**
-     * 默认以 uid 作为分流 key。
-     *
-     * @param buckets 桶配置：桶名 -> 权重（权重需为正）
+     * @param buckets  桶配置：桶名 -> 权重（权重需为正）
+     * @param resolver 业务方提供分流 key 的实现（不可为空）
      */
-    public AbTestSelector(Map<String, Integer> buckets) {
-        this(buckets, FlexPointContext::getUid);
-    }
-
-    /**
-     * @param buckets     桶配置：桶名 -> 权重（权重需为正）
-     * @param keyProvider 从上下文提取分流 key 的函数
-     */
-    public AbTestSelector(Map<String, Integer> buckets, Function<FlexPointContext, String> keyProvider) {
+    public AbTestSelector(Map<String, Integer> buckets, AbKeyResolver resolver) {
         this.buckets = new TreeMap<>();
         int sum = 0;
         if (buckets != null) {
@@ -61,12 +50,7 @@ public class AbTestSelector extends AbstractSelector {
             }
         }
         this.totalWeight = sum;
-        this.keyProvider = keyProvider != null ? keyProvider : FlexPointContext::getUid;
-    }
-
-    /** 以指定 label 作为分流 key 的便捷 keyProvider。 */
-    public static Function<FlexPointContext, String> byLabel(String labelKey) {
-        return ctx -> ctx.getLabel(labelKey);
+        this.resolver = resolver;
     }
 
     @Override
@@ -86,9 +70,12 @@ public class AbTestSelector extends AbstractSelector {
         return result;
     }
 
-    /** 计算当前上下文命中的桶名。 */
+    /** 计算当前请求命中的桶名。 */
     private String resolveBucket() {
-        String key = keyProvider.apply(FlexPointContext.current());
+        if (resolver == null) {
+            throw new IllegalStateException(NAME + " 的 AbKeyResolver 不能为空，请注册业务实现！");
+        }
+        String key = resolver.resolveKey();
         if (key == null || key.isEmpty()) {
             return null;
         }
@@ -116,5 +103,10 @@ public class AbTestSelector extends AbstractSelector {
     @Override
     public String getName() {
         return NAME;
+    }
+
+    /** 业务方实现用于解析 A/B 分流 key（如 uid/deviceId）的接口。 */
+    public interface AbKeyResolver {
+        String resolveKey();
     }
 }

@@ -1,11 +1,9 @@
 package com.flexpoint.plugin.selector.cache;
 
-import com.flexpoint.common.context.FlexPointContext;
 import com.flexpoint.core.ext.ExtAbility;
 import com.flexpoint.core.ext.ExtTags;
 import com.flexpoint.core.selector.SelectionResult;
 import com.flexpoint.core.selector.Selector;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -21,11 +19,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * @author xiangganluo
  */
 class CachingSelectorTest {
-
-    @AfterEach
-    void tearDown() {
-        FlexPointContext.clear();
-    }
 
     static class SimpleExt implements ExtAbility {
         private final String code;
@@ -76,7 +69,6 @@ class CachingSelectorTest {
         CachingSelector caching = new CachingSelector(delegate);
         List<ExtAbility> candidates = Arrays.asList(a, b);
 
-        FlexPointContext.current().setUid("u1");
         SelectionResult<ExtAbility> first = caching.select(candidates);
         SelectionResult<ExtAbility> second = caching.select(candidates);
 
@@ -86,17 +78,17 @@ class CachingSelectorTest {
     }
 
     @Test
-    void differentContextProducesDifferentCacheEntries() {
+    void differentKeyResolverValueProducesDifferentCacheEntries() {
         CountingSelector delegate = new CountingSelector();
-        CachingSelector caching = new CachingSelector(delegate);
+        String[] bizKey = {"u1"};
+        CachingSelector caching = new CachingSelector(delegate, 0L, null, () -> bizKey[0]);
         List<ExtAbility> candidates = Arrays.asList(a, b);
 
-        FlexPointContext.current().setUid("u1");
         caching.select(candidates);
-        FlexPointContext.current().setUid("u2");
+        bizKey[0] = "u2";
         caching.select(candidates);
 
-        assertEquals(2, delegate.calls.get(), "不同上下文应各自触发 delegate");
+        assertEquals(2, delegate.calls.get(), "不同业务 key 应各自触发 delegate");
         assertEquals(2, caching.cacheSize());
     }
 
@@ -118,7 +110,6 @@ class CachingSelectorTest {
         CachingSelector caching = new CachingSelector(delegate, 30L);
         List<ExtAbility> candidates = Arrays.asList(a, b);
 
-        FlexPointContext.current().setUid("u1");
         caching.select(candidates);
         Thread.sleep(60L);
         caching.select(candidates);

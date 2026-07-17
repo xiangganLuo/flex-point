@@ -8,8 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * 官方内置：租户选择器插件。
  *
- * <p>将 {@link TenantSelector} 注册到 {@link SelectorRegistry}。是否回退到默认候选
- * 通过构造参数 {@code fallback} 传入。</p>
+ * <p>将 {@link TenantSelector} 注册到 {@link SelectorRegistry}。tenantId 由业务方
+ * 实现 {@link TenantSelector.TenantResolver} 提供；是否回退到默认候选由 {@code fallback} 控制。</p>
  *
  * @author xiangganluo
  */
@@ -22,12 +22,12 @@ public final class TenantSelectorPlugin extends AbstractPlugin {
     private SelectorRegistry registry;
 
     /** 不启用回退。 */
-    public TenantSelectorPlugin() {
-        this(false);
+    public TenantSelectorPlugin(TenantSelector.TenantResolver resolver) {
+        this(false, resolver);
     }
 
-    public TenantSelectorPlugin(boolean fallback) {
-        this.selector = new TenantSelector(fallback);
+    public TenantSelectorPlugin(boolean fallback, TenantSelector.TenantResolver resolver) {
+        this.selector = new TenantSelector(fallback, resolver);
     }
 
     @Override

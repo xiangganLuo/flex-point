@@ -34,22 +34,22 @@ public class PluginsAutoConfigurationTest {
     void plugins_are_assembled_by_configuration() {
         runner.withPropertyValues(
                 "flexpoint.enabled=true",
-                "flexpoint.plugins.tag.enabled=true",
+                "flexpoint.plugins.weight.enabled=true",
                 "flexpoint.plugins.retry.enabled=true",
                 "flexpoint.plugins.retry.max-attempts=5"
         ).run(context -> {
             assertThat(context).hasSingleBean(FlexPoint.class);
-            // 两个插件按配置装配为 Bean
+            // 两个插件按配置装配为 Bean（weight 无需业务 Resolver，仍支持属性装配）
             Map<String, Plugin> plugins = context.getBeansOfType(Plugin.class);
             assertThat(plugins.values()).extracting(Plugin::getId)
-                    .contains("selector.tag", "resilience.retry");
+                    .contains("selector.weight", "resilience.retry");
 
             // 且已装配进 FlexPoint（状态 STARTED）、选择器已注册
             FlexPoint fp = context.getBean(FlexPoint.class);
             Map<String, PluginState> states = fp.getPluginStates();
-            assertThat(states).containsEntry("selector.tag", PluginState.STARTED);
+            assertThat(states).containsEntry("selector.weight", PluginState.STARTED);
             assertThat(states).containsEntry("resilience.retry", PluginState.STARTED);
-            assertThat(fp.hasSelector("tagSelector")).isTrue();
+            assertThat(fp.hasSelector("weightSelector")).isTrue();
         });
     }
 

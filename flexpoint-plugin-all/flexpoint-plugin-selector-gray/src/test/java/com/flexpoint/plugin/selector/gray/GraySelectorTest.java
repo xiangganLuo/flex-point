@@ -1,10 +1,8 @@
 package com.flexpoint.plugin.selector.gray;
 
-import com.flexpoint.common.context.FlexPointContext;
 import com.flexpoint.core.ext.ExtAbility;
 import com.flexpoint.core.ext.ExtTags;
 import com.flexpoint.core.selector.SelectionResult;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -19,11 +17,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * @author xiangganluo
  */
 class GraySelectorTest {
-
-    @AfterEach
-    void tearDown() {
-        FlexPointContext.clear();
-    }
 
     static class GrayExt implements ExtAbility {
         private final String code;
@@ -57,9 +50,8 @@ class GraySelectorTest {
     @Test
     void percentage100ShouldHitGrayCandidate() {
         List<ExtAbility> candidates = Arrays.asList(grayExt, stableExt);
-        FlexPointContext.current().uid("user-1");
 
-        SelectionResult<ExtAbility> result = new GraySelector(100).select(candidates);
+        SelectionResult<ExtAbility> result = new GraySelector(100, () -> "user-1").select(candidates);
 
         assertTrue(result.isHit());
         assertEquals("gray", result.getSelected().getCode());
@@ -68,9 +60,8 @@ class GraySelectorTest {
     @Test
     void percentage0ShouldHitStableCandidate() {
         List<ExtAbility> candidates = Arrays.asList(grayExt, stableExt);
-        FlexPointContext.current().uid("user-1");
 
-        SelectionResult<ExtAbility> result = new GraySelector(0).select(candidates);
+        SelectionResult<ExtAbility> result = new GraySelector(0, () -> "user-1").select(candidates);
 
         assertTrue(result.isHit());
         assertEquals("stable", result.getSelected().getCode());
@@ -79,9 +70,8 @@ class GraySelectorTest {
     @Test
     void groupGrayTagShouldBeTreatedAsGray() {
         List<ExtAbility> candidates = Arrays.asList(groupGrayExt, stableExt);
-        FlexPointContext.current().uid("user-1");
 
-        SelectionResult<ExtAbility> result = new GraySelector(100).select(candidates);
+        SelectionResult<ExtAbility> result = new GraySelector(100, () -> "user-1").select(candidates);
 
         assertTrue(result.isHit());
         assertEquals("groupGray", result.getSelected().getCode());
@@ -90,21 +80,18 @@ class GraySelectorTest {
     @Test
     void missingKeyShouldFallBackToNonGray() {
         List<ExtAbility> candidates = Arrays.asList(grayExt, stableExt);
-        // 未设置 uid，key 为空 -> 非灰度
-
-        SelectionResult<ExtAbility> result = new GraySelector(100).select(candidates);
+        // key 为空 -> 非灰度
+        SelectionResult<ExtAbility> result = new GraySelector(100, () -> null).select(candidates);
 
         assertTrue(result.isHit());
         assertEquals("stable", result.getSelected().getCode());
     }
 
     @Test
-    void byLabelKeyProviderShouldWork() {
+    void customKeyResolverShouldWork() {
         List<ExtAbility> candidates = Arrays.asList(grayExt, stableExt);
-        FlexPointContext.current().label("deviceId", "d-123");
 
-        SelectionResult<ExtAbility> result =
-                new GraySelector(100, GraySelector.byLabel("deviceId")).select(candidates);
+        SelectionResult<ExtAbility> result = new GraySelector(100, () -> "d-123").select(candidates);
 
         assertTrue(result.isHit());
         assertEquals("gray", result.getSelected().getCode());
@@ -113,9 +100,8 @@ class GraySelectorTest {
     @Test
     void sameKeyShouldBeDeterministic() {
         List<ExtAbility> candidates = Arrays.asList(grayExt, stableExt);
-        GraySelector selector = new GraySelector(50);
+        GraySelector selector = new GraySelector(50, () -> "determinism-key");
 
-        FlexPointContext.current().uid("determinism-key");
         String first = selector.select(candidates).getExplanation().getOutcome().name()
                 + ":" + safeCode(selector.select(candidates));
         String second = selector.select(candidates).getExplanation().getOutcome().name()

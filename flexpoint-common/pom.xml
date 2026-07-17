@@ -15,10 +15,6 @@
     <description>扩展点框架公共模块 - 包含接口、注解、常量等</description>
 
     <dependencies>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-        </dependency>
         <!-- 日志 -->
         <dependency>
             <groupId>org.slf4j</groupId>

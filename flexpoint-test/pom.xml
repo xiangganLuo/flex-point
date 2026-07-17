@@ -49,7 +49,7 @@
         <!-- 「配置即装配」自动配置集成测试用（代表性插件） -->
         <dependency>
             <groupId>io.github.xiangganluo</groupId>
-            <artifactId>flexpoint-plugin-selector-tag</artifactId>
+            <artifactId>flexpoint-plugin-selector-weight</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

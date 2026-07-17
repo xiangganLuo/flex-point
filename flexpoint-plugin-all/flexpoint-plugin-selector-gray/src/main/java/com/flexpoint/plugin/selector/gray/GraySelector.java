@@ -1,19 +1,18 @@
 package com.flexpoint.plugin.selector.gray;
 
-import com.flexpoint.common.context.FlexPointContext;
 import com.flexpoint.core.ext.ExtAbility;
 import com.flexpoint.core.ext.ExtTags;
 import com.flexpoint.core.selector.AbstractSelector;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Collections;
 import java.util.List;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
  * 官方插件：灰度选择器。
  *
- * <p>对灰度 key（默认取 {@link FlexPointContext#getUid()}）做稳定哈希取模 100，
+ * <p>对业务方 {@link GrayKeyResolver} 提供的灰度 key 做稳定哈希取模 100，
  * 结果 {@code < percentage} 视为命中灰度：过滤出带灰度标记的候选
  * （tag {@code gray == true} 或 tag {@code group == "gray"}）；否则过滤出非灰度候选。</p>
  *
@@ -28,35 +27,21 @@ public class GraySelector extends AbstractSelector {
     public static final String NAME = "graySelector";
 
     private final int percentage;
-    private final Function<FlexPointContext, String> keyProvider;
+    private final GrayKeyResolver resolver;
 
     /**
-     * 默认以 uid 作为灰度 key。
-     *
      * @param percentage 灰度比例（0-100，越界自动裁剪）
+     * @param resolver   业务方提供灰度 key 的实现（不可为空）
      */
-    public GraySelector(int percentage) {
-        this(percentage, FlexPointContext::getUid);
-    }
-
-    /**
-     * @param percentage  灰度比例（0-100，越界自动裁剪）
-     * @param keyProvider 从上下文提取灰度 key 的函数（如 {@code ctx -> ctx.getLabel("deviceId")}）
-     */
-    public GraySelector(int percentage, Function<FlexPointContext, String> keyProvider) {
+    public GraySelector(int percentage, GrayKeyResolver resolver) {
         this.percentage = Math.max(0, Math.min(100, percentage));
-        this.keyProvider = keyProvider != null ? keyProvider : FlexPointContext::getUid;
-    }
-
-    /** 以指定 label 作为灰度 key 的便捷 keyProvider。 */
-    public static Function<FlexPointContext, String> byLabel(String labelKey) {
-        return ctx -> ctx.getLabel(labelKey);
+        this.resolver = resolver;
     }
 
     @Override
     protected <T extends ExtAbility> List<T> filter(List<T> candidates) {
         if (candidates == null || candidates.isEmpty()) {
-            return java.util.Collections.emptyList();
+            return Collections.emptyList();
         }
         boolean grayHit = isGrayHit();
         List<T> result = candidates.stream()
@@ -67,9 +52,12 @@ public class GraySelector extends AbstractSelector {
         return result;
     }
 
-    /** 计算当前上下文是否落入灰度区间。 */
+    /** 计算当前请求是否落入灰度区间。 */
     private boolean isGrayHit() {
-        String key = keyProvider.apply(FlexPointContext.current());
+        if (resolver == null) {
+            throw new IllegalStateException(NAME + " 的 GrayKeyResolver 不能为空，请注册业务实现！");
+        }
+        String key = resolver.resolveKey();
         if (key == null || key.isEmpty()) {
             return false;
         }
@@ -100,5 +88,10 @@ public class GraySelector extends AbstractSelector {
     @Override
     public String getName() {
         return NAME;
+    }
+
+    /** 业务方实现用于解析灰度 key（如 uid/deviceId）的接口。 */
+    public interface GrayKeyResolver {
+        String resolveKey();
     }
 }

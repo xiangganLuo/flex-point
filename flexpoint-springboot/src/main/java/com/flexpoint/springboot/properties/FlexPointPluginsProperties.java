@@ -3,9 +3,6 @@ package com.flexpoint.springboot.properties;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 /**
  * 官方插件「配置即装配」属性。
  *
@@ -21,16 +18,8 @@ public class FlexPointPluginsProperties {
 
     public static final String PREFIX = "flexpoint.plugins";
 
-    /** 标签选择器 */
-    private Tag tag = new Tag();
-    /** 灰度选择器 */
-    private Gray gray = new Gray();
-    /** A/B 分流选择器 */
-    private Ab ab = new Ab();
     /** 权重选择器 */
     private Weight weight = new Weight();
-    /** 租户选择器 */
-    private Tenant tenant = new Tenant();
     /** 审计日志 */
     private Audit audit = new Audit();
     /** 慢调用告警 */
@@ -49,34 +38,8 @@ public class FlexPointPluginsProperties {
     private CodeVersion codeVersion = new CodeVersion();
 
     @Data
-    public static class Tag {
-        private boolean enabled = false;
-    }
-
-    @Data
-    public static class Gray {
-        private boolean enabled = false;
-        /** 灰度百分比 0-100 */
-        private int percentage = 0;
-    }
-
-    @Data
-    public static class Ab {
-        private boolean enabled = false;
-        /** 分桶权重，如 {A:50, B:50} */
-        private Map<String, Integer> buckets = new LinkedHashMap<>();
-    }
-
-    @Data
     public static class Weight {
         private boolean enabled = false;
-    }
-
-    @Data
-    public static class Tenant {
-        private boolean enabled = false;
-        /** 租户无命中时是否回退到默认候选 */
-        private boolean fallback = false;
     }
 
     @Data

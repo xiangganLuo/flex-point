@@ -1,6 +1,5 @@
 package com.flexpoint.plugin.selector.cache;
 
-import com.flexpoint.common.context.FlexPointContext;
 import com.flexpoint.core.ext.ExtAbility;
 import com.flexpoint.core.selector.SelectionResult;
 import com.flexpoint.core.selector.Selector;
@@ -8,20 +7,19 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 官方插件：缓存选择器（装饰器）。
  *
- * <p>包装另一个 {@link Selector delegate}，以「上下文关键字段 + 候选 extId 集合」为 key
+ * <p>包装另一个 {@link Selector delegate}，以「候选 extId 集合（+ 可选业务 key）」为 key
  * 缓存 {@link SelectionResult}。命中缓存直接返回 delegate 结果，避免重复选择计算。</p>
  *
- * <p>缓存 key 反映上下文差异（tenantId/appCode/version/uid + labels）与候选集合（extId 排序拼接），
- * 因此不同上下文或不同候选会得到不同缓存项。TTL 通过构造参数 {@code ttlMillis} 控制，
- * {@code <= 0} 表示永不过期。选择器名称默认沿用 delegate 名称，也可构造传入。</p>
+ * <p>默认缓存 key 仅由候选集合（extId 排序拼接）构成；若业务的选择结果随请求维度（如租户/uid）
+ * 变化，请提供 {@link CacheKeyResolver} 将该维度纳入 key，避免不同请求命中同一缓存项。
+ * TTL 通过构造参数 {@code ttlMillis} 控制，{@code <= 0} 表示永不过期。
+ * 选择器名称默认沿用 delegate 名称，也可构造传入。</p>
  *
  * @author xiangganluo
  */
@@ -31,6 +29,7 @@ public class CachingSelector implements Selector {
     private final Selector delegate;
     private final long ttlMillis;
     private final String name;
+    private final CacheKeyResolver keyResolver;
     private final ConcurrentHashMap<String, Entry> cache = new ConcurrentHashMap<>();
 
     /** 永不过期，名称沿用 delegate。 */
@@ -43,15 +42,22 @@ public class CachingSelector implements Selector {
         this(delegate, ttlMillis, null);
     }
 
-    /**
-     * @param delegate   被包装的选择器（不可为空）
-     * @param ttlMillis  缓存有效期毫秒，{@code <= 0} 表示永不过期
-     * @param name       选择器名称，为空时沿用 {@code delegate.getName()}
-     */
+    /** 指定 TTL 与名称。 */
     public CachingSelector(Selector delegate, long ttlMillis, String name) {
+        this(delegate, ttlMillis, name, null);
+    }
+
+    /**
+     * @param delegate    被包装的选择器（不可为空）
+     * @param ttlMillis   缓存有效期毫秒，{@code <= 0} 表示永不过期
+     * @param name        选择器名称，为空时沿用 {@code delegate.getName()}
+     * @param keyResolver 业务维度 key 解析器，可为 {@code null}（则缓存 key 仅取候选集合）
+     */
+    public CachingSelector(Selector delegate, long ttlMillis, String name, CacheKeyResolver keyResolver) {
         this.delegate = Objects.requireNonNull(delegate, "delegate must not be null");
         this.ttlMillis = ttlMillis;
         this.name = (name != null && !name.isEmpty()) ? name : delegate.getName();
+        this.keyResolver = keyResolver;
     }
 
     @Override
@@ -86,18 +92,12 @@ public class CachingSelector implements Selector {
         return ttlMillis <= 0 ? Long.MAX_VALUE : now + ttlMillis;
     }
 
-    /** 构造反映上下文与候选集合差异的缓存 key。 */
+    /** 构造缓存 key：可选业务维度 key + 候选集合（extId 排序拼接）。 */
     private <T extends ExtAbility> String buildKey(List<T> candidates) {
-        FlexPointContext ctx = FlexPointContext.current();
         StringBuilder sb = new StringBuilder();
-        sb.append(ctx.getTenantId()).append('|')
-                .append(ctx.getAppCode()).append('|')
-                .append(ctx.getVersion()).append('|')
-                .append(ctx.getUid()).append('|');
-        // labels 有序拼接，避免 HashMap 迭代顺序影响 key
-        Map<String, String> sortedLabels = new TreeMap<>(ctx.getLabels());
-        sb.append(sortedLabels).append('#');
-        // 候选 extId 排序拼接
+        if (keyResolver != null) {
+            sb.append(keyResolver.resolveKey()).append('#');
+        }
         List<String> extIds = new ArrayList<>();
         if (candidates != null) {
             for (T c : candidates) {
@@ -112,6 +112,11 @@ public class CachingSelector implements Selector {
     @Override
     public String getName() {
         return name;
+    }
+
+    /** 业务方实现用于将请求维度纳入缓存 key 的接口（可选）。 */
+    public interface CacheKeyResolver {
+        String resolveKey();
     }
 
     /** 缓存条目：结果 + 过期时间戳。 */

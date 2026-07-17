@@ -8,8 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * 官方内置：标签选择器插件。
  *
- * <p>将 {@link TagSelector} 注册到 {@link SelectorRegistry}。无需任何构造参数，
- * 路由信息取自标准上下文的 labels。</p>
+ * <p>将 {@link TagSelector} 注册到 {@link SelectorRegistry}。路由 labels 由业务方
+ * 实现 {@link TagSelector.LabelResolver} 提供，经构造参数传入。</p>
  *
  * @author xiangganluo
  */
@@ -21,8 +21,8 @@ public final class TagSelectorPlugin extends AbstractPlugin {
     private TagSelector selector;
     private SelectorRegistry registry;
 
-    public TagSelectorPlugin() {
-        this.selector = new TagSelector();
+    public TagSelectorPlugin(TagSelector.LabelResolver resolver) {
+        this.selector = new TagSelector(resolver);
     }
 
     @Override

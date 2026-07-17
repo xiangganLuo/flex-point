@@ -1,10 +1,8 @@
 package com.flexpoint.plugin.selector.ab;
 
-import com.flexpoint.common.context.FlexPointContext;
 import com.flexpoint.core.ext.ExtAbility;
 import com.flexpoint.core.ext.ExtTags;
 import com.flexpoint.core.selector.SelectionResult;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -21,11 +19,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * @author xiangganluo
  */
 class AbTestSelectorTest {
-
-    @AfterEach
-    void tearDown() {
-        FlexPointContext.clear();
-    }
 
     static class AbExt implements ExtAbility {
         private final String code;
@@ -60,10 +53,9 @@ class AbTestSelectorTest {
         Map<String, Integer> buckets = new HashMap<>();
         buckets.put("A", 100);
         buckets.put("B", 0);
-        FlexPointContext.current().uid("user-1");
 
         SelectionResult<ExtAbility> result =
-                new AbTestSelector(buckets).select(Arrays.asList(bucketA, bucketB));
+                new AbTestSelector(buckets, () -> "user-1").select(Arrays.asList(bucketA, bucketB));
 
         assertTrue(result.isHit());
         assertEquals("implA", result.getSelected().getCode());
@@ -74,10 +66,9 @@ class AbTestSelectorTest {
         Map<String, Integer> buckets = new HashMap<>();
         buckets.put("A", 0);
         buckets.put("B", 100);
-        FlexPointContext.current().uid("user-1");
 
         SelectionResult<ExtAbility> result =
-                new AbTestSelector(buckets).select(Arrays.asList(bucketA, bucketB));
+                new AbTestSelector(buckets, () -> "user-1").select(Arrays.asList(bucketA, bucketB));
 
         assertTrue(result.isHit());
         assertEquals("implB", result.getSelected().getCode());
@@ -88,10 +79,9 @@ class AbTestSelectorTest {
         Map<String, Integer> buckets = new HashMap<>();
         buckets.put("A", 50);
         buckets.put("B", 50);
-        // 未设置 uid
 
         SelectionResult<ExtAbility> result =
-                new AbTestSelector(buckets).select(Arrays.asList(bucketA, bucketB));
+                new AbTestSelector(buckets, () -> null).select(Arrays.asList(bucketA, bucketB));
 
         assertTrue(result.isMiss());
     }
@@ -101,10 +91,9 @@ class AbTestSelectorTest {
         Map<String, Integer> buckets = new HashMap<>();
         buckets.put("A", 50);
         buckets.put("B", 50);
-        AbTestSelector selector = new AbTestSelector(buckets);
+        AbTestSelector selector = new AbTestSelector(buckets, () -> "consistent-user");
         List<ExtAbility> candidates = Arrays.asList(bucketA, bucketB);
 
-        FlexPointContext.current().uid("consistent-user");
         String firstPick = selector.select(candidates).getSelected().getCode();
         String secondPick = selector.select(candidates).getSelected().getCode();
 
@@ -112,13 +101,12 @@ class AbTestSelectorTest {
     }
 
     @Test
-    void byLabelKeyProviderWorks() {
+    void customKeyResolverWorks() {
         Map<String, Integer> buckets = new HashMap<>();
         buckets.put("A", 100);
-        FlexPointContext.current().label("exp", "e-1");
 
         SelectionResult<ExtAbility> result =
-                new AbTestSelector(buckets, AbTestSelector.byLabel("exp")).select(Arrays.asList(bucketA, bucketB));
+                new AbTestSelector(buckets, () -> "e-1").select(Arrays.asList(bucketA, bucketB));
 
         assertTrue(result.isHit());
         assertEquals("implA", result.getSelected().getCode());

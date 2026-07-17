@@ -1,18 +1,15 @@
 package com.flexpoint.plugin.selector.gray;
 
-import com.flexpoint.common.context.FlexPointContext;
 import com.flexpoint.core.plugin.AbstractPlugin;
 import com.flexpoint.core.plugin.PluginContext;
 import com.flexpoint.core.selector.SelectorRegistry;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.function.Function;
-
 /**
  * 官方内置：灰度选择器插件。
  *
- * <p>将 {@link GraySelector} 注册到 {@link SelectorRegistry}。灰度比例与 keyProvider
- * 通过构造参数传入，便于接入层按属性装配。</p>
+ * <p>将 {@link GraySelector} 注册到 {@link SelectorRegistry}。灰度比例与
+ * {@link GraySelector.GrayKeyResolver} 通过构造参数传入。</p>
  *
  * @author xiangganluo
  */
@@ -24,13 +21,8 @@ public final class GraySelectorPlugin extends AbstractPlugin {
     private GraySelector selector;
     private SelectorRegistry registry;
 
-    /** 默认以 uid 作为灰度 key。 */
-    public GraySelectorPlugin(int percentage) {
-        this.selector = new GraySelector(percentage);
-    }
-
-    public GraySelectorPlugin(int percentage, Function<FlexPointContext, String> keyProvider) {
-        this.selector = new GraySelector(percentage, keyProvider);
+    public GraySelectorPlugin(int percentage, GraySelector.GrayKeyResolver resolver) {
+        this.selector = new GraySelector(percentage, resolver);
     }
 
     @Override

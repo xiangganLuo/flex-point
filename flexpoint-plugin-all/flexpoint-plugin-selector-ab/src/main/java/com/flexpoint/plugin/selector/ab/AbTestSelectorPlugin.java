@@ -1,19 +1,17 @@
 package com.flexpoint.plugin.selector.ab;
 
-import com.flexpoint.common.context.FlexPointContext;
 import com.flexpoint.core.plugin.AbstractPlugin;
 import com.flexpoint.core.plugin.PluginContext;
 import com.flexpoint.core.selector.SelectorRegistry;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
-import java.util.function.Function;
 
 /**
  * 官方内置：A/B 分流选择器插件。
  *
- * <p>将 {@link AbTestSelector} 注册到 {@link SelectorRegistry}。桶配置与 keyProvider
- * 通过构造参数传入，便于接入层按属性装配。</p>
+ * <p>将 {@link AbTestSelector} 注册到 {@link SelectorRegistry}。桶配置与
+ * {@link AbTestSelector.AbKeyResolver} 通过构造参数传入。</p>
  *
  * @author xiangganluo
  */
@@ -25,13 +23,8 @@ public final class AbTestSelectorPlugin extends AbstractPlugin {
     private AbTestSelector selector;
     private SelectorRegistry registry;
 
-    /** 默认以 uid 作为分流 key。 */
-    public AbTestSelectorPlugin(Map<String, Integer> buckets) {
-        this.selector = new AbTestSelector(buckets);
-    }
-
-    public AbTestSelectorPlugin(Map<String, Integer> buckets, Function<FlexPointContext, String> keyProvider) {
-        this.selector = new AbTestSelector(buckets, keyProvider);
+    public AbTestSelectorPlugin(Map<String, Integer> buckets, AbTestSelector.AbKeyResolver resolver) {
+        this.selector = new AbTestSelector(buckets, resolver);
     }
 
     @Override

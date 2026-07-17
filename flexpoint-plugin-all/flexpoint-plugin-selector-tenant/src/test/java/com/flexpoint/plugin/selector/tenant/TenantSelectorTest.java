@@ -1,10 +1,8 @@
 package com.flexpoint.plugin.selector.tenant;
 
-import com.flexpoint.common.context.FlexPointContext;
 import com.flexpoint.core.ext.ExtAbility;
 import com.flexpoint.core.ext.ExtTags;
 import com.flexpoint.core.selector.SelectionResult;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -19,11 +17,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * @author xiangganluo
  */
 class TenantSelectorTest {
-
-    @AfterEach
-    void tearDown() {
-        FlexPointContext.clear();
-    }
 
     static class TenantExt implements ExtAbility {
         private final String extId;
@@ -58,8 +51,7 @@ class TenantSelectorTest {
         TenantExt t2 = new TenantExt("t2", "impl", ExtTags.builder().set("tenant", "t2").build());
         List<ExtAbility> candidates = Arrays.asList(t1, t2);
 
-        FlexPointContext.current().setTenantId("t1");
-        SelectionResult<ExtAbility> result = new TenantSelector().select(candidates);
+        SelectionResult<ExtAbility> result = new TenantSelector(() -> "t1").select(candidates);
 
         assertTrue(result.isHit());
         assertEquals("t1", result.getSelected().getExtId());
@@ -71,8 +63,7 @@ class TenantSelectorTest {
         TenantExt other = new TenantExt("other", "t2", ExtTags.empty());
         List<ExtAbility> candidates = Arrays.asList(t1, other);
 
-        FlexPointContext.current().setTenantId("t1");
-        SelectionResult<ExtAbility> result = new TenantSelector().select(candidates);
+        SelectionResult<ExtAbility> result = new TenantSelector(() -> "t1").select(candidates);
 
         assertTrue(result.isHit());
         assertEquals("byCode", result.getSelected().getExtId());
@@ -83,8 +74,7 @@ class TenantSelectorTest {
         TenantExt t1 = new TenantExt("t1", "impl", ExtTags.builder().set("tenant", "t1").build());
         List<ExtAbility> candidates = Arrays.asList((ExtAbility) t1);
 
-        FlexPointContext.current().setTenantId("unknown");
-        SelectionResult<ExtAbility> result = new TenantSelector(false).select(candidates);
+        SelectionResult<ExtAbility> result = new TenantSelector(false, () -> "unknown").select(candidates);
 
         assertTrue(result.isMiss());
     }
@@ -95,8 +85,7 @@ class TenantSelectorTest {
         TenantExt def = new TenantExt("def", "impl", ExtTags.builder().set("tenant", "default").build());
         List<ExtAbility> candidates = Arrays.asList(t1, def);
 
-        FlexPointContext.current().setTenantId("unknown");
-        SelectionResult<ExtAbility> result = new TenantSelector(true).select(candidates);
+        SelectionResult<ExtAbility> result = new TenantSelector(true, () -> "unknown").select(candidates);
 
         assertTrue(result.isHit());
         assertEquals("def", result.getSelected().getExtId());
@@ -108,8 +97,7 @@ class TenantSelectorTest {
         TenantExt generic = new TenantExt("generic", "impl", ExtTags.empty());
         List<ExtAbility> candidates = Arrays.asList(t1, generic);
 
-        FlexPointContext.current().setTenantId("unknown");
-        SelectionResult<ExtAbility> result = new TenantSelector(true).select(candidates);
+        SelectionResult<ExtAbility> result = new TenantSelector(true, () -> "unknown").select(candidates);
 
         assertTrue(result.isHit());
         assertEquals("generic", result.getSelected().getExtId());
@@ -120,7 +108,7 @@ class TenantSelectorTest {
         TenantExt t1 = new TenantExt("t1", "impl", ExtTags.builder().set("tenant", "t1").build());
         List<ExtAbility> candidates = Arrays.asList((ExtAbility) t1);
 
-        SelectionResult<ExtAbility> result = new TenantSelector(false).select(candidates);
+        SelectionResult<ExtAbility> result = new TenantSelector(false, () -> null).select(candidates);
 
         assertTrue(result.isMiss());
     }

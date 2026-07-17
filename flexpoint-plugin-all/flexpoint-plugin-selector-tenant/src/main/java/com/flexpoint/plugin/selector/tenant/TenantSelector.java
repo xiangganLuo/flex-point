@@ -1,6 +1,5 @@
 package com.flexpoint.plugin.selector.tenant;
 
-import com.flexpoint.common.context.FlexPointContext;
 import com.flexpoint.core.ext.ExtAbility;
 import com.flexpoint.core.ext.ExtTags;
 import com.flexpoint.core.selector.AbstractSelector;
@@ -13,7 +12,7 @@ import java.util.stream.Collectors;
 /**
  * 官方插件：租户选择器。
  *
- * <p>按 {@link FlexPointContext#getTenantId()} 过滤候选：命中条件为
+ * <p>按业务方 {@link TenantResolver} 提供的 tenantId 过滤候选：命中条件为
  * {@code ext.getCode()} 等于该租户，或 tag {@code tenant} 等于该租户。</p>
  *
  * <p>构造参数 {@code fallback}：为 {@code true} 且当前租户无命中时，回退到「默认」候选——
@@ -35,17 +34,20 @@ public class TenantSelector extends AbstractSelector {
     public static final String DEFAULT_TENANT = "default";
 
     private final boolean fallback;
+    private final TenantResolver resolver;
 
     /** 不启用回退。 */
-    public TenantSelector() {
-        this(false);
+    public TenantSelector(TenantResolver resolver) {
+        this(false, resolver);
     }
 
     /**
      * @param fallback 租户无命中时是否回退到默认候选
+     * @param resolver 业务方提供 tenantId 的实现（不可为空）
      */
-    public TenantSelector(boolean fallback) {
+    public TenantSelector(boolean fallback, TenantResolver resolver) {
         this.fallback = fallback;
+        this.resolver = resolver;
     }
 
     @Override
@@ -53,7 +55,10 @@ public class TenantSelector extends AbstractSelector {
         if (candidates == null || candidates.isEmpty()) {
             return Collections.emptyList();
         }
-        String tenantId = FlexPointContext.current().getTenantId();
+        if (resolver == null) {
+            throw new IllegalStateException(NAME + " 的 TenantResolver 不能为空，请注册业务实现！");
+        }
+        String tenantId = resolver.resolveTenantId();
         if (tenantId != null && !tenantId.isEmpty()) {
             List<T> matched = candidates.stream()
                     .filter(ext -> matchesTenant(ext, tenantId))
@@ -64,7 +69,7 @@ public class TenantSelector extends AbstractSelector {
             }
             log.debug("[{}] 租户 {} 无命中，回退到默认候选", NAME, tenantId);
         } else {
-            log.debug("[{}] 上下文无 tenantId", NAME);
+            log.debug("[{}] 未解析到 tenantId", NAME);
             if (!fallback) {
                 return Collections.emptyList();
             }
@@ -94,5 +99,10 @@ public class TenantSelector extends AbstractSelector {
     @Override
     public String getName() {
         return NAME;
+    }
+
+    /** 业务方实现用于解析当前 tenantId 的接口。 */
+    public interface TenantResolver {
+        String resolveTenantId();
     }
 }

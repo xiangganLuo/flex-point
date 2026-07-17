@@ -8,14 +8,10 @@ import com.flexpoint.plugin.observe.metrics.MetricsSummaryPlugin;
 import com.flexpoint.plugin.observe.slowcall.SlowCallPlugin;
 import com.flexpoint.plugin.resilience.ResiliencePlugin;
 import com.flexpoint.plugin.resilience.retry.RetryPlugin;
-import com.flexpoint.plugin.selector.ab.AbTestSelectorPlugin;
 import com.flexpoint.plugin.selector.code.CodeSelector;
 import com.flexpoint.plugin.selector.code.CodeSelectorPlugin;
 import com.flexpoint.plugin.selector.codeversion.CodeVersionSelector;
 import com.flexpoint.plugin.selector.codeversion.CodeVersionSelectorPlugin;
-import com.flexpoint.plugin.selector.gray.GraySelectorPlugin;
-import com.flexpoint.plugin.selector.tag.TagSelectorPlugin;
-import com.flexpoint.plugin.selector.tenant.TenantSelectorPlugin;
 import com.flexpoint.plugin.selector.weight.WeightSelectorPlugin;
 import com.flexpoint.springboot.properties.FlexPointPluginsProperties;
 import com.flexpoint.springboot.properties.FlexPointProperties;
@@ -40,14 +36,13 @@ import java.util.stream.Collectors;
  * —— Spring 以 ASM 评估该条件、缺失插件类时整体跳过该嵌套配置（不会 introspect 其 @Bean 返回类型）。</p>
  *
  * <p>装配出的 {@code Plugin} Bean 由 {@code FlexPointCoreAutoConfiguration} 统一收集并装配进 {@code FlexPoint}。
- * 部分插件需容器提供额外协作 Bean 才装配：code/code-version 需业务方的
- * {@code CodeResolver}/{@code CodeVersionResolver}。</p>
+ * code/code-version 需容器提供业务方的 {@code CodeResolver}/{@code CodeVersionResolver} Bean（{@code @ConditionalOnBean}）才装配。</p>
  *
- * <p>缓存选择器 {@code CachingSelectorPlugin} 未纳入「配置即装配」：它是装饰器，需要一个 delegate
- * {@code Selector}，而本框架的 {@code FlexPointSpringSelectorRegister} 会把容器内所有 {@code Selector}
- * Bean 直接注册进 {@code SelectorRegistry}——delegate 已按其名注册，缓存装饰器默认沿用同名，纯属性装配必然
- * 导致「选择器名称重复」冲突；且内置选择器均由插件内部创建、并非 {@code Selector} Bean，无法作为 delegate 注入。
- * 因此缓存选择器请以显式 {@code @Bean}（自行控制 delegate 与名称）方式使用，会被上述注册器自动纳入。</p>
+ * <p><b>依赖运行期数据的选择器（tag/gray/ab/tenant/cache）不纳入「配置即装配」</b>：它们需要业务方实现的
+ * 数据接口（如 {@code TagSelector.LabelResolver}、{@code GraySelector.GrayKeyResolver}、
+ * {@code TenantSelector.TenantResolver} 等）提供路由数据，无法「零编码」自动装配；请以显式 {@code @Bean}
+ * 声明对应 {@code *SelectorPlugin}（传入你的 Resolver），会被自动收集装配。缓存选择器同理，且它是装饰器
+ * 默认沿用 delegate 同名注册，纯属性装配会与 {@code FlexPointSpringSelectorRegister} 自动注册的 delegate 冲突。</p>
  *
  * @author xiangganluo
  */
@@ -61,39 +56,6 @@ public class FlexPointPluginsAutoConfiguration {
     // =============== 选择器插件 ===============
 
     @Configuration(proxyBeanMethods = false)
-    @ConditionalOnClass(TagSelectorPlugin.class)
-    static class TagCfg {
-        @Bean
-        @ConditionalOnMissingBean(TagSelectorPlugin.class)
-        @ConditionalOnProperty(prefix = P + ".tag", name = "enabled", havingValue = "true")
-        public TagSelectorPlugin tagSelectorPlugin() {
-            return new TagSelectorPlugin();
-        }
-    }
-
-    @Configuration(proxyBeanMethods = false)
-    @ConditionalOnClass(GraySelectorPlugin.class)
-    static class GrayCfg {
-        @Bean
-        @ConditionalOnMissingBean(GraySelectorPlugin.class)
-        @ConditionalOnProperty(prefix = P + ".gray", name = "enabled", havingValue = "true")
-        public GraySelectorPlugin graySelectorPlugin(FlexPointPluginsProperties props) {
-            return new GraySelectorPlugin(props.getGray().getPercentage());
-        }
-    }
-
-    @Configuration(proxyBeanMethods = false)
-    @ConditionalOnClass(AbTestSelectorPlugin.class)
-    static class AbCfg {
-        @Bean
-        @ConditionalOnMissingBean(AbTestSelectorPlugin.class)
-        @ConditionalOnProperty(prefix = P + ".ab", name = "enabled", havingValue = "true")
-        public AbTestSelectorPlugin abTestSelectorPlugin(FlexPointPluginsProperties props) {
-            return new AbTestSelectorPlugin(props.getAb().getBuckets());
-        }
-    }
-
-    @Configuration(proxyBeanMethods = false)
     @ConditionalOnClass(WeightSelectorPlugin.class)
     static class WeightCfg {
         @Bean
@@ -101,17 +63,6 @@ public class FlexPointPluginsAutoConfiguration {
         @ConditionalOnProperty(prefix = P + ".weight", name = "enabled", havingValue = "true")
         public WeightSelectorPlugin weightSelectorPlugin() {
             return new WeightSelectorPlugin();
-        }
-    }
-
-    @Configuration(proxyBeanMethods = false)
-    @ConditionalOnClass(TenantSelectorPlugin.class)
-    static class TenantCfg {
-        @Bean
-        @ConditionalOnMissingBean(TenantSelectorPlugin.class)
-        @ConditionalOnProperty(prefix = P + ".tenant", name = "enabled", havingValue = "true")
-        public TenantSelectorPlugin tenantSelectorPlugin(FlexPointPluginsProperties props) {
-            return new TenantSelectorPlugin(props.getTenant().isFallback());
         }
     }
 
