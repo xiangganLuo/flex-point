@@ -4,16 +4,16 @@
 
 ## 两种接入方式
 
-1. **属性装配（推荐，13 个插件）** —— 引入插件模块依赖 + 在 `application.yml` 设置 `flexpoint.plugins.<name>.enabled=true`，Spring Boot 自动创建并装配该插件 Bean，无需手写代码。适用于：`tag`、`gray`、`ab`、`weight`、`tenant`、`audit`、`slowcall`、`metrics`、`retry`、`resilience`、`observability`、`code`、`code-version`。默认均为 `enabled=false`，需显式开启。
+1. **属性装配（推荐，9 个插件）** —— 引入插件模块依赖 + 在 `application.yml` 设置 `flexpoint.plugins.<name>.enabled=true`，Spring Boot 自动创建并装配该插件 Bean，无需手写代码。适用于：`weight`、`audit`、`slowcall`、`metrics`、`retry`、`resilience`、`observability`、`code`、`code-version`。默认均为 `enabled=false`，需显式开启。
 
    其中三个插件在 `enabled=true` 之外仍有**前置条件**，不满足则跳过装配（不会因为开了开关就一定生效）：
    - `code` —— 还需容器中提供一个 `CodeSelector.CodeResolver` Bean（`@ConditionalOnBean`）；
    - `code-version` —— 还需 `CodeVersionSelector.CodeVersionResolver` Bean；注意属性前缀是 kebab 的 `flexpoint.plugins.code-version`；
    - `observability` —— 会经 `ObjectProvider` 收集容器中的 `AlertStrategy` / `MetricsCollector`（都可无，无自定义时仅默认指标处理链）。
-2. **显式 `@Bean` 装配（仅 `cache`）** —— 缓存选择器 `cache` 是**装饰器**，需要一个被包装的 `delegate` 选择器，**不纳入属性装配**，请自行声明 `@Bean`（或在非 Spring 环境用 `FlexPointBuilder.withPlugin(...)`）。任何你声明的 `Plugin` Bean 都会被自动收集装配。
+2. **显式 `@Bean` 装配（`tag` / `gray` / `ab` / `tenant` / `cache`）** —— 这些选择器需要业务方提供运行期数据（`tag`/`gray`/`ab`/`tenant` 需各自的 Resolver，`cache` 需被包装的 `delegate`），**无法零编码**，故**不纳入属性装配**，请自行声明对应 `*SelectorPlugin` 的 `@Bean`（构造时传入你的 Resolver / delegate；或在非 Spring 环境用 `FlexPointBuilder.withPlugin(...)`）。任何你声明的 `Plugin` Bean 都会被自动收集装配。这四个选择器的 `flexpoint.plugins.<name>.*` 属性开关已不存在。
 
 ::: tip 装配机制
-Spring Boot 下 `FlexPoint` 由自动配置构建，会收集容器中**所有** `Plugin` 类型 Bean 并按收集顺序装配（见 [Spring Boot 接入](/guide/springboot#插件装配)）。属性装配的 13 个插件由 `flexpoint.plugins.<name>.enabled=true` + classpath 上存在对应类（`@ConditionalOnClass`）触发；你自己声明的同类型 `@Bean` 会覆盖默认（`@ConditionalOnMissingBean`）。
+Spring Boot 下 `FlexPoint` 由自动配置构建，会收集容器中**所有** `Plugin` 类型 Bean 并按收集顺序装配（见 [Spring Boot 接入](/guide/springboot#插件装配)）。属性装配的 9 个插件由 `flexpoint.plugins.<name>.enabled=true` + classpath 上存在对应类（`@ConditionalOnClass`）触发；你自己声明的同类型 `@Bean` 会覆盖默认（`@ConditionalOnMissingBean`）。
 :::
 
 ## 插件全景
@@ -22,12 +22,12 @@ Spring Boot 下 `FlexPoint` 由自动配置构建，会收集容器中**所有**
 |------|------|----------|-------------------|----------|
 | 选择器 | `flexpoint-plugin-selector-code` | `core.selector.code` | `codeSelector` | `flexpoint.plugins.code`（需 `CodeResolver` Bean） |
 | 选择器 | `flexpoint-plugin-selector-code-version` | `core.selector.code-version` | `codeVersionSelector` | `flexpoint.plugins.code-version`（需 `CodeVersionResolver` Bean） |
-| 选择器 | `flexpoint-plugin-selector-tag` | `selector.tag` | `tagSelector` | `flexpoint.plugins.tag` |
-| 选择器 | `flexpoint-plugin-selector-gray` | `selector.gray` | `graySelector` | `flexpoint.plugins.gray` |
-| 选择器 | `flexpoint-plugin-selector-ab` | `selector.ab` | `abSelector` | `flexpoint.plugins.ab` |
+| 选择器 | `flexpoint-plugin-selector-tag` | `selector.tag` | `tagSelector` | 显式 `@Bean`（需实现 `LabelResolver`） |
+| 选择器 | `flexpoint-plugin-selector-gray` | `selector.gray` | `graySelector` | 显式 `@Bean`（需实现 `GrayKeyResolver`） |
+| 选择器 | `flexpoint-plugin-selector-ab` | `selector.ab` | `abSelector` | 显式 `@Bean`（需实现 `AbKeyResolver`） |
 | 选择器 | `flexpoint-plugin-selector-weight` | `selector.weight` | `weightSelector` | `flexpoint.plugins.weight` |
-| 选择器 | `flexpoint-plugin-selector-tenant` | `selector.tenant` | `tenantSelector` | `flexpoint.plugins.tenant` |
-| 选择器 | `flexpoint-plugin-selector-cache` | `selector.cache` | `CachingSelector`（装饰器） | `@Bean`（需 `delegate`） |
+| 选择器 | `flexpoint-plugin-selector-tenant` | `selector.tenant` | `tenantSelector` | 显式 `@Bean`（需实现 `TenantResolver`） |
+| 选择器 | `flexpoint-plugin-selector-cache` | `selector.cache` | `CachingSelector`（装饰器） | 显式 `@Bean`（需 `delegate`） |
 | 观测/治理 | `flexpoint-plugin-observability` | `core.observability` | `ObservabilityPlugin` | `flexpoint.plugins.observability` |
 | 观测/治理 | `flexpoint-plugin-audit` | `observe.audit` | `AuditLogSubscriber` | `flexpoint.plugins.audit` |
 | 观测/治理 | `flexpoint-plugin-slowcall` | `observe.slowcall` | `SlowCallSubscriber` | `flexpoint.plugins.slowcall` |
@@ -35,7 +35,7 @@ Spring Boot 下 `FlexPoint` 由自动配置构建，会收集容器中**所有**
 | 行为增强 | `flexpoint-plugin-retry` | `resilience.retry` | `RetryInterceptor`（order 300） | `flexpoint.plugins.retry` |
 | 行为增强 | `flexpoint-plugin-resilience` | `resilience.guard` | `CircuitBreakerInterceptor`（100）+ `TimeoutInterceptor`（400） | `flexpoint.plugins.resilience` |
 
-要点：**选择器插件从标准上下文 [`FlexPointContext`](/guide/ext#标准上下文-flexpointcontext) 读取路由依据**（`tag`/`tenant`/`gray`/`ab` 读 labels/tenantId/uid；`weight` 只读候选标签，不读上下文；`code`/`code-version` 读业务实现的 `Resolver`）。**行为增强插件基于 [拦截器 SPI](/guide/ext#调用管线与拦截器)**。
+要点：**选择器插件的运行期路由依据由业务方实现对应 Resolver 提供**（`tag`/`gray`/`ab`/`tenant` 分别实现 `LabelResolver`/`GrayKeyResolver`/`AbKeyResolver`/`TenantResolver` 提供 labels / key / tenantId；`weight` 只读候选标签，不需任何 Resolver；`code`/`code-version` 用各自的 `CodeResolver`/`CodeVersionResolver`）。框架不再内置任何请求上下文。**行为增强插件基于 [拦截器 SPI](/guide/ext#调用管线与拦截器)**。
 
 ---
 
@@ -64,10 +64,10 @@ flexpoint:
 ```
 
 ```java
-// 提供 code 解析来源（从标准上下文解析，也可来自自定义来源）
+// 提供 code 解析来源（值来自业务方自有来源：请求头 / 自定义请求持有者 / 线程变量等）
 @Bean
-public CodeSelector.CodeResolver codeResolver() {
-    return () -> FlexPointContext.current().getAppCode();
+public CodeSelector.CodeResolver codeResolver(AppRequestHolder holder) {
+    return holder::getAppCode;
 }
 ```
 
@@ -102,12 +102,12 @@ flexpoint:
 ```
 
 ```java
-// 提供 code + version 解析来源
+// 提供 code + version 解析来源（值来自业务方自有来源，如请求头 / 自定义请求持有者）
 @Bean
-public CodeVersionSelector.CodeVersionResolver codeVersionResolver() {
+public CodeVersionSelector.CodeVersionResolver codeVersionResolver(AppRequestHolder holder) {
     return new CodeVersionSelector.CodeVersionResolver() {
-        @Override public String resolveCode() { return FlexPointContext.current().getAppCode(); }
-        @Override public String resolveVersion() { return FlexPointContext.current().getVersion(); }
+        @Override public String resolveCode() { return holder.getAppCode(); }
+        @Override public String resolveVersion() { return holder.getAppVersion(); }
     };
 }
 ```
@@ -121,8 +121,10 @@ public CodeVersionSelector.CodeVersionResolver codeVersionResolver() {
 ### 标签选择器 tag
 
 - 模块 `flexpoint-plugin-selector-tag`，pluginId `selector.tag`，选择器名 `tagSelector`。
-- 行为：读取 `FlexPointContext.current().getLabels()`，与候选 `getTags()` 做 **AND 匹配**——上下文中的每个 label 键值都需在候选标签中存在；上下文 labels 为空则 MISS。
-- 构造：`TagSelectorPlugin()`（无参，零配置）。
+- 行为：从业务方实现的 `LabelResolver` 取得 labels，与候选 `getTags()` 做 **AND 匹配**——每个 label 键值都需在候选标签中存在；labels 为空则 MISS。
+- 关键类：`TagSelectorPlugin`、`TagSelector`、`TagSelector.LabelResolver { Map<String,String> resolveLabels(); }`。
+- 构造：`TagSelectorPlugin(LabelResolver resolver)`（resolver 必填）。
+- **装配**：需业务运行期数据，**不纳入「配置即装配」**，请显式声明 `@Bean`（无对应属性开关）。
 
 ```xml
 <dependency>
@@ -132,56 +134,48 @@ public CodeVersionSelector.CodeVersionResolver codeVersionResolver() {
 </dependency>
 ```
 
-```yaml
-flexpoint:
-  plugins:
-    tag:
-      enabled: true
+```java
+// labels 来自业务方自有来源（如请求头 / 自定义请求持有者）
+@Bean
+public TagSelectorPlugin tagSelectorPlugin(AppRequestHolder holder) {
+    return new TagSelectorPlugin(holder::resolveLabels);
+}
 ```
-
-| 配置项 | 类型 | 默认 | 说明 |
-|--------|------|------|------|
-| `flexpoint.plugins.tag.enabled` | boolean | `false` | 开启后装配 `tagSelector` |
 
 ### 灰度选择器 gray
 
 - 模块 `flexpoint-plugin-selector-gray`，pluginId `selector.gray`，选择器名 `graySelector`。
-- 行为：对灰度键哈希取模 100，`< percentage` 命中灰度候选（标签 `gray==true` 或 `group=="gray"`），否则命中非灰度候选。灰度键默认取 `FlexPointContext::getUid`；编程式可传 `Function<FlexPointContext,String>`（`GraySelector.byLabel("key")` 读某个 label）。
-- 构造：`GraySelectorPlugin(int percentage)` / `GraySelectorPlugin(int percentage, Function<FlexPointContext,String> keyProvider)`。
+- 行为：对灰度键哈希取模 100，`< percentage` 命中灰度候选（标签 `gray==true` 或 `group=="gray"`），否则命中非灰度候选。灰度键由业务方实现的 `GrayKeyResolver` 提供。
+- 关键类：`GraySelectorPlugin`、`GraySelector`、`GraySelector.GrayKeyResolver { String resolveKey(); }`。
+- 构造：`GraySelectorPlugin(int percentage, GrayKeyResolver resolver)`。
+- **装配**：需业务运行期数据，**不纳入「配置即装配」**，请显式声明 `@Bean`（无对应属性开关）。
 
-```yaml
-flexpoint:
-  plugins:
-    gray:
-      enabled: true
-      percentage: 20   # 20% 走灰度
+```java
+// 灰度键（如 uid/deviceId）来自业务方自有来源；此处 20% 走灰度
+@Bean
+public GraySelectorPlugin graySelectorPlugin(AppRequestHolder holder) {
+    return new GraySelectorPlugin(20, holder::getUid);
+}
 ```
-
-| 配置项 | 类型 | 默认 | 说明 |
-|--------|------|------|------|
-| `flexpoint.plugins.gray.enabled` | boolean | `false` | 是否装配 |
-| `flexpoint.plugins.gray.percentage` | int | `0` | 灰度比例（0–100） |
 
 ### A/B 选择器 ab
 
 - 模块 `flexpoint-plugin-selector-ab`，pluginId `selector.ab`，选择器名 `abSelector`。
-- 行为：按权重分桶。对切分键哈希取模总权重、在权重排序的桶上定位一个 `bucket`，命中标签 `bucket` 等于该值的候选。切分键默认 `getUid`，可自定义 keyProvider。
-- 构造：`AbTestSelectorPlugin(Map<String,Integer> buckets)` / `(Map<String,Integer> buckets, Function<FlexPointContext,String> keyProvider)`。
+- 行为：按权重分桶。对切分键哈希取模总权重、在权重排序的桶上定位一个 `bucket`，命中标签 `bucket` 等于该值的候选。切分键由业务方实现的 `AbKeyResolver` 提供。
+- 关键类：`AbTestSelectorPlugin`、`AbTestSelector`、`AbTestSelector.AbKeyResolver { String resolveKey(); }`。
+- 构造：`AbTestSelectorPlugin(Map<String,Integer> buckets, AbKeyResolver resolver)`。
+- **装配**：需业务运行期数据，**不纳入「配置即装配」**，请显式声明 `@Bean`（无对应属性开关）。
 
-```yaml
-flexpoint:
-  plugins:
-    ab:
-      enabled: true
-      buckets:
-        A: 50
-        B: 50
+```java
+// 切分键来自业务方自有来源；A/B 各 50%
+@Bean
+public AbTestSelectorPlugin abSelectorPlugin(AppRequestHolder holder) {
+    Map<String, Integer> buckets = new HashMap<>();
+    buckets.put("A", 50);
+    buckets.put("B", 50);
+    return new AbTestSelectorPlugin(buckets, holder::getUid);
+}
 ```
-
-| 配置项 | 类型 | 默认 | 说明 |
-|--------|------|------|------|
-| `flexpoint.plugins.ab.enabled` | boolean | `false` | 是否装配 |
-| `flexpoint.plugins.ab.buckets` | Map&lt;String,Integer&gt; | 空 | 桶名→权重；候选用标签 `bucket` 标注所属桶 |
 
 ### 权重选择器 weight
 
@@ -203,26 +197,23 @@ flexpoint:
 ### 租户选择器 tenant
 
 - 模块 `flexpoint-plugin-selector-tenant`，pluginId `selector.tenant`，选择器名 `tenantSelector`。
-- 行为：读取 `FlexPointContext.current().getTenantId()`，命中 `ext.getCode()==tenantId` 或标签 `tenant==tenantId` 的候选。`fallback=true` 时，无匹配（或无 tenantId）回退到「默认」候选（code=="default" 或标签 `tenant` 缺省/"default"）。
-- 构造：`TenantSelectorPlugin()`（fallback=false）/ `TenantSelectorPlugin(boolean fallback)`。
+- 行为：从业务方实现的 `TenantResolver` 取得 tenantId，命中 `ext.getCode()==tenantId` 或标签 `tenant==tenantId` 的候选。`fallback=true` 时，无匹配（或无 tenantId）回退到「默认」候选（code=="default" 或标签 `tenant` 缺省/"default"）。
+- 关键类：`TenantSelectorPlugin`、`TenantSelector`、`TenantSelector.TenantResolver { String resolveTenantId(); }`。
+- 构造：`TenantSelectorPlugin(TenantResolver resolver)`（fallback=false）/ `TenantSelectorPlugin(boolean fallback, TenantResolver resolver)`。
+- **装配**：需业务运行期数据，**不纳入「配置即装配」**，请显式声明 `@Bean`（无对应属性开关）。
 
-```yaml
-flexpoint:
-  plugins:
-    tenant:
-      enabled: true
-      fallback: true
+```java
+// tenantId 来自业务方自有来源；开启无匹配回退到默认候选
+@Bean
+public TenantSelectorPlugin tenantSelectorPlugin(AppRequestHolder holder) {
+    return new TenantSelectorPlugin(true, holder::getTenantId);
+}
 ```
-
-| 配置项 | 类型 | 默认 | 说明 |
-|--------|------|------|------|
-| `flexpoint.plugins.tenant.enabled` | boolean | `false` | 是否装配 |
-| `flexpoint.plugins.tenant.fallback` | boolean | `false` | 无匹配时是否回退到默认候选 |
 
 ### 缓存选择器 cache
 
 - 模块 `flexpoint-plugin-selector-cache`，pluginId `selector.cache`。
-- 关键类：`CachingSelectorPlugin`、`CachingSelector`（**装饰器**，包裹另一个 `Selector delegate`）。缓存键由上下文（`tenantId | appCode | version | uid | 排序后的 labels`）+ 排序后的候选 extId 组成；缓存 delegate 的 `SelectionResult`；`ttlMillis <= 0` 表示永不过期。提供 `invalidate()` / `cacheSize()`。
+- 关键类：`CachingSelectorPlugin`、`CachingSelector`（**装饰器**，包裹另一个 `Selector delegate`）、可选 `CachingSelector.CacheKeyResolver { String resolveKey(); }`。缓存键**默认由排序后的候选 extId 组成**；如路由随业务维度（租户/灰度键等）变化，可传入 `CacheKeyResolver` 把该维度并入键，避免不同请求命中同一缓存项。缓存 delegate 的 `SelectionResult`；`ttlMillis <= 0` 表示永不过期。提供 `invalidate()` / `cacheSize()`。
 - **必须显式 `@Bean` 装配，不纳入「配置即装配」**。原因：缓存选择器是装饰器，默认沿用 delegate 的同名注册；而 `FlexPointSpringSelectorRegister` 会把容器中所有 `Selector` Bean 自动注册进 `SelectorRegistry`——若走属性装配，装饰器与被包装的 delegate 同名，必然触发「选择器名重复」冲突（[资源级唯一](/guide/selector)）；且内置选择器均由插件内部创建、并非 `Selector` Bean，无法直接充当 delegate。因此请用显式 `@Bean` 自行控制 delegate 与名称，**建议用 3 参构造指定独立 `name`**，声明后会被上述注册器自动纳入。
 
 ```xml

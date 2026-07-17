@@ -1,6 +1,6 @@
 # 扩展点
 
-扩展点（Ext Point）是 Flex Point 的核心。本页深入 `flexpoint-core` 的 `ext` 模块：扩展点的**定义**、**注册中心**、**查找与路由**、**调用管线（含拦截器 SPI 与内置事件埋点）**，以及贯穿其中的**标准上下文** `FlexPointContext`。
+扩展点（Ext Point）是 Flex Point 的核心。本页深入 `flexpoint-core` 的 `ext` 模块：扩展点的**定义**、**注册中心**、**查找与路由**、**调用管线（含拦截器 SPI 与内置事件埋点）**。
 
 ## 扩展点 ExtAbility
 
@@ -220,56 +220,9 @@ public class RetryPlugin extends AbstractPlugin {
 
 这些事件通过实例级事件总线 `EventBus` 分发；如何订阅与转为指标见 [可观测](/guide/observability)。
 
-## 标准上下文 FlexPointContext
+## 选择器的运行期数据
 
-多数选择器需要「请求维度」的路由依据（租户、灰度键、版本…）。Flex Point 用 `FlexPointContext` 承载这些标准上下文：
-
-```java
-public final class FlexPointContext {
-    // 标准字段
-    private String tenantId;
-    private String appCode;
-    private String version;
-    private String uid;
-    private final Map<String, String> labels;      // 自定义标签
-    private final Map<String, Object> attributes;   // 自定义属性
-
-    public static FlexPointContext current();          // 取当前线程上下文（不存在则创建并绑定）
-    public static Optional<FlexPointContext> peek();   // 只读查看，不创建
-    public static void set(FlexPointContext ctx);
-    public static void clear();                        // 移除绑定
-    // 链式：tenantId(..)/appCode(..)/version(..)/uid(..)/label(k,v)/attr(k,v)
-}
-```
-
-要点：
-
-- 底层是**普通 `ThreadLocal`**（非 `InheritableThreadLocal`，未集成 TTL）——**不会**自动跨线程池 / 子线程传递；跨线程需手动传递。
-- **务必在请求结束调用 `clear()`**，避免线程池复用导致上下文串号。
-
-以 Web 过滤器为例：
-
-```java
-@Component
-public class AppContextFilter implements Filter {
-    @Override
-    public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain)
-            throws IOException, ServletException {
-        HttpServletRequest request = (HttpServletRequest) req;
-        FlexPointContext.current()
-                .appCode(request.getHeader("X-App-Code"))
-                .version(request.getHeader("X-App-Version"))
-                .tenantId(request.getHeader("X-Tenant-Id"));
-        try {
-            chain.doFilter(req, resp);
-        } finally {
-            FlexPointContext.clear(); // 线程池复用，务必清理
-        }
-    }
-}
-```
-
-官方选择器 `tagSelector` / `tenantSelector` / `graySelector` / `abSelector` 均从 `FlexPointContext` 读取路由依据（labels / tenantId / uid 等），详见 [官方插件模块](/guide/plugins-official)。
+框架**不内置**任何请求上下文 / ThreadLocal。选择器所需的运行期路由依据（labels、灰度键、tenantId、code、version…）一律由**业务方实现对应的命名 Resolver 接口**提供，经构造参数传入选择器，数据来源完全由业务方自己维护（如从 `HttpServletRequest` 头、自定义请求持有者、线程变量读取）。各官方选择器的 Resolver 接口与用法见 [官方插件模块](/guide/plugins-official)。
 
 ## 下一步
 

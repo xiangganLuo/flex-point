@@ -12,7 +12,7 @@ public interface Selector {
 }
 ```
 
-选择器多数需要「请求维度」的路由依据（租户、灰度键、版本…），这些从标准上下文 [`FlexPointContext`](/guide/ext#标准上下文-flexpointcontext) 读取。
+选择器多数需要「请求维度」的路由依据（租户、灰度键、版本…）。框架不内置任何请求上下文，这些依据由**业务方实现对应的命名 Resolver 接口**提供、经构造参数传入选择器，数据来源由业务方自行维护（详见 [选择器的运行期数据](/guide/ext#选择器的运行期数据)）。
 
 ## SelectionResult：一次选择，三种结论
 
@@ -73,7 +73,6 @@ flowchart TD
 只需实现 `filter(...)`；模板方法自动按「空 → MISS、唯一 → HIT、多个 → AMBIGUOUS」封装结果与解释，**不会**在歧义时抛异常（交由上层 `findAbility` 决定）：
 
 ```java
-import com.flexpoint.common.context.FlexPointContext;
 import com.flexpoint.core.ext.ExtAbility;
 import com.flexpoint.core.selector.AbstractSelector;
 import java.util.List;
@@ -81,9 +80,13 @@ import java.util.stream.Collectors;
 
 public class TenantSelector extends AbstractSelector {
 
+    private final TenantResolver resolver; // 业务方实现，从自有来源解析 tenantId
+
+    public TenantSelector(TenantResolver resolver) { this.resolver = resolver; }
+
     @Override
     protected <T extends ExtAbility> List<T> filter(List<T> candidates) {
-        String tenant = FlexPointContext.current().getTenantId();
+        String tenant = resolver.resolveTenantId();
         return candidates.stream()
                 .filter(ext -> tenant != null && tenant.equals(ext.getCode()))
                 .collect(Collectors.toList());
@@ -91,6 +94,9 @@ public class TenantSelector extends AbstractSelector {
 
     @Override
     public String getName() { return "tenantSelector"; }
+
+    /** 业务方实现用于解析当前 tenantId 的接口。 */
+    public interface TenantResolver { String resolveTenantId(); }
 }
 ```
 

@@ -45,9 +45,9 @@ Flex Point 常用术语的简明定义，便于统一理解。更完整的说明
 - **监控 ExtMonitor** —— 记录调用与异常、产出指标的监控门面，内部为处理器责任链。
 - **ExtMetrics** —— 单个扩展点的调用指标：次数、成功率、平均/最大/最小耗时、异常数、QPS 等。
 
-## 上下文与约束
+## 约束
 
-- **标准上下文 FlexPointContext** —— 承载请求维度路由依据（`tenantId / appCode / version / uid / labels / attributes`）的线程级上下文；基于普通 `ThreadLocal`，请求结束须 `clear()`。见 [标准上下文](/guide/ext#标准上下文-flexpointcontext)。
+- **Resolver** —— 业务方实现的命名接口，为选择器提供运行期路由依据（如 `LabelResolver`/`GrayKeyResolver`/`AbKeyResolver`/`TenantResolver`/`CodeResolver`）；框架不内置请求上下文，数据来源由业务方自行维护。见 [官方插件模块](/guide/plugins-official)。
 - **资源级唯一** —— 选择器名等「资源名」在注册表内禁止同名覆盖，重复注册失败（区别于扩展点「允许多实现」）。
 - **装配顺序 = 注册顺序** —— 插件按注册先后 `init → start`，关闭时逆序 `stop → destroy`；Spring Boot 下即容器中 `Plugin` Bean 的收集顺序。
 - **统一降级** —— 任一插件启动失败只标记 `FAILED` 并记入报告，不中断整体构建。

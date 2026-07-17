@@ -248,11 +248,10 @@ public class FlexPointConfig {
 #### 进阶：自定义 Selector（如需特殊路由/多维选择）
 
 > 选择器统一实现 `SelectionResult<T> select(List<T>)`（HIT/MISS/AMBIGUOUS + 决策解释）。
-> 推荐继承 `AbstractSelector` 只实现 `filter(...)`，命中语义由基类处理；并从标准上下文
-> `FlexPointContext` 读取路由信息（配合接入层入口填充，无需业务 Resolver）。
+> 推荐继承 `AbstractSelector` 只实现 `filter(...)`，命中语义由基类处理；路由所需的运行期数据
+> 由业务方自有来源提供（框架不内置请求上下文，示例中 `AppRequestHolder` 为业务方自定义的请求持有者）。
 
 ```java
-import com.flexpoint.common.context.FlexPointContext;
 import com.flexpoint.core.selector.AbstractSelector;
 import org.springframework.stereotype.Component;
 
@@ -261,9 +260,13 @@ import java.util.stream.Collectors;
 
 @Component
 public class CustomSelector extends AbstractSelector {
+    private final AppRequestHolder holder; // 业务方自定义的请求持有者
+
+    public CustomSelector(AppRequestHolder holder) { this.holder = holder; }
+
     @Override
     protected <T extends ExtAbility> List<T> filter(List<T> candidates) {
-        String code = FlexPointContext.current().getAppCode();
+        String code = holder.getAppCode();
         return candidates.stream()
                 .filter(ext -> code.equals(ext.getCode()))
                 .collect(Collectors.toList());
@@ -303,10 +306,10 @@ System.out.println("平均耗时: " + metrics.getAverageResponseTime() + "ms");
 官方插件已从内核拆分为独立模块（`flexpoint-plugin-*`），Spring Boot 下**引入所需插件模块 + 配置开关即装配，无需编码**：
 
 ```xml
-<!-- 例：引入灰度选择器 + 重试插件 -->
+<!-- 例：引入权重选择器 + 重试插件 -->
 <dependency>
     <groupId>io.github.xiangganluo</groupId>
-    <artifactId>flexpoint-plugin-selector-gray</artifactId>
+    <artifactId>flexpoint-plugin-selector-weight</artifactId>
 </dependency>
 <dependency>
     <groupId>io.github.xiangganluo</groupId>
@@ -317,11 +320,7 @@ System.out.println("平均耗时: " + metrics.getAverageResponseTime() + "ms");
 ```yaml
 flexpoint:
   plugins:
-    tag:       { enabled: true }                       # 标签选择器
-    gray:      { enabled: true, percentage: 20 }       # 灰度（按上下文 uid 哈希放量）
-    ab:        { enabled: true, buckets: { A: 50, B: 50 } }  # A/B 分流
     weight:    { enabled: true }                       # 权重（按扩展点 weight 标签）
-    tenant:    { enabled: true, fallback: true }       # 租户路由 + 回退
     audit:     { enabled: true }                       # 审计日志
     slowcall:  { enabled: true, threshold-ms: 200 }    # 慢调用告警
     metrics:   { enabled: true, interval-seconds: 60 } # 指标汇总
@@ -338,11 +337,11 @@ flexpoint:
 | 观测 | observability / audit / slowcall / metrics | 监控链融合 / 审计日志 / 慢调用告警 / 指标汇总 |
 | 行为增强 | retry / resilience | 重试 / 超时+熔断（基于调用拦截器 SPI） |
 
-> 选择器类插件从标准上下文 `FlexPointContext`（`tenantId/appCode/version/uid/labels`）读取路由信息；
-> 共 **13 个官方插件支持属性装配**。其中 `code` / `code-version` 除开关外，还需业务方提供
-> `CodeResolver` / `CodeVersionResolver` Bean（`@ConditionalOnBean`，否则不装配）。
-> 缓存选择器（selector-cache）不纳入配置即装配：它是装饰器且默认沿用 delegate 同名注册，
-> 请以显式 `@Bean` 方式使用（自定 delegate 与名称）。详见 `docs/` 官网文档。
+> 框架不再内置请求上下文：选择器所需的运行期路由数据由业务方实现对应 Resolver 提供（数据来源自行维护）。
+> 共 **9 个官方插件支持属性装配**（`weight`/`audit`/`slowcall`/`metrics`/`retry`/`resilience`/`observability`/`code`/`code-version`）；
+> 其中 `code` / `code-version` 除开关外，还需业务方提供 `CodeResolver` / `CodeVersionResolver` Bean（`@ConditionalOnBean`，否则不装配）。
+> `tag`/`gray`/`ab`/`tenant` 需业务方实现对应 Resolver，缓存选择器（selector-cache）是装饰器需被包装的 delegate，
+> 均不纳入配置即装配，请以显式 `@Bean` 声明对应 `*SelectorPlugin`（传入你的 Resolver / delegate）。详见 `docs/` 官网文档。
 
 ---
 
@@ -380,9 +379,9 @@ flexpoint:
 
 ### 🚦 Spring Boot 全流程实战
 
-以 `flexpoint-examples/spring-boot-example` 为例，演示如何实现"基于上下文动态切换扩展点"的完整链路：
+以 `flexpoint-examples/spring-boot-example` 为例，演示如何实现"按业务自有来源动态切换扩展点"的完整链路（示例中 `SysAppContext` 为业务方自定义的请求持有者，框架不再提供请求上下文）：
 
-#### 1. 过滤器编写（上下文注入/鉴权）
+#### 1. 过滤器编写（业务请求数据注入/鉴权）
 
 ```java
 // src/main/java/com/flexpoint/example/springboot/framework/flexpoint/security/AppAuthFilter.java

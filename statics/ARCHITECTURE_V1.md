@@ -28,7 +28,7 @@ flexpoint-test               单元/集成/并发测试
 flexpoint-examples           Java 原生 / Spring Boot 接入示例
 ```
 
-**边界原则**：`core` 只保留干净 SPI 与默认实现（注册中心、选择 SPI、插件管理、事件总线、监控链、调用拦截 SPI）；标准请求上下文 `FlexPointContext` 属跨层横切基础设施，置于共享基础模块 `flexpoint-common`；所有**具体能力**（各类选择器、观测/行为插件）一律作为 `flexpoint-plugin-*` 独立模块。
+**边界原则**：`core` 只保留干净 SPI 与默认实现（注册中心、选择 SPI、插件管理、事件总线、监控链、调用拦截 SPI）；框架不内置任何请求上下文，选择器所需运行期数据由业务方实现对应 Resolver 提供；所有**具体能力**（各类选择器、观测/行为插件）一律作为 `flexpoint-plugin-*` 独立模块。
 
 ---
 
@@ -54,7 +54,6 @@ graph TB
         MON[ExtMonitor + Handler 链]
         CFG[FlexPointConfig + Validator]
     end
-    CTX["FlexPointContext 标准上下文<br/>（flexpoint-common·共享基础）"]
 
     subgraph "flexpoint-plugin-*（官方插件）"
         PS[选择器: code/code-version/tag/gray/ab/weight/tenant/cache]
@@ -72,7 +71,6 @@ graph TB
     B -->|构建装配| F
     F --> R & S & MON & CFG
     F -->|findAbility| PX
-    S -->|读取| CTX
     PX --> IR
     PX --> EV --> MON
     PM -->|注册能力/拦截器| S & EV & MON & IR
@@ -87,7 +85,7 @@ graph TB
     classDef plugin fill:#FF9800,stroke:#E65100,color:white
     classDef adapt fill:#9C27B0,stroke:#6A1B9A,color:white
     class A1,A2,A3 biz
-    class F,B,R,S,PM,IR,PX,EV,MON,CTX,CFG core
+    class F,B,R,S,PM,IR,PX,EV,MON,CFG core
     class PS,PO,PB plugin
     class SB adapt
 ```
@@ -121,8 +119,8 @@ graph TB
 ### monitor —— 监控
 - `ExtMonitor`、`AbstractChainExtMonitor`、`DefaultExtMonitor`/`AsyncExtMonitor`、`MonitorFactory`、`MonitorHandler`/`MetricsProvider`、`ExtMetrics`/`Impl`。
 
-### context —— 标准上下文（位于 flexpoint-common）
-- `FlexPointContext`（`com.flexpoint.common.context`）：线程级 `tenantId/appCode/version/uid/labels/attributes`；由接入层入口填充、选择器（插件层）读取的横切基础设施，置于共享基础模块 `flexpoint-common`（非内核），选择器据此路由，**无需业务 Resolver**。
+### 选择器运行期数据 —— 业务 Resolver
+- 框架不内置请求上下文。选择器所需的运行期路由依据（labels/灰度键/tenantId/code/version…）由业务方实现命名 Resolver 接口提供（如 `TagSelector.LabelResolver`、`GraySelector.GrayKeyResolver`、`TenantSelector.TenantResolver`、`CodeSelector.CodeResolver`），经构造参数传入选择器，数据来源由业务方自行维护。
 
 ### 门面与构建
 - `FlexPoint`：统一 API（findAbility、register、selector、metrics、shutdown、plugin 启停/报告）。
@@ -164,16 +162,17 @@ Spring Boot：`FlexPointPluginsAutoConfiguration` 按 `flexpoint.plugins.<name>.
 
 ```java
 // 1) 构建（Java 原生；Spring Boot 下自动装配）
+//    resolver 从业务方自有来源解析 code（此处示意为一个业务持有者 holder）
 FlexPoint fp = FlexPointBuilder.create()
-        .withPlugin(new CodeVersionSelectorPlugin(() -> FlexPointContext.current().getAppCode()))
+        .withPlugin(new CodeVersionSelectorPlugin(holder::getAppCode))
         .build();
 
 // 2) 注册扩展点实现
 fp.register(new MallOrderProcessAbility());
 fp.register(new LogisticsOrderProcessAbility());
 
-// 3) 入口填充标准上下文（如 Web Filter）
-FlexPointContext.current().appCode("mall").version("1.0.0");
+// 3) 入口维护路由数据来源（如 Web Filter 把请求头写入业务持有者 holder）
+holder.setAppCode("mall");
 
 // 4) 查找并调用（按 @FpSelector 指定的选择器路由）
 OrderProcessAbility ability = fp.findAbility(OrderProcessAbility.class);
@@ -187,8 +186,10 @@ ExtMetrics m = fp.getExtMetrics(ability);
 
 ```java
 public class CustomSelector extends AbstractSelector {
+    private final AppRequestHolder holder; // 业务方自定义的请求持有者
+    public CustomSelector(AppRequestHolder holder) { this.holder = holder; }
     @Override protected <T extends ExtAbility> List<T> filter(List<T> candidates) {
-        String code = FlexPointContext.current().getAppCode();
+        String code = holder.getAppCode();
         return candidates.stream().filter(e -> code.equals(e.getCode())).collect(Collectors.toList());
     }
     @Override public String getName() { return "customSelector"; }
@@ -205,7 +206,7 @@ public class CustomSelector extends AbstractSelector {
 ---
 
 ## 测试体系与覆盖
-- **core**：注册中心并发一致性、选择器/决策解释、插件生命周期与管理器、上下文、调用拦截器（可重入/around）、事件语义、配置校验。
+- **core**：注册中心并发一致性、选择器/决策解释、插件生命周期与管理器、调用拦截器（可重入/around）、事件语义、配置校验。
 - **springboot**：`flexpoint.plugins.*` 配置装配集成。
 - **plugin-*（每模块自带）**：各选择器路由、观测订阅/统计、重试/超时/熔断。
 - **complex**：灰度、A/B 等复杂业务规则。

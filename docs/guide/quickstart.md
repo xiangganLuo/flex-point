@@ -88,10 +88,9 @@ public class MallOrderProcessAbilityV2 implements OrderProcessAbility {
 
 ## 4. 注册选择器
 
-官方 code + version 选择器以插件方式注册。业务方只需提供「从上下文解析 code / version」的实现：
+官方 code + version 选择器以插件方式注册。业务方只需实现 `CodeVersionResolver`，从**自己维护的来源**解析 code / version（框架不再提供请求上下文）。本例的 `AppRequestHolder` 是业务方自定义的请求持有者：
 
 ```java
-import com.flexpoint.common.context.FlexPointContext;
 import com.flexpoint.plugin.selector.codeversion.CodeVersionSelector;
 import com.flexpoint.plugin.selector.codeversion.CodeVersionSelectorPlugin;
 import org.springframework.context.annotation.Bean;
@@ -101,41 +100,43 @@ import org.springframework.context.annotation.Configuration;
 public class FlexPointConfig {
 
     @Bean
-    public CodeVersionSelectorPlugin codeVersionSelectorPlugin() {
+    public CodeVersionSelectorPlugin codeVersionSelectorPlugin(AppRequestHolder holder) {
         return new CodeVersionSelectorPlugin(new CodeVersionSelector.CodeVersionResolver() {
             @Override
-            public String resolveCode() { return FlexPointContext.current().getAppCode(); }
+            public String resolveCode() { return holder.getAppCode(); }
 
             @Override
-            public String resolveVersion() { return FlexPointContext.current().getVersion(); }
+            public String resolveVersion() { return holder.getAppVersion(); }
         });
     }
 }
 ```
 
-## 5. 在入口填充上下文
+## 5. 由业务方维护路由数据来源
 
-选择器在运行期读取标准上下文 `FlexPointContext`。以 Web 过滤器为例，在请求入口填充、结束清理：
+选择器所需的 code / version 由业务方自己维护——框架不再提供任何请求上下文。以 Web 过滤器把请求头写入业务自定义的请求持有者为例，Resolver 再从该持有者读取：
 
 ```java
-import com.flexpoint.common.context.FlexPointContext;
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Component;
 
 @Component
-public class AppContextFilter implements Filter {
+public class AppRequestFilter implements Filter {
+    private final AppRequestHolder holder; // 业务方自定义的请求持有者（如基于 ThreadLocal）
+
+    public AppRequestFilter(AppRequestHolder holder) { this.holder = holder; }
+
     @Override
     public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain)
             throws IOException, ServletException {
         HttpServletRequest request = (HttpServletRequest) req;
-        FlexPointContext.current()
-                .appCode(request.getHeader("X-App-Code"))
-                .version(request.getHeader("X-App-Version"));
+        holder.setAppCode(request.getHeader("X-App-Code"));
+        holder.setAppVersion(request.getHeader("X-App-Version"));
         try {
             chain.doFilter(req, resp);
         } finally {
-            FlexPointContext.clear(); // 线程池复用，务必清理
+            holder.clear(); // 线程池复用，务必清理
         }
     }
 }

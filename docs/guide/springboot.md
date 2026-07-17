@@ -27,7 +27,7 @@ flowchart TD
 ```
 
 - **核心实例**：`FlexPointCoreAutoConfiguration` 用 `FlexPointBuilder` 基于 `FlexPointProperties` 构建 `FlexPoint`，并收集容器中所有 `Plugin` Bean（`List<Plugin>`）一并装配（装配顺序 = Bean 收集顺序）。
-- **官方插件装配**：`FlexPointPluginsAutoConfiguration` 依据 `flexpoint.plugins.<name>.enabled=true` 为 13 个官方插件生成 `Plugin` Bean（见下文；`cache` 除外，需显式 `@Bean`）。
+- **官方插件装配**：`FlexPointPluginsAutoConfiguration` 依据 `flexpoint.plugins.<name>.enabled=true` 为 9 个官方插件生成 `Plugin` Bean（见下文；`tag`/`gray`/`ab`/`tenant`/`cache` 除外，需显式 `@Bean`）。
 - **自动注册**：`FlexPointSpringExtAbilityRegister` / `FlexPointSpringSelectorRegister` 在启动时扫描所有 `ExtAbility` 与 `Selector` Bean 并注册到 `FlexPoint`（受 `flexpoint.registry.enabled` 控制）。
 - **注解注入**：`ExtAbilityProcessor`（`BeanPostProcessor`）为标注 `@FpExt` 的字段注入扩展点代理（受 `flexpoint.processor.enabled` 控制）。
 
@@ -58,21 +58,27 @@ public class OrderController {
 
 `FlexPoint` 由自动配置构建时会收集容器中**所有** `Plugin` 类型 Bean（`List<Plugin>`）并按收集顺序装配。让插件生效有三种途径：
 
-**途径一（推荐，适用 13 个官方插件）：属性开关** —— 引入插件模块依赖后，只需设置 `flexpoint.plugins.<name>.enabled=true`，`FlexPointPluginsAutoConfiguration` 便自动创建并装配对应插件 Bean，无需写代码。适用：`tag`、`gray`、`ab`、`weight`、`tenant`、`audit`、`slowcall`、`metrics`、`retry`、`resilience`、`observability`、`code`、`code-version`。其中 `code` / `code-version` 在开关之外还需容器提供对应的 `Resolver` Bean（`@ConditionalOnBean`），`observability` 可选注入 `AlertStrategy` / `MetricsCollector`（详见 [官方插件模块](/guide/plugins-official)）。
+**途径一（推荐，适用 9 个官方插件）：属性开关** —— 引入插件模块依赖后，只需设置 `flexpoint.plugins.<name>.enabled=true`，`FlexPointPluginsAutoConfiguration` 便自动创建并装配对应插件 Bean，无需写代码。适用：`weight`、`audit`、`slowcall`、`metrics`、`retry`、`resilience`、`observability`、`code`、`code-version`。其中 `code` / `code-version` 在开关之外还需容器提供对应的 `Resolver` Bean（`@ConditionalOnBean`），`observability` 可选注入 `AlertStrategy` / `MetricsCollector`（详见 [官方插件模块](/guide/plugins-official)）。
 
 ```yaml
 flexpoint:
   plugins:
-    tag: { enabled: true }
+    weight: { enabled: true }
     retry: { enabled: true, max-attempts: 3, backoff-ms: 100 }
 ```
 
-**途径二：声明 `@Bean`** —— 缓存选择器 `cache` 是装饰器，需要被包装的 `delegate`，**不纳入属性装配**，必须自行声明 Bean（原因见 [官方插件模块](/guide/plugins-official#缓存选择器-cache)）。此外，你声明的任意同类型插件 Bean 都会覆盖属性装配的默认（`@ConditionalOnMissingBean`）：
+**途径二：声明 `@Bean`** —— `tag`/`gray`/`ab`/`tenant` 选择器需业务方实现对应 Resolver 提供运行期数据，缓存选择器 `cache` 是装饰器需被包装的 `delegate`，二者都**不纳入属性装配**，必须自行声明对应 `*SelectorPlugin` 的 Bean（原因见 [官方插件模块](/guide/plugins-official)）。此外，你声明的任意同类型插件 Bean 都会覆盖属性装配的默认（`@ConditionalOnMissingBean`）：
 
 ```java
+// tenant：传入业务方实现的 TenantResolver（值来自业务自有来源）
+@Bean
+public TenantSelectorPlugin tenantSelectorPlugin(AppRequestHolder holder) {
+    return new TenantSelectorPlugin(true, holder::getTenantId);
+}
+
+// cache：为某个选择器套一层缓存，用独立 name 避免与被包装 delegate 同名冲突
 @Bean
 public CachingSelectorPlugin cachingSelectorPlugin(TenantSelector delegate) {
-    // 用独立 name 避免与被包装 delegate 同名冲突
     return new CachingSelectorPlugin(delegate, 5000L, "cachedTenantSelector");
 }
 ```
@@ -127,8 +133,8 @@ flexpoint:
 
 1. 引入 `flexpoint-springboot` + 所需官方插件模块。
 2. 定义 `@FpSelector` 扩展点接口，写多套 `@Component` 实现。
-3. 开启选择器：属性开关（`flexpoint.plugins.<name>.enabled=true`）或声明插件 / 选择器 Bean。
-4. 在请求入口（如 Web Filter）填充 `FlexPointContext`，请求结束 `clear()`。
+3. 开启选择器：属性开关（`flexpoint.plugins.<name>.enabled=true`，适用 `weight`/`code`/`code-version` 等）或声明插件 / 选择器 Bean（`tag`/`gray`/`ab`/`tenant`/`cache` 需显式 `@Bean` 并传入对应 Resolver / delegate）。
+4. 由业务方在自己的入口（如 Web Filter）维护路由数据来源，供各 Resolver 读取。
 5. 业务 Bean 用 `@FpExt` 注入并调用。
 
 完整可运行示例见仓库 `flexpoint-examples` 模块。
