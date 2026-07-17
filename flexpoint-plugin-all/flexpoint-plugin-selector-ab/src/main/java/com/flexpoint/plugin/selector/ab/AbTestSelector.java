@@ -1,6 +1,6 @@
 package com.flexpoint.plugin.selector.ab;
 
-import com.flexpoint.core.context.FlexPointContext;
+import com.flexpoint.common.context.FlexPointContext;
 import com.flexpoint.core.ext.ExtAbility;
 import com.flexpoint.core.selector.AbstractSelector;
 import lombok.extern.slf4j.Slf4j;

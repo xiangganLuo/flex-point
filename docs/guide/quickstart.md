@@ -91,7 +91,7 @@ public class MallOrderProcessAbilityV2 implements OrderProcessAbility {
 官方 code + version 选择器以插件方式注册。业务方只需提供「从上下文解析 code / version」的实现：
 
 ```java
-import com.flexpoint.core.context.FlexPointContext;
+import com.flexpoint.common.context.FlexPointContext;
 import com.flexpoint.plugin.selector.codeversion.CodeVersionSelector;
 import com.flexpoint.plugin.selector.codeversion.CodeVersionSelectorPlugin;
 import org.springframework.context.annotation.Bean;
@@ -118,7 +118,7 @@ public class FlexPointConfig {
 选择器在运行期读取标准上下文 `FlexPointContext`。以 Web 过滤器为例，在请求入口填充、结束清理：
 
 ```java
-import com.flexpoint.core.context.FlexPointContext;
+import com.flexpoint.common.context.FlexPointContext;
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Component;

@@ -73,7 +73,7 @@ flowchart TD
 只需实现 `filter(...)`；模板方法自动按「空 → MISS、唯一 → HIT、多个 → AMBIGUOUS」封装结果与解释，**不会**在歧义时抛异常（交由上层 `findAbility` 决定）：
 
 ```java
-import com.flexpoint.core.context.FlexPointContext;
+import com.flexpoint.common.context.FlexPointContext;
 import com.flexpoint.core.ext.ExtAbility;
 import com.flexpoint.core.selector.AbstractSelector;
 import java.util.List;

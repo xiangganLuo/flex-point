@@ -1,6 +1,6 @@
 package com.flexpoint.test.context;
 
-import com.flexpoint.core.context.FlexPointContext;
+import com.flexpoint.common.context.FlexPointContext;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

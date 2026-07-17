@@ -1,4 +1,4 @@
-package com.flexpoint.core.context;
+package com.flexpoint.common.context;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -13,6 +13,9 @@ import java.util.Optional;
  * <p>承载路由/治理常用的标准字段（tenantId/appCode/version/uid/labels）与任意扩展属性，
  * 通过 {@link ThreadLocal} 在一次请求内传递。路由类选择器直接读取本上下文即可完成路由，
  * 无需业务方编写 Resolver——配合接入层（如 Web Filter）在入口填充上下文，实现「配置即装配」。</p>
+ *
+ * <p>置于 {@code flexpoint-common}（跨层共享的基础模块）：接入层填充、选择器（插件层）读取，
+ * 属于框架的横切基础设施，不隶属内核。</p>
  *
  * <p>使用：
  * <pre>

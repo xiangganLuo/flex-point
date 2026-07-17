@@ -252,7 +252,7 @@ public class FlexPointConfig {
 > `FlexPointContext` 读取路由信息（配合接入层入口填充，无需业务 Resolver）。
 
 ```java
-import com.flexpoint.core.context.FlexPointContext;
+import com.flexpoint.common.context.FlexPointContext;
 import com.flexpoint.core.selector.AbstractSelector;
 import org.springframework.stereotype.Component;
 

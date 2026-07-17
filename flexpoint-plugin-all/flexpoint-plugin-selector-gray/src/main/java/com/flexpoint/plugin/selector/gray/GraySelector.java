@@ -1,6 +1,6 @@
 package com.flexpoint.plugin.selector.gray;
 
-import com.flexpoint.core.context.FlexPointContext;
+import com.flexpoint.common.context.FlexPointContext;
 import com.flexpoint.core.ext.ExtAbility;
 import com.flexpoint.core.ext.ExtTags;
 import com.flexpoint.core.selector.AbstractSelector;

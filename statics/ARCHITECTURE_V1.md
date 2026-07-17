@@ -28,7 +28,7 @@ flexpoint-test               单元/集成/并发测试
 flexpoint-examples           Java 原生 / Spring Boot 接入示例
 ```
 
-**边界原则**：`core` 只保留干净 SPI 与默认实现（注册中心、选择 SPI、插件管理、事件总线、监控链、调用拦截 SPI、标准上下文）；所有**具体能力**（各类选择器、观测/行为插件）一律作为 `flexpoint-plugin-*` 独立模块。
+**边界原则**：`core` 只保留干净 SPI 与默认实现（注册中心、选择 SPI、插件管理、事件总线、监控链、调用拦截 SPI）；标准请求上下文 `FlexPointContext` 属跨层横切基础设施，置于共享基础模块 `flexpoint-common`；所有**具体能力**（各类选择器、观测/行为插件）一律作为 `flexpoint-plugin-*` 独立模块。
 
 ---
 
@@ -52,9 +52,9 @@ graph TB
         PX["调用管线<br/>ExtInvocationHandler → 拦截链 → EventPublishingInterceptor → 反射"]
         EV[EventBus / EventDispatcher]
         MON[ExtMonitor + Handler 链]
-        CTX[FlexPointContext 标准上下文]
         CFG[FlexPointConfig + Validator]
     end
+    CTX["FlexPointContext 标准上下文<br/>（flexpoint-common·共享基础）"]
 
     subgraph "flexpoint-plugin-*（官方插件）"
         PS[选择器: code/code-version/tag/gray/ab/weight/tenant/cache]
@@ -121,8 +121,8 @@ graph TB
 ### monitor —— 监控
 - `ExtMonitor`、`AbstractChainExtMonitor`、`DefaultExtMonitor`/`AsyncExtMonitor`、`MonitorFactory`、`MonitorHandler`/`MetricsProvider`、`ExtMetrics`/`Impl`。
 
-### context —— 标准上下文
-- `FlexPointContext`：线程级 `tenantId/appCode/version/uid/labels/attributes`；选择器据此路由，**无需业务 Resolver**。
+### context —— 标准上下文（位于 flexpoint-common）
+- `FlexPointContext`（`com.flexpoint.common.context`）：线程级 `tenantId/appCode/version/uid/labels/attributes`；由接入层入口填充、选择器（插件层）读取的横切基础设施，置于共享基础模块 `flexpoint-common`（非内核），选择器据此路由，**无需业务 Resolver**。
 
 ### 门面与构建
 - `FlexPoint`：统一 API（findAbility、register、selector、metrics、shutdown、plugin 启停/报告）。
